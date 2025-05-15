@@ -1,2 +1,2 @@
 mvn clean install is executing integration-test also if all test folders are deleted.
-chek if introduced skips (skip enhance) are not skipping mandatory steps
+chek if introduced skips (skip enhance) are not skipping mandatory steps. Maybe i should change this after adding my tests.
