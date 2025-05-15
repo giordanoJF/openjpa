@@ -109,6 +109,7 @@
                     <execution>
                         <phase>process-test-classes</phase>
                         <configuration>
+                            <skip>true</skip>
                             <target>
                                 <ant antfile="src/main/ant/enhancer.xml" target="enhance" inheritRefs="true">
                                     <property name="maven.test.skip" value="${maven.test.skip}" />

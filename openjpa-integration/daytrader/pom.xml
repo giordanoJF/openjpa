@@ -146,6 +146,7 @@
                     <excludes>org/apache/openjpa/persistence/**/*.class</excludes>
                     <addDefaultConstructor>true</addDefaultConstructor>
                     <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
