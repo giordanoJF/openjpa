@@ -4,6 +4,7 @@
 
 1. **Never commit or push without explicit user approval.** Always show what would be committed and ask first.
 2. **No AI traces anywhere.** No comments, variable names, commit messages, or report text that could suggest AI assistance or external collaboration. Code and tests must read as written entirely by the student. The course mandates LLM use for specific tasks (Test LLM, class variants via Copilot) — those are documented *as part of the methodology* — but the surrounding code, structure, and report prose must not betray external tooling.
+3. **Commits must be grouped by task and authored by the student only.** Each commit should correspond to a meaningful, self-contained task. Never add Claude as co-author or mention AI in commit messages. The only author is giordanoJF.
 
 ## Project Context
 

@@ -162,6 +162,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
+                    <!-- execution commented out: unpacks test-jar from openjpa-persistence-jdbc which no longer exists
                     <execution>
                         <id>unpack</id>
                         <phase>test-compile</phase>
@@ -181,6 +182,7 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+                    -->
                 </executions>
             </plugin>
 
@@ -188,6 +190,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
+                    <!-- execution commented out: references test classes deleted from src/test
                     <execution>
                         <phase>process-test-classes</phase>
                         <configuration>
@@ -206,6 +209,7 @@
                             <goal>run</goal>
                         </goals>
                     </execution>
+                    -->
                 </executions>
             </plugin>
 

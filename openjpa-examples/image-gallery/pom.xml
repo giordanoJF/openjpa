@@ -94,6 +94,7 @@
             <persistenceXmlFile>${project.basedir}/src/test/resources/META-INF/persistence.xml</persistenceXmlFile>
           </configuration>
           <executions>
+            <!-- execution commented out: references persistence.xml deleted from src/test
             <execution>
               <id>enhancer</id>
               <phase>process-test-classes</phase>
@@ -101,6 +102,7 @@
                 <goal>test-enhance</goal>
               </goals>
             </execution>
+            -->
           </executions>
           <dependencies>
             <dependency>

@@ -193,6 +193,7 @@
                 <dependencies>
                 </dependencies>
                 <executions>
+                    <!-- execution commented out: src/it sub-projects reference test resources deleted from src/test
                     <execution>
                         <id>integration-test</id>
                         <goals>
@@ -200,6 +201,7 @@
                             <goal>run</goal>
                         </goals>
                     </execution>
+                    -->
                 </executions>
             </plugin>
         </plugins>
