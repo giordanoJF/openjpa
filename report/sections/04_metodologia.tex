@@ -1,0 +1,16 @@
+% ============================================================
+\section{Metodologia di Testing}
+% ============================================================
+
+La campagna di testing prevede la produzione di sei suite di test distinte, denominate secondo la seguente convenzione:
+
+\begin{itemize}
+    \item \textbf{Test BB} — test manuali black-box, prodotti tramite la tecnica Category Partition a partire dalla documentazione e dalle specifiche, senza lettura del codice sorgente.
+    \item \textbf{Test CF} — evoluzione di Test BB ottenuta iterativamente migliorando la copertura del control flow (branch coverage) tramite JaCoCo.
+    \item \textbf{Test MT} — evoluzione di Test CF ottenuta iterativamente migliorando il mutation score tramite PITest.
+    \item \textbf{Test RND} — test generati automaticamente tramite uno strumento di generazione casuale (Randoop).
+    \item \textbf{Test ES} — test generati automaticamente tramite EvoSuite, uno strumento basato su algoritmi evolutivi guidati dalla copertura strutturale.
+    \item \textbf{Test LLM} — test generati tramite prompting di un Large Language Model, con diverse strategie di prompting documentate.
+\end{itemize}
+
+Le suite BB, CF e MT costituiscono una progressione della stessa suite manuale attraverso due iterazioni di miglioramento. Le suite RND, ES e LLM sono invece tre suite automatiche indipendenti.

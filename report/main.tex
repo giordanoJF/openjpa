@@ -1,0 +1,66 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{setspace}
+\singlespacing
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black
+}
+
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\bfseries,
+    commentstyle=\itshape\color{gray}
+}
+
+\date{}
+
+\begin{document}
+
+\begin{center}
+    {\large \textbf{Progetto di Software Testing — Apache OpenJPA 4.1.1}}\\[0.4em]
+    {\normalsize Giordano Spirito}\\[0.2em]
+    {\normalsize Ingegneria del Software 2 — A.A. 2025/2026}
+\end{center}
+
+\vspace{1em}
+
+\input{sections/01_introduzione}
+\input{sections/02_ambiente}
+\input{sections/03_classi_target}
+\input{sections/04_metodologia}
+\input{sections/05_test_bb}
+\input{sections/06_test_cf}
+\input{sections/07_test_mt}
+\input{sections/08_test_rnd}
+\input{sections/09_test_es}
+\input{sections/10_test_llm}
+\input{sections/11_validazione}
+\input{sections/12_varianti}
+\input{sections/13_affidabilita}
+
+\newpage
+\appendix
+\input{sections/appendix}
+
+\end{document}
