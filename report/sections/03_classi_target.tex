@@ -2,19 +2,23 @@
 \section{Classi Target}
 % ============================================================
 
-\subsection{Selezione}
-
-Le due classi target sono state selezionate tramite l'algoritmo della Milestone 4 del progetto Falessi (ISW2), che individua le classi più significative sulla base di metriche di complessità e storico dei bug. La selezione ha prodotto le seguenti classi:
-
-\begin{itemize}
-    \item \texttt{org.apache.openjpa.kernel.BrokerImpl}
-    \item \texttt{org.apache.openjpa.trader.client.LoginDialog}
-\end{itemize}
+Le due classi target sono state selezionate tramite l'algoritmo della
+Milestone 4 del modulo del prof Falessi.
 
 \subsection{BrokerImpl}
 
-\texttt{BrokerImpl} è la classe centrale del kernel di OpenJPA. Implementa l'interfaccia \texttt{Broker} e gestisce il ciclo di vita delle entità persistenti: operazioni di persist, merge, remove, find, query e gestione delle transazioni. La classe è di dimensioni considerevoli e presenta una complessità ciclomatica elevata, rendendola un soggetto di testing particolarmente significativo.
+\texttt{BrokerImpl} è la classe centrale del kernel di OpenJPA.
+Implementa l'interfaccia \texttt{Broker} e gestisce il ciclo di vita
+delle entità persistenti: operazioni di persist, merge, remove, find,
+query e gestione delle transazioni.
+La classe è di dimensioni considerevoli e presenta una complessità
+ciclomatica elevata, rendendola un soggetto di testing particolarmente
+significativo.
 
 \subsection{LoginDialog}
 
-\texttt{LoginDialog} è un componente dell'applicazione di esempio OpenTrader, sviluppata con Google Web Toolkit (GWT). La classe gestisce la finestra di dialogo per l'autenticazione dell'utente, includendo la logica di validazione dell'input e la comunicazione con il server tramite RPC.
+\texttt{LoginDialog} è un componente dell'applicazione di esempio
+OpenTrader, sviluppata con Google Web Toolkit (GWT).
+La classe gestisce la finestra di dialogo per l'autenticazione
+dell'utente, includendo la logica di validazione dell'input e la
+comunicazione con il server tramite RPC.

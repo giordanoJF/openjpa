@@ -2,44 +2,59 @@
 \section{Ambiente di Lavoro}
 % ============================================================
 
-\subsection{Repository e Versione del Progetto}
+Il progetto Apache OpenJPA è stato ottenuto tramite fork del repository
+ufficiale su GitHub.
+Il lavoro si è svolto sul branch \texttt{release-4.1.1}, corrispondente
+al tag di rilascio \texttt{4.1.1}.\\
 
-Il progetto Apache OpenJPA è stato ottenuto tramite fork del repository ufficiale su GitHub. Il lavoro si è svolto sul branch \texttt{release-4.1.1}, corrispondente al tag di rilascio \texttt{4.1.1}. L'ambiente di sviluppo primario è Windows 11 con WSL2 (Ubuntu); tutti gli script e le configurazioni sono stati mantenuti compatibili con ambienti Linux e macOS.
-
-\subsection{Versione Java}
-
-OpenJPA 4.1.1 è progettato per Java 17. L'utilizzo di Java 26 causa errori di compilazione nel modulo \texttt{openbooks} a causa di modifiche alle regole di type inference dei generics introdotte nelle versioni più recenti del compilatore Java. Per questa ragione, Java 17 è stato adottato come versione principale per tutte le operazioni di build e testing. Lo switch di versione viene effettuato tramite variabile d'ambiente:
-
-\begin{verbatim}
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-export PATH=$JAVA_HOME/bin:$PATH
-\end{verbatim}
-
-Lo strumento EvoSuite, utilizzato per la generazione automatica di test, richiede anch'esso Java 17, risultando pertanto compatibile con questa configurazione.
+OpenJPA 4.1.1 supporta Java 11 e versioni successive, come indicato nel
+\texttt{pom.xml} del progetto.
+Java 17 è stato scelto come versione di riferimento per le operazioni di
+build e testing in quanto compatibile con il progetto e privo di problemi
+di compilazione; java 26 causa errori durante la build nel modulo
+\texttt{openbooks}.
 
 \subsection{Rimozione dei Test Originali}
 
-Al fine di sostituire interamente la suite di test con quella sviluppata nel presente progetto, i sorgenti di test originali sono stati rimossi da tutte le directory \texttt{src/test} dei sottomoduli, tramite il comando:
+Al fine di sostituire interamente la suite di test con quella sviluppata
+nel presente progetto, i sorgenti di test originali sono stati rimossi
+da tutte le directory \texttt{src/test} dei sottomoduli.\\
 
-\begin{verbatim}
-find <project-root> -type d -path "*/src/test" \
-    -exec sh -c 'rm -rf "$1"/*' _ {} \;
-\end{verbatim}
-
-\subsection{Adeguamento dei File \texttt{pom.xml}}
-
-La rimozione dei contenuti di \texttt{src/test} ha reso non valide alcune \texttt{<execution>} Maven definite nei \texttt{pom.xml} di diversi sottomoduli. Tali execution erano legate all'enhancement bytecode delle entità JPA di test e referenziavano file (quali \texttt{persistence.xml} ed \texttt{enhancer.xml}) presenti in \texttt{src/test}. Le fasi coinvolte sono \texttt{process-test-classes} e \texttt{test-compile}, che precedono l'esecuzione di Surefire e non sono controllabili tramite il flag \texttt{-DskipTests}.
-
-Sono stati identificati quattro tipi distinti di execution da disabilitare, ciascuno con una causa e un impatto funzionale diverso:
+La rimozione dei contenuti di \texttt{src/test} ha reso non valide alcune
+\texttt{<execution>} Maven definite nei \texttt{pom.xml} di diversi
+sottomoduli.
+Tali execution erano legate all'enhancement bytecode delle entità JPA di
+test e referenziavano file presenti in \texttt{src/test}.
 
 \begin{itemize}
-    \item \textbf{Enhancement tramite Ant} (\texttt{maven-antrun-plugin}) — diversi moduli eseguivano script Ant (tipicamente \texttt{enhancer.xml}) in fase \texttt{process-test-classes} per applicare il bytecode enhancement alle entity JPA di test. Questi script cercavano il file \texttt{persistence.xml} in \texttt{src/test/resources}; la sua assenza causava un errore \textit{MetaDataFactory could not be configured}. Commentando le execution corrispondenti si rimuove l'enhancement delle classi di test originali, non rilevante per la campagna di testing sviluppata.
+    \item \textbf{Enhancement tramite Ant} (\texttt{maven-antrun-plugin}):
+          diversi moduli eseguivano script Ant,
+          i quali cercavano il file \texttt{persistence.xml} in
+          \texttt{src/test/resources}; la sua assenza causava un errore.
+          Commentando le execution corrispondenti si rimuove l'enhancement
+          delle classi di test originali.
 
-    \item \textbf{Enhancement tramite plugin nativo} (\texttt{openjpa-maven-plugin}, goal \texttt{test-enhance}) — alcuni moduli utilizzavano il plugin Maven nativo di OpenJPA in sostituzione di Ant per lo stesso scopo. Il comportamento e l'errore prodotto sono identici a quelli del caso precedente; la soluzione adottata è analoga.
+    \item \textbf{Enhancement tramite plugin nativo}
+          (\texttt{openjpa-maven-plugin}, goal \texttt{test-enhance}):
+          alcuni moduli utilizzavano il plugin Maven nativo di OpenJPA
+          in sostituzione di Ant per lo stesso scopo.
+          Il comportamento e l'errore prodotto sono identici a quelli del
+          caso precedente; la soluzione adottata è analoga.
 
-    \item \textbf{Spacchettamento di classi di supporto ai test} (\texttt{maven-dependency-plugin}, goal \texttt{unpack}) — in fase \texttt{test-compile}, alcuni moduli estraevano da un test-jar di \texttt{openjpa-persistence-jdbc} un insieme di classi di utilità per i test originali (package \texttt{org.apache.openjpa.persistence.test}). Con la rimozione dei test originali, queste classi non sono più necessarie e la loro estrazione è stata disabilitata.
+    \item \textbf{Spacchettamento di classi di supporto ai test}
+          (\texttt{maven-dependency-plugin}, goal \texttt{unpack}):
+          alcuni moduli estraevano classi di utilità per i test originali
+          da artifact esterni; con la rimozione di tali test, queste
+          execution non sono più necessarie e sono state disabilitate.
 
-    \item \textbf{Build di sotto-progetti di integrazione} (\texttt{maven-invoker-plugin}) — il modulo \texttt{openjpa-tools/openjpa-maven-plugin} eseguiva build Maven separati su sotto-progetti in \texttt{src/it} per verificare il corretto funzionamento del plugin Maven di OpenJPA come strumento esterno. Questi sotto-progetti dipendevano da risorse di test non più presenti. Il loro scopo è testare il plugin stesso come tool di build, non le entity del progetto; la loro disabilitazione non influisce sulla capacità di eseguire test unitari o di integrazione tramite Surefire e Failsafe.
+    \item \textbf{Build di sotto-progetti di integrazione}
+          (\texttt{maven-invoker-plugin}):
+          alcuni moduli avviavano build Maven aggiuntivi su sotto-progetti
+          dipendenti da risorse di test ora assenti; anche queste execution
+          sono state disabilitate.
 \end{itemize}
 
-In totale, le execution commentate interessano dieci sottomoduli distribuiti tra il kernel, i moduli di integrazione e gli esempi del progetto. In tutti i casi, l'intervento è limitato al blocco \texttt{<execution>} del \texttt{pom.xml} del modulo interessato, lasciando invariata la configurazione dei plugin Surefire e Failsafe responsabili dell'esecuzione dei test.
+In tutti i casi, l'intervento è limitato al blocco \texttt{<execution>}
+del \texttt{pom.xml} del modulo interessato, lasciando invariata la
+restante configurazione dei plugin responsabili dell'esecuzione
+dei test.

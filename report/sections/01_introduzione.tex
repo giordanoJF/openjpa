@@ -2,12 +2,14 @@
 \section{Introduzione}
 % ============================================================
 
-Il presente documento descrive la campagna di testing condotta sul progetto open-source Apache OpenJPA, versione 4.1.1. OpenJPA è un'implementazione della Jakarta Persistence API (JPA) sviluppata dalla Apache Software Foundation. Il progetto è strutturato come un multi-modulo Maven comprendente oltre venti sottomoduli.
-
-L'obiettivo del lavoro è applicare un insieme di tecniche di testing — manuali e automatiche — su due classi target selezionate, misurarne la qualità tramite metriche di copertura e mutation score, e analizzare varianti refactored delle stesse classi generate con strumenti di AI.
+Il presente documento descrive la campagna di testing condotta sul progetto
+Apache OpenJPA, versione 4.1.1.
+L'obiettivo del lavoro è applicare un insieme di tecniche di testing,
+sia manuali che automatiche, su due classi target selezionate,
+misurarne la qualità e analizzare varianti refactored delle stesse classi.\\
 
 Le due classi target sono:
 \begin{itemize}
-    \item \texttt{org.apache.openjpa.kernel.BrokerImpl} — classe centrale del kernel di OpenJPA, responsabile della gestione del ciclo di vita delle entità JPA.
-    \item \texttt{org.apache.openjpa.trader.client.LoginDialog} — componente client dell'applicazione di esempio OpenTrader, responsabile della gestione del login utente.
+    \item \texttt{org.apache.openjpa.kernel.BrokerImpl}
+    \item \texttt{org.apache.openjpa.trader.client.LoginDialog}
 \end{itemize}
