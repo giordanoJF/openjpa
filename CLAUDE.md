@@ -1,439 +1,278 @@
 # OpenJPA — University Software Testing Project
 
-## Collaboration Rules (read first)
+## Collaboration Rules
 
 1. **Never commit or push without explicit user approval.** Always show what would be committed and ask first.
-2. **No AI traces anywhere.** No comments, variable names, commit messages, or report text that could suggest AI assistance or external collaboration. Code and tests must read as written entirely by the student. The course mandates LLM use for specific tasks (Test LLM, class variants via Copilot) — those are documented *as part of the methodology* — but the surrounding code, structure, and report prose must not betray external tooling.
-3. **Commits must be grouped by task and authored by the student only.** Each commit should correspond to a meaningful, self-contained task. Never add Claude as co-author or mention AI in commit messages. The only author is giordanoJF.
+2. **No AI traces anywhere.** No comments, variable names, commit messages, or report text suggesting AI/external collaboration. LLM use for Test LLM and Copilot variants is documented as methodology — but surrounding code, structure, and report prose must not betray external tooling.
+3. **Commits by student only (giordanoJF).** Grouped by task, self-contained. No Claude co-author, no AI in commit messages.
 
-## Testing Methodology Rules (mandatory, never override)
+## Testing Methodology Rules (mandatory)
 
-4. **Always separate test case DESIGN from test case IMPLEMENTATION.** Design comes first and must be complete before writing any JUnit code. Design = categories, choices, constraints, test frames, abstract test specifications. Implementation = translating those specs into runnable JUnit 5 tests. Never collapse the two phases into one.
-5. **Always respect the analysis type (black-box vs white-box) as an absolute constraint.** If the current task is black-box: derive test cases exclusively from documentation, specs, and declared interfaces — never from the implementation body. If white-box: base decisions on the actual code structure (CFG, branches, paths). Never silently mix approaches or ignore this distinction when it appears in a task description.
-6. **Use precise terminology in all code, comments, and report prose.** The professor distinguishes: *error* (human mistake) → *fault* (defect in the code) → *failure* (observable wrong behavior). A fault is necessary but not sufficient for a failure. Never use "bug" generically in the report. Testing finds failures; debugging locates and removes faults.
-7. **Every test must follow the SEEV structure:** Setup → Exercise → Verify (assert) → Teardown. Oracle values (expected outputs) must come from the specification or documentation, never inferred from the code under test. This applies to all 6 suite types.
-8. **Oracle problem (mandatory awareness):** una failure è un comportamento osservabile che devia dal comportamento atteso. In assenza di specifica o oracolo non è possibile stabilire se un output è corretto o scorretto — e quindi non si può nemmeno affermare l'esistenza di una failure. Durante la **fase di progettazione** dei casi di test, il progettista (lo studente) deve produrre esplicitamente le tuple input→output atteso che fungono da oracolo per ogni test frame. Questo lavoro appartiene al progettista, non all'implementatore: chi scrive il codice JUnit traduce quelle tuple in assert, ma non inventa i valori attesi.
+4. **Separate DESIGN from IMPLEMENTATION.** Design (categories, choices, constraints, test frames, abstract specs) must be complete before writing any JUnit. Never collapse phases.
+5. **Respect BB vs WB absolutely.** BB: derive from docs/specs/declared interfaces only. WB: base on CFG/branches/paths. Never mix silently.
+6. **Precise terminology always.** error (human mistake) → fault (code defect) → failure (observable wrong behavior). Fault necessary but not sufficient for failure. No generic "bug" in report. Testing finds failures; debugging removes faults.
+7. **Every test follows SEEV:** Setup → Exercise → Verify (assert) → Teardown. Oracle values from spec/docs, never inferred from code. Applies to all 6 suites.
+8. **Oracle problem:** failure = behavior deviating from expected. Without spec/oracle, cannot confirm failure exists. Designer produces input→expected output tuples per test frame. Implementer translates to asserts, never invents values.
 
 ## Project Context
 
-This is a **university software testing project**. The goal is to design and execute a comprehensive testing campaign on the Apache OpenJPA codebase, covering two target classes, and to document everything in a detailed LaTeX/PDF report.
+University testing campaign on Apache OpenJPA, 2 target classes → detailed LaTeX/PDF report.
 
-The campaign covers the 3 orthogonal dimensions of testing (Lezione 14):
-- **Level**: Unit (primary) + Integration where interactions between modules are under test
-- **Method**: Black-box (BB) for manual design from specs; white-box (WB) when iterating on coverage metrics
-- **Type**: Manual (Test BB/CF/MT) + Automated (Test RND/ES/LLM)
-
-Every test activity in the report must be classified along all three dimensions.
+3 orthogonal dimensions (Lezione 14): **Level** (Unit primary + Integration) | **Method** (BB manual; WB for coverage iteration) | **Type** (Manual: BB/CF/MT; Automated: RND/ES/LLM). Every test activity classified along all three.
 
 ## Development Environment
 
-- Primary dev environment: **Windows 11 with WSL2** (Ubuntu), but all work must remain **cross-platform** (Linux, macOS, Windows/WSL).
-- Before introducing any new dependency or tool, verify it works on all three platforms or flag the limitation explicitly.
-- Avoid Windows-only paths, line endings, or shell assumptions. Use POSIX paths in scripts.
+- **Windows 11 + WSL2** (Ubuntu); all work cross-platform (Linux/macOS/WSL). POSIX paths in scripts.
+- Before adding any dependency: verify cross-platform or flag explicitly.
 
-## Target Classes (release 4.1.1)
-
-Confirmed on branch `release-4.1.1` (tag `4.1.1`), both files exist:
+## Target Classes (branch `release-4.1.1`, tag `4.1.1`)
 
 1. `openjpa-kernel/src/main/java/org/apache/openjpa/kernel/BrokerImpl.java`
 2. `openjpa-examples/opentrader/src/main/java/org/apache/openjpa/trader/client/LoginDialog.java`
 
-For `classes.txt` submission (alphabetical order):
-```
-org.apache.openjpa.kernel.BrokerImpl
-org.apache.openjpa.trader.client.LoginDialog
-```
-
-Selected via the Falessi project (ISW2) Milestone 4 algorithm output.
+`classes.txt` (alphabetical): `org.apache.openjpa.kernel.BrokerImpl` / `org.apache.openjpa.trader.client.LoginDialog`. Selected via Falessi ISW2 Milestone 4.
 
 ## Testing Toolchain
 
-Each tool corresponds to a specific phase and metric. Do not swap them.
+Each tool = specific phase + metric. Do not swap.
 
-- **Maven + Surefire** — unit test runner (fase `test`); naming patterns `Test*/*Test/*Tests/*TestCase`; reports in `target/surefire-reports/TEST-*.xml`
-- **Maven Failsafe** — integration test runner (fase `integration-test`/`verify`); naming patterns `IT*/*IT/*ITCase`; reports in `target/failsafe-reports/`; goals: `integration-test` + `verify`
-- **JUnit 5** — test framework (`openjpa-junit5` module already present); course reference is JUnit 4 annotations (@Test, @Before/@After, @BeforeClass/@AfterClass, @RunWith) but JUnit 5 is the implementation target
-- **Mockito** — stub/mock for unit and integration tests; use `mock()`, `@Mock`, `when().thenReturn()`, `verify()`; runner: `MockitoJUnitRunner` or `MockitoJUnit.rule()`. Rule: mock everything that is **not the subject of the current test** — in a unit test that means all dependencies of the SUT; in an integration test it means all modules outside the group being integrated (e.g. external services, DB). The tool is the same; what changes is how many real modules are left inside the test.
-- **JaCoCo** — measures **branch coverage** (covered branches / total branches, not just line coverage); HTML report in `target/site/jacoco/`; Maven plugin: `jacoco-maven-plugin`
-- **PITest v1.5.1** — mutation testing; goal `mutationCoverage`; report in `target/pit-reports/`; mutation score = |D| / (|M| − |E|) where D=killed, M=total mutants, E=equivalent
-- **EvoSuite** — evolutionary test generation via genetic algorithm applied to the **test suite** (NOT to the SUT); operates at bytecode level; fitness = branch coverage + test suite compactness; stand-alone JAR or Maven plugin
-- **Randoop** — random test generation via random sequences of API method calls on the compiled class
-- **LLM (Claude/GPT)** — prompt-based test generation; multiple strategies (zero-shot, few-shot, CoT, ToT); document every prompt + result + pass/fail
-- **CI** (GitHub Actions or TravisCI) — **required, impacts final grade**; trigger on every commit: build → test → report
+- **Maven + Surefire** — unit tests (fase `test`); patterns `Test*/*Test/*Tests/*TestCase`; reports `target/surefire-reports/TEST-*.xml`
+- **Maven Failsafe** — integration tests (fase `integration-test/verify`); patterns `IT*/*IT/*ITCase`; reports `target/failsafe-reports/`; goals: `integration-test` + `verify`
+- **JUnit 5** — test framework (`openjpa-junit5` module present); course reference = JUnit 4 annotations but JUnit 5 is implementation target
+- **Mockito** — stub/mock; `mock()`, `@Mock`, `when().thenReturn()`, `verify()`; `MockitoJUnitRunner`/`MockitoJUnit.rule()`. Mock everything not the SUT in unit tests; in integration tests, mock only modules outside the group being integrated.
+- **JaCoCo** — branch coverage (covered/total branches); HTML report `target/site/jacoco/`; plugin: `jacoco-maven-plugin`
+- **PITest v1.5.1** — mutation testing; goal `mutationCoverage`; report `target/pit-reports/`; score = |D|/(|M|−|E|) where D=killed, M=total, E=equivalent
+- **EvoSuite** — evolutionary test generation via GA on the **test suite** (NOT SUT); bytecode level; fitness = branch coverage + suite compactness; stand-alone JAR or Maven plugin
+- **Randoop** — random test generation via API call sequences on compiled class
+- **LLM** — prompt-based; multiple strategies (zero-shot/few-shot/CoT/ToT); document every prompt + result + pass/fail
+- **CI** (GitHub Actions/TravisCI) — **required, impacts grade**; every commit: build → test → report
 
-When adding any plugin or dependency to a `pom.xml`, flag it here and propose a LaTeX update.
+When adding any plugin/dependency to `pom.xml`, flag here and propose LaTeX update.
 
-## Professor's Code Examples (use as reference when writing tests)
+## Professor's Code Examples (`examples/`)
 
-All examples are in `examples/` and are written by Prof. De Angelis for this course. Always consult them before writing tests to match the expected style and patterns.
+### Lezione14esempiInClasse — JUnit 4 (SUT: stateless `Calculator`)
+- **CalculatorTest**: baseline SEEV, `Assert.assertEquals`, fixed oracle values
+- **BetterCalculatorTest**: `@BeforeClass`/`@AfterClass` (once/class) + `@Before`/`@After` (once/test)
+- **BeforeAfterCalculatorTest**: inherits `@Test` from `CalculatorTest`, overrides Setup/Teardown
+- **ParametrizedCalculatorTestAdd/Foo**: canonical oracle pattern — designer's tuples hardcoded in `@Parameters` (e.g. `{1,2},{3,3},{-2,-4},{0,0},{-17,-17}`); implementer writes `assertEquals`. Constructs: `@RunWith(Parameterized.class)`, `@Parameters`, N-arg constructor, `Assert.assertEquals`.
 
-### Lezione14esempiInClasse — JUnit 4 patterns
-
-SUT: `Calculator` (stateless, two methods: `add(double,double)`, `foo(int)`).
-
-- **CalculatorTest**: baseline SEEV structure, `Assert.assertEquals`. Fixed oracle values.
-- **BetterCalculatorTest**: adds `@BeforeClass`/`@AfterClass` (once per class) and `@Before`/`@After` (once per test); shows proper Setup/Teardown lifecycle.
-- **BeforeAfterCalculatorTest**: inherits `@Test` methods from `CalculatorTest` and overrides Setup/Teardown — shows test class inheritance.
-- **ParametrizedCalculatorTestAdd / ParametrizedCalculatorTestFoo**: **canonical oracle pattern** — the designer's input→expected tuples (e.g. `{1,2}, {3,3}, {-2,-4}, {0,0}, {-17,-17}`) are hardcoded in `@Parameters`. This is how Regola 8 is materialized in code: tuples defined by the designer, `assertEquals` written by the implementer.
-
-Key JUnit 4 constructs used: `@RunWith(Parameterized.class)`, `@Parameters`, constructor with N args, `Assert.assertEquals`.
-
-### Lezione17esempiInClasse — Mockito patterns
-
-SUT: `MyAgenda implements SimpleAgenda`; the private `Map<String,String> appointments` field is the mocked dependency.
-
-- **AgendaTest**: `@RunWith(MockitoJUnitRunner.class)` + `@InjectMocks` + `@Mock`. Shows `when().thenReturn()`, `lenient().when()` (stub not required to be called), and `verify()`. **Critical insight**: `simpleTest()` shows that even though the mocked map has `size()=2`, `getAppointments()` returns 0 items because `keySet()` was not mocked — mock only what you control, not the whole object graph.
-- **SimpleAgendaTest**: mocks the interface directly (not the implementation). Shows `thenAnswer()` for dynamic/non-deterministic behavior. Shows that multiple `@Before` methods have **no guaranteed execution order**.
+### Lezione17esempiInClasse — Mockito (SUT: `MyAgenda`)
+- **AgendaTest**: `@RunWith(MockitoJUnitRunner.class)` + `@InjectMocks` + `@Mock`. Shows `when().thenReturn()`, `lenient().when()`, `verify()`. Critical: `keySet()` not mocked → empty Set → `getAppointments()` returns 0 despite `size()=2`.
+- **SimpleAgendaTest**: mocks interface (not impl); `thenAnswer()` for dynamic behavior; multiple `@Before` have no guaranteed order.
 
 ### Lezione29-32EsempiInClasse — Unreachable paths
+- **UnreachableCodeSimpleExample**: `catch(Exception2)`/`catch(Exception)` unreachable (`op1`/`op2` only throw `Exception1`). 100% branch coverage not always achievable — document, not a coverage failure.
 
-- **UnreachableCodeSimpleExample**: `catch(Exception2)` and `catch(Exception)` blocks are structurally unreachable — `op1`/`op2` only throw `Exception1`. Demonstrates that 100% branch coverage is not always achievable due to SUT structure, and this must be documented (not treated as a coverage failure).
+## Mockito Quick Reference
 
-## Mockito Quick Reference (for test writing)
-
-### Dichiarazione di mock e spy
-
+### Dichiarazione
 ```java
-// Programmatica
-MyClass mock = mock(MyClass.class);   // mock: tutti i metodi ritornano default (null/0/false/empty)
-MyClass spy  = spy(new MyClass());    // spy: chiama i metodi reali, a meno che non siano stubbati
-
-// Via annotazioni (richiedono @RunWith(MockitoJUnitRunner.class) o MockitoJUnit.rule())
+MyClass mock = mock(MyClass.class);   // default: null/0/false/empty
+MyClass spy  = spy(new MyClass());    // chiama metodi reali, a meno che stubbati
 @Mock    MyDependency dep;            // equivalente a mock()
 @Spy     MyDependency dep;            // equivalente a spy()
-@Captor  ArgumentCaptor<String> cap; // cattura argomenti passati al mock per asserirli dopo
-@InjectMocks MyClass sut;            // crea l'istanza e inietta @Mock/@Spy nei campi per tipo (poi per nome)
+@Captor  ArgumentCaptor<String> cap; // cattura argomenti per asserirli dopo
+@InjectMocks MyClass sut;            // inietta @Mock/@Spy per tipo poi per nome
 ```
 
-`@InjectMocks` funziona per tipo: se hai due mock dello stesso tipo, Mockito li abbina per nome del campo.
-
-### Stubbing (definire comportamento)
-
+### Stubbing
 ```java
-// Valore fisso
 when(mock.method(arg)).thenReturn(value);
-
-// Eccezione
 when(mock.method(arg)).thenThrow(new RuntimeException());
-
-// Comportamento dinamico (l'output dipende dagli argomenti o da logica custom)
-when(mock.method(arg)).thenAnswer(invocation -> {
-    String a = invocation.getArgument(0);
-    return "computed: " + a;
-});
-
-// Matcher: accetta qualsiasi istanza di Date
+when(mock.method(arg)).thenAnswer(inv -> "computed: " + inv.getArgument(0));
 when(mock.method(any(Date.class))).thenReturn(value);
-
-// lenient: rilassa lo strict stubbing — lo stub può non essere mai chiamato senza errore
-lenient().when(mock.method(arg)).thenReturn(value);
-
-// Sintassi alternativa (necessaria per spy, evita di chiamare il metodo reale)
-doReturn(value).when(spy).method(arg);
+lenient().when(mock.method(arg)).thenReturn(value); // stub può non essere chiamato
+doReturn(value).when(spy).method(arg);              // per spy: evita chiamata reale
 doThrow(new RuntimeException()).when(spy).method(arg);
-
-// BDD style (equivalente funzionale)
 BDDMockito.given(mock.method(arg)).willReturn(value);
 ```
+**Strict stubbing** (default `MockitoJUnitRunner`): stub non invocato → `UnnecessaryStubbingException`. Usare `lenient()`.
 
-**Strict stubbing** (default in `MockitoJUnitRunner`): se uno stub viene dichiarato ma mai invocato, Mockito lancia `UnnecessaryStubbingException`. Usare `lenient()` per i casi in cui è intenzionale.
-
-### Verification (verificare interazioni)
-
+### Verification
 ```java
-verify(mock).method(arg);                  // chiamato esattamente 1 volta
-verify(mock, times(3)).method(arg);        // chiamato esattamente 3 volte
-verify(mock, never()).method(arg);         // mai chiamato
-verify(mock, atLeastOnce()).method(arg);   // almeno 1 volta
-
-// BDD style
+verify(mock).method(arg);                  // esattamente 1 volta
+verify(mock, times(3)).method(arg);
+verify(mock, never()).method(arg);
+verify(mock, atLeastOnce()).method(arg);
 BDDMockito.then(mock).should().method(arg);
 BDDMockito.then(mock).should(never()).method(arg);
 ```
+`verify()` fallisce se metodo non chiamato con **quegli esatti argomenti**.
 
-`verify()` fallisce se il metodo non è stato chiamato sul mock **con quegli esatti argomenti**.
-
-### Comportamento default dei mock
-
-| Tipo ritorno | Default |
+### Default mock values
+| Tipo | Default |
 |---|---|
-| Oggetto | `null` |
-| `int` / `long` / `double` | `0` |
-| `boolean` | `false` |
-| `Collection` / `List` / `Set` | collezione vuota (non null) |
+| Object | `null` |
+| int/long/double | `0` |
+| boolean | `false` |
+| Collection/List/Set | vuota (non null) |
 
-Questo spiega `AgendaTest.simpleTest()`: `keySet()` non è stubbato → ritorna `Set` vuoto → il loop non esegue → `getAppointments()` ritorna lista vuota.
+**mock** = dipendenza mai da chiamare davvero. **spy** = oggetto reale, stubba solo alcuni metodi; usare `doReturn()` (non `when()`, che chiamerebbe il reale prima dello stub).
 
-### Quando usare mock vs spy
+## Randoop Quick Reference
 
-- **mock**: dipendenza che non vuoi mai chiamare davvero (DB, servizio esterno, unità non ancora implementata)
-- **spy**: oggetto reale di cui vuoi stubbare **solo alcuni** metodi, lasciando il resto al comportamento reale; usare `doReturn()` per lo stubbing (non `when()`, che chiamerebbe il metodo reale prima dello stub)
-
-## Randoop Quick Reference (for test generation)
-
-- **Versione**: 4.3.3 (`randoop-all-4.3.3.jar`); richiede Java 8+
-- **Documentazione completa**: https://randoop.github.io/randoop/manualindex.html#running_randoop
-
-### Comandi principali
+- **v4.3.3** (`randoop-all-4.3.3.jar`); Java 8+; docs: https://randoop.github.io/randoop/manualindex.html#running_randoop
 
 ```bash
-# Genera test (comando principale)
-java -Xmx3000m -classpath myclasspath:${RANDOOP_JAR} randoop.main.Main gentests \
-  --testclass=org.apache.openjpa.kernel.BrokerImpl \
-  --output-limit=100
+java -Xmx3000m -cp myclasspath:${RANDOOP_JAR} randoop.main.Main gentests \
+  --testclass=org.apache.openjpa.kernel.BrokerImpl --output-limit=100
 
-# Minimizza una suite JUnit che fallisce
 java -cp ${RANDOOP_JAR} randoop.main.Main minimize \
   --suitepath=ErrorTest0.java --suiteclasspath=myclasspath
 
-# Help
-java -classpath ${RANDOOP_JAR} randoop.main.Main help
-java -classpath ${RANDOOP_JAR} randoop.main.Main help gentests
+java -cp ${RANDOOP_JAR} randoop.main.Main help gentests
 ```
-
-### Flag utili per `gentests`
 
 | Flag | Descrizione |
 |---|---|
-| `--testclass` | Singola classe da testare (fully qualified name) |
-| `--classlist` | File con lista di classi da testare |
-| `--testjar` | JAR contenente le classi da testare |
-| `--methodlist` | File con lista di metodi specifici da testare |
-| `--omit-methods` | Esclude metodi specifici dalla generazione |
-| `--omit-methods-file` | File con lista di metodi da escludere |
-| `--junit-package-name` | Package dei test generati (serve anche per includere nel classpath la classe, il suo package e il tipo di ritorno dei metodi) |
-| `--output-limit` | Numero massimo di test generati |
-| `--timelimit` | Timeout in secondi (default 100s) |
-| `--junit-output-dir` | Directory di output dei test generati |
+| `--testclass` | FQN singola classe |
+| `--classlist` | file con lista classi |
+| `--testjar` | JAR classi da testare |
+| `--methodlist` | file lista metodi specifici |
+| `--omit-methods` | escludi metodi |
+| `--omit-methods-file` | file metodi da escludere |
+| `--junit-package-name` | package test generati (include nel classpath classe+package+tipi di ritorno) |
+| `--output-limit` | max test generati |
+| `--timelimit` | timeout sec (default 100) |
+| `--junit-output-dir` | output directory |
 
-### Condizioni necessarie perché Randoop generi test per un metodo M
-
-Randoop genera test per M **solo se tutte e tre queste condizioni sono soddisfatte**:
-1. M è referibile tramite uno di: `--testjar`, `--classlist`, `--testclass`, `--methodlist`
-2. M non è stato esplicitamente escluso tramite `--omit-methods` o `--omit-methods-file`
-3. La classe di M, il suo package e il tipo di ritorno di M sono inclusi nel classpath di Randoop (tipicamente via `--junit-package-name`)
-
-**Implicazione pratica**: se Randoop genera zero test o pochi test, verificare prima queste tre condizioni prima di cercare altri problemi.
-
-**Nota su Windows/WSL**: usare `;` invece di `:` come separatore del classpath.
-
-Per i flag completi fare riferimento alla documentazione online.
+**3 condizioni per generare test per M:** (1) M referibile via `--testjar/--classlist/--testclass/--methodlist`; (2) M non escluso; (3) classe di M, package e tipo di ritorno nel classpath. Se 0 test generati: verificare queste tre. **WSL**: `;` invece di `:` come separatore classpath.
 
 ## Exam Procedure (9 Steps)
 
 ### Step 1 — Project
-Apply all techniques on **2 classes** of Apache OpenJPA (open-source, Apache Software Foundation, sources on GitHub).
+Apply all techniques on **2 classes** of Apache OpenJPA.
 
 ### Step 2 — Work environment
-Fork on GitHub + CI framework (GitHub Actions / TravisCI). **CI impacts final grade** — treat it as mandatory.
-
-CI+CT cycle: Source control → trigger → Build server (config + build + test) → report → Development → commit → loop. Development does NOT stop while CI runs (asynchronous notification).
+GitHub fork + CI (GitHub Actions/TravisCI). **CI impacts grade.** CI+CT: Source control → trigger → Build server (config+build+test) → report → Development → commit → loop. Development does NOT stop during CI (async notification).
 
 ### Step 3 — Test experimentation
 
-**3a. Class selection** — done (see Target Classes above). Avoid trivially simple classes.
+**3a.** Class selection — done (see Target Classes). Avoid trivial classes.
 
 **3b. Manual tests via Category Partition (→ Test BB)**
 
-**Category partition è un metodo, non una tecnica** (slide 52). Può essere combinato con:
-- **manual software testing** — approccio iniziale per capire il contesto; è il lavoro richiesto da questo corso (→ Test BB)
-- **automatic software testing** — strumenti basati su euristiche o AI che applicano lo stesso metodo in modo automatico (→ Test RND/ES/LLM)
+**Category partition = metodo, non tecnica** (slide 52): combinabile con manual (→ Test BB) o automatic (→ RND/ES/LLM). Il metodo guida il design; cambia chi genera i test.
 
-Questo spiega perché nel progetto si usano entrambi: il metodo category partition guida il design in ogni caso; ciò che cambia è chi genera i test (lo studente manualmente, o uno strumento automatico).
+**BB rule:** "fortemente raccomandato" (Lezione 2 slide 17). Inferire dal codice ammesso **solo se strettamente necessario** — documentare come eccezione nel report.
 
-Black-box: derive everything from documentation, specs, and declared API. The professor says "**strongly recommended**" BB and that inferring from the source code is allowed **only if strictly necessary** (Lezione 2, slide 17). In practice: always start from docs; look at code only as a last resort when no documentation exists, and document that choice explicitly in the report.
-
-**Scope of the SUT**: in this project the SUT is a whole class, not a single method. Input dimensions include: formal method parameters + object state (attribute values before the call) + persistence state + state of other instances in the system. Design equivalence classes for all of these, not just the method signature.
+**SUT scope = intera classe.** Input dimensions: formal params + object state + persistence state + other instances. Design equivalence classes for ALL.
 
 ---
 
-**BB sources — where categories and partitions come from**
+**4 BB sources (legitimate only, in priority order):**
+1. **Javadoc/docs** — preconditions, postconditions, declared exceptions, behavior
+2. **Declared parameter types** — syntactic starting point; always refine with semantics
+3. **Problem domain** — real-world meaning of each parameter
+4. **Documented implementation choices** — constants/limits declared in docs
 
-In black-box you have exactly four legitimate sources. Nothing else.
+**BB proibito:** aprire sorgente e guardare `if` statements → white-box. Il prof penalizza.
 
-1. **Javadoc and documentation of the method** — preconditions, postconditions, declared exceptions, behavioral description. If the doc says "throws EntityNotFoundException when entity is not found", that gives you a partition.
-2. **Declared type of each parameter** — gives the syntactic starting point (String → null/empty/non-empty; int → negative/zero/positive). Always refine with semantics.
-3. **Problem domain** — what does this parameter represent in the real world? A `String email` is not a generic string; the domain tells you syntactically-valid-but-user-not-found is a distinct partition from syntactically-valid-and-user-exists.
-4. **Documented implementation choices** — if the doc says "maximum 100 elements" or "buffer of size N", those constants define partition boundaries even though they are not domain concepts.
-
-**What you CANNOT do in BB:** open the source code and look at `if` statements. If you see `if (x > 0)` in the body and build a partition from it, you are doing white-box, not black-box. The professor penalizes this.
-
-**External dependencies (DB, other classes) become state categories**
-
-If the SUT depends on a DB or another class, that external state is a category to partition, exactly like a method parameter. You derive the partitions from the documentation of what the SUT does with that dependency — not from the dependency's implementation.
-
-Example: BrokerImpl depends on a persistence context. The JPA spec says "find() returns null if the entity does not exist" → partition: {entity exists, entity does not exist, persistence context not active}.
-
-In the JUnit test you control those partitions via Mockito:
-- partition "entity not found" → `when(mockCtx.find(...)).thenReturn(null)`
-- partition "entity found" → `when(mockCtx.find(...)).thenReturn(entityInstance)`
-- partition "not active" → `when(mockCtx.find(...)).thenThrow(new IllegalStateException())`
-
-If documentation is absent for a method, document it in the report as "missing oracle" and state the assumption you used explicitly.
+**External dependencies = state categories:** derive partitions from SUT documentation, control via Mockito. Example — BrokerImpl + JPA spec: partition {entity exists / not exists / ctx not active} →
+```java
+when(mockCtx.find(...)).thenReturn(entityInstance); // entity exists
+when(mockCtx.find(...)).thenReturn(null);            // entity not found
+when(mockCtx.find(any(), any())).thenThrow(new IllegalStateException()); // ctx not active
+```
+Missing documentation → "missing oracle" + explicit assumption in report.
 
 ---
 
-**Step 1 — Identify input domains**
+**Step 1 — Identify input domains:** specs/docs abstractions; declared interface types (BB only); explicit/implicit input conditions.
 
-Sources (in priority order):
-- Key abstractions, features, needs, requirements from specs/docs
-- Data types linked to the declared interface (BB only — not from implementation body)
-- Explicit or implicit conditions on inputs
+**Step 2 — Identify equivalence classes** (semantics over syntax always):
 
----
-
-**Step 2 — Identify equivalence classes per parameter**
-
-For each parameter/dimension, partition its value space. Apply these guidelines by type — but always prioritize **semantics** over syntax:
-
-| Type | Guideline |
+| Type | Partitions |
 |---|---|
-| **range** (numeric) | one value IN range + at least two values OUTSIDE (below min, above max) |
-| **string** | set of all-valid strings; set of all-invalid strings; empty string ""; null |
-| **enumeration** | one equivalence class per distinct enum value |
-| **array / collection** | all-legal elements; all-empty; all elements exceed max allowed length |
-| **complex object** | apply criteria iteratively to each field; always include null |
-| **boolean** | {true}, {false} |
+| range (numeric) | in-range + below-min + above-max |
+| string | null / "" / valid+correct / valid+incorrect / invalid |
+| enum | one class per value |
+| array/collection | legal / empty / overflow |
+| complex object | null / valid_instance / invalid_instance |
+| boolean | {true}, {false} |
 
-**CRITICAL — semantics over syntax (p.31):** type-based guidelines are a starting point, not the final word. Significant equivalence classes come from the MEANING of the parameter in context. Example:
-- `String password` syntactically → {"", null, non-empty}
-- `String password` semantically → {"" (empty), null, valid-in-domain+correct, valid-in-domain+incorrect, invalid-in-domain}
+**CRITICAL rules:**
+- **Semantics > syntax (p.31):** `String password` → {empty, null, valid+correct, valid+incorrect, invalid-domain}
+- **Validity ≠ correctness (p.32):** `email="mrfoo@nothing.org"` is VALID but may be CORRECT (user exists) or INCORRECT (user not found) — separate classes
+- **Never drop invalid_instance (p.43):** constructor safety not sufficient (code can change; polymorphism bypasses)
+- **Tests expecting exceptions are valid (p.20)**
 
-**CRITICAL — validity ≠ correctness (p.32):** do not confuse syntactic validity of a value with its correctness relative to the SUT's current state. Example: `email="mrfoo@nothing.org"` is VALID (well-formed), but may be CORRECT (user exists) or INCORRECT (user not found) depending on SUT data. These are separate equivalence classes.
-
-**CRITICAL — never exclude "invalid_instance" for complex types (p.43):** you cannot justify excluding invalid object instances with "the constructor always returns correct instances" because: (1) constructor code could change; (2) polymorphism may allow subclass instances from different constructors. Always include invalid instances unless the API makes them structurally impossible.
-
-**CRITICAL — valid tests can expect failure (p.20):** a test whose expected output is an exception or error is valid and meaningful. Document it explicitly as such in the oracle.
-
-**Reference example from professor (slide 41) — `asyncReadEntriesInternal(long firstEntry, long lastEntry, ReadCallback cb, Object ctx, boolean isRecoveryRead)`:**
+**Professor reference (slide 41) — `asyncReadEntriesInternal(long firstEntry, long lastEntry, ReadCallback cb, Object ctx, boolean isRecoveryRead)`:**
 
 | Parameter | Equivalence classes |
 |---|---|
 | `isRecoveryRead` | {false}, {true} |
-| `cb` | {null}, {"valid_instance"}, {"invalid_instance"} |
-| `ctx` | {null}, {"valid_instance"}, {"invalid_instance"} |
+| `cb` | {null}, {valid_instance}, {invalid_instance} |
+| `ctx` | {null}, {valid_instance}, {invalid_instance} |
 | `firstEntry` | {≤0}, {>0} |
 | `lastEntry` | {<firstEntry}, {=firstEntry}, {>firstEntry} |
 | `LedgerHandle` (SUT state) | {vuoto}, {ha sufficienti entry}, {non ha sufficienti entry} |
 
-Key patterns to notice:
-- `lastEntry` partitions are defined **relative to another parameter** (`firstEntry`), not as absolute values — cross-parameter semantics
-- `LedgerHandle` is a state category of the SUT, not a method parameter — confirms that SUT state is always a category
-- complex types (`cb`, `ctx`) always include {null}, {"valid_instance"}, {"invalid_instance"} — never drop invalid_instance
-
-**Note:** the professor left `LedgerHandle` partitions ({vuoto}, {ha sufficienti entry}, {non ha sufficienti entry}) deliberately incomplete as a class exercise. They are a starting point, not the final answer. When designing partitions for a stateful dependency, always ask whether there are more semantically distinct states not yet captured.
+Note: `lastEntry` relative to `firstEntry` (cross-parameter). `LedgerHandle` = SUT state, not a method parameter. LedgerHandle partitions left incomplete by professor (class exercise) — always ask if more semantically distinct states exist.
 
 ---
 
-**Step 3 — Combine equivalence classes**
+**Step 3 — Combine:** default to **multidimensional** (Cartesian product). Eliminate only logically impossible/semantically meaningless combinations — **document every elimination**. Never default to unidimensional to reduce cost (prof penalizes).
 
-Two strategies:
-- **Unidimensional**: each parameter treated independently; select tests to cover all equivalence classes of each parameter. Fewer tests, but may miss cross-parameter interactions.
-- **Multidimensional**: Cartesian product across all parameters. More thorough but combinatorially expensive — use Step 4 to reduce.
+**Step 4 — Eliminate non-admissible:** justification required for every dropped combination.
 
-Do not default to unidimensional to limit cost — the professor penalizes this. Start multidimensional and eliminate only truly non-admissible combinations.
+**Step 5 — BVA (slide 45):**
+1. Partizioni già definite (Step 2)
+2. Identificare confini di ogni partizione
+3. Per ogni confine: valore-al-confine, valore-sotto, valore-sopra
+   - **Multidimensionale:** ogni confine in tutte le combinazioni degli altri parametri
+   - **Unidimensionale:** ogni confine in almeno una tupla (rischia failure cross-parametro)
 
----
-
-**Step 4 — Eliminate non-admissible combinations**
-
-Remove combinations that are logically impossible or semantically meaningless per the spec. Document every elimination with a justification — never silently drop a combination.
-
----
-
-**Step 5 — Apply BVA (Boundary Value Analysis)**
-
-Empirical evidence: most faults appear at boundary values of equivalence classes. After defining classes, identify boundaries and select values at them.
-
-BVA schema (slide 45):
-1. Partizionare il dominio per ogni parametro osservato (already done in Step 2)
-2. Identificare i confini di ogni partizione
-3. Selezionare i valori in modo che ogni confine occorra:
-   - **multidimensionale**: ogni confine in tutte le possibili combinazioni degli altri parametri (più thorough, più test)
-   - **unidimensionale**: ogni confine in almeno una tupla di input (meno test, ma può perdere failure cross-parametro)
-
-Example (firstEntry, lastEntry as indices):
-- `firstEntry` BV: -1; 0; 1
-- `lastEntry` BV relative to firstEntry: firstEntry-1; firstEntry; firstEntry+1
-
-**CRITICAL (p.51):** unidimensional BVA (each boundary in at least one tuple) may limit failure exposure. No a priori reason to exclude combinations like `(firstEntry=1, lastEntry=0)` — they could reveal important failures. When in doubt, add the cross-combination rather than drop it.
+Example: `firstEntry` BV: -1; 0; 1. `lastEntry` BV: firstEntry-1; firstEntry; firstEntry+1.
+**CRITICAL (p.51):** no a priori reason to exclude e.g. `(firstEntry=1, lastEntry=0)`. When in doubt, add the cross-combination.
 
 ---
 
-**Oracle and test structure**
+**Oracle:** expected output from spec. Valid values: return value / state change / exception type / side effect. SEEV structure. Materialize in `@ParameterizedTest`/`@Parameters`. **Do NOT justify low test count with cost** — prof penalizes.
 
-- Expected output comes from the specification. If none exists, document the assumption explicitly.
-- Valid oracle values: return value, state change, exception type, side effect.
-- Each test follows SEEV: Setup → Exercise → Verify (assert) → Teardown.
-- Materialize oracle tuples in `@ParameterizedTest` / `@Parameters` (canonical pattern from professor's examples).
+---
 
-Do NOT justify a low test count with cost considerations — the professor explicitly penalizes this.
+**3c. Automatic test generation (3 independent approaches):**
 
-**3c. Automatic test generation — 3 separate and independent approaches:**
+- **Test RND (Randoop):** random API call sequences; detects contract violations. Document: version, config (timeout/limits/seed), tests generated, pass/fail, notable failures.
+- **Test LLM:** multiple prompt strategies. Suggested: 10 prompts (4 zero-shot, 4 few-shot, 2 CoT/ToT) from slide 64 — concrete recommendation, not hard requirement (official spec slide 17: "vari tipi di interrogazioni"). For each prompt document: exact text, generated code, compile+pass/fail.
+- **Test ES (EvoSuite):** GA on test suite (≠ PITest mutation on SUT); maximizes branch coverage, minimizes suite size; bytecode level. Document: version, config, branch coverage, tests generated.
 
-- **Test RND (Randoop)**: randomly generates and executes sequences of API method calls on the compiled class; detects failures via exception/contract violations. Document: Randoop version, configuration (timeout, method limits, seed), number of tests generated, pass/fail counts, any notable failures found.
-
-- **Test LLM**: use multiple prompt strategies. Minimum: **10 documented prompts** (4 zero-shot, 4 few-shot, 2 CoT or ToT). For each prompt, document: the exact prompt text, the generated test code, and whether the tests compile and pass. Vary strategies to enable comparison in the report.
-
-- **Test ES (EvoSuite)**: genetic algorithm applied to the test suite — crossover and mutation are operators on test cases (completely different from PITest's mutation on the SUT). Maximizes branch coverage, minimizes test suite size. Operates at bytecode level. Document: EvoSuite version, configuration, branch coverage achieved, number of tests generated.
-
-**3d. Integrate tests into build**
-- **Disable/remove the project's native tests** — delete or skip them so only the campaign tests run.
-- Unit tests via Surefire; integration tests via Failsafe; both triggered on every CI commit.
-- Verify the CI pipeline passes before proceeding to Step 4.
+**3d. Integrate tests into build:** disable/remove native project tests. Unit → Surefire; integration → Failsafe; both on every CI commit. CI must pass before Step 4.
 
 ### Step 4 — Quality validation
 
-**4a. Two adequacy metrics — branch coverage (JaCoCo) + mutation score (PITest)**
+**4a. Metrics: branch coverage (JaCoCo) + mutation score (PITest)**
 
-Coverage criteria hierarchy from weakest to strongest (Lezioni 29-32):
-statement → block → branch/decision → condition → BC → MC (2^N tests) → **MC/DC** (N+1 tests, DO-178C avionics standard).
-JaCoCo measures **branch coverage** (branch/decision level). Use it as the primary white-box adequacy metric.
+Coverage hierarchy: statement → block → branch/decision → condition → BC → MC (2^N) → **MC/DC** (N+1, DO-178C). JaCoCo = branch/decision level.
 
-Iteration process for the manual suite (BB → CF → MT):
-1. Run JaCoCo on Test BB → open the HTML report → identify uncovered branches (red arcs in CFG) → add targeted tests that exercise those branches → rerun JaCoCo → verify branch coverage **increased** → checkpoint: this is **Test CF**
-2. Run PITest on Test CF → open the HTML report → identify survived mutants (operator, location, mutant text) → add tests that **kill** them (the test must reach the mutant = C1, cause a state change = C2, and propagate the change to an assert = C3) → rerun PITest → verify mutation score **increased** → checkpoint: this is **Test MT**
+Iteration (manual suite only):
+1. BB → JaCoCo → find red branches → add tests → rerun → coverage ↑ → **Test CF**
+2. CF → PITest → find survived mutants (operator/location/text) → add kill tests (C1+C2+C3) → rerun → score ↑ → **Test MT**
 
-For automatic suites (RND, ES, LLM): compute both metrics but do NOT iterate — each is generated once and measured as-is.
+Automatic suites (RND/ES/LLM): compute both metrics, no iteration. Compare all 6 suites with concrete reasoning.
 
-Compare all 6 suites on both metrics. Justify differences in the report with concrete reasoning (not vague statements).
+**4b. Mutation operators:** AOR, ROR, COR, SOR, LOR, ASR, SDL, SVR.
 
-**4b. Mutation testing details**
+Kill conditions (strong mutation, PITest): **C1** reachability (statement executed) + **C2** infection (state differs) + **C3** propagation (difference reaches assert). Score = |D|/(|M|−|E|). Equivalence undecidable → use CPH (killing simple mutants sufficient).
 
-PITest mutation operators: AOR (arithmetic operator replacement), ROR (relational operator replacement), COR (conditional operator replacement), SOR (shift operator replacement), LOR (logical operator replacement), ASR (assignment operator replacement), SDL (statement deletion), SVR (variable replacement).
-
-Conditions for a test to **kill** a mutant (strong mutation, required by PITest):
-- **C1 reachability**: the mutated statement is executed by the test
-- **C2 infection**: the program state after the mutation differs from the original
-- **C3 propagation**: the state difference reaches an observable output that the assert catches
-
-Equivalent mutants (same observable behavior as original) are excluded from the denominator: score = |D| / (|M| − |E|). Equivalence is undecidable in general — use the Coupling Hypothesis (CPH) to argue that killing simple mutants is sufficient.
-
-**4c. Reliability estimation**
-- Uniform operational profile: all test inputs treated as equally likely (no weighting by usage frequency)
-- Reliability = passed tests / total tests = 1 − PFD (probability of failure on demand)
-- Compute on the final test set after Step 4b (Test MT for the manual suite; one-shot for automatic suites)
-- Disable failing tests only when strictly necessary for the build to pass; always document which tests and why
+**4c. Reliability:** uniform operational profile → reliability = passed/total = 1−PFD. Compute after Step 4b. Disable failing tests only when necessary; always document.
 
 ### Step 5 — LLM class variants (Falessi Milestone 4)
 
-Generate **4 refactored variants** (C\_1…C\_4) of each original class C\_0 using **Microsoft Copilot** (university account — NOT Claude). The refactoring goal: improve maintainability by removing SonarCloud smells, without changing functionality.
+Generate **4 variants** (C\_1…C\_4) per class using **Microsoft Copilot** (university account, NOT Claude). Goal: remove SonarCloud smells, preserve functionality.
 
-**Copilot prompt structure** (from Falessi slides):
+**Copilot prompt structure:**
 1. "You are an expert Java developer. I want to improve the maintainability of the attached C\_0 class…"
-2. "Create C\_X without changing C\_0 functionality and by removing the following smells… (report SonarCloud diagnostic)"
-3. "Make sure C\_X passes the following tests…" ← **this is the key variable** (which tests are included changes per variant, see Table A)
-4. "Do not include in C\_X changes different from what I asked. C\_X should replace C\_0 and work with the other components of the system as C\_0 currently does."
-5. "This is an important request; take all the time you need to provide a complete and accurate answer."
+2. "Create C\_X without changing C\_0 functionality and by removing the following smells… (SonarCloud diagnostic)"
+3. "Make sure C\_X passes the following tests…" ← **key variable** (varies per variant per Table A)
+4. "Do not include changes different from what I asked. C\_X should replace C\_0 and work with other components as C\_0 currently does."
+5. "This is an important request; take all the time you need for a complete and accurate answer."
 
-There are **three distinct tables** produced in this step:
+**Table A — Generation constraints** (Yes/No = tests included in prompt, NOT pass/fail):
 
----
-
-**Table A — Generation constraints (Yes/No, from Falessi M4):**
-Documents which tests were included as constraints in the Copilot prompt when generating each variant. Yes/No does NOT mean the variant passes those tests.
-
-| Variant | Test BB | Test CF | Test MT | Test RND | Test ES | Test LLM |
+| Variant | BB | CF | MT | RND | ES | LLM |
 |---|---|---|---|---|---|---|
 | C\_0 | N/A | N/A | N/A | N/A | N/A | N/A |
 | C\_1 | No | No | No | No | No | No |
@@ -441,14 +280,11 @@ Documents which tests were included as constraints in the Copilot prompt when ge
 | C\_3 | **Yes** | **Yes** | No | No | No | No |
 | C\_4 | **Yes** | **Yes** | **Yes** | No | No | No |
 
----
+**5a.** Generate new RND/ES/LLM tests for each C\_1…C\_4.
 
-**5a.** Generate new automatic tests (RND, ES, LLM) for each variant C\_1…C\_4.
+**5b.** Fill (for **each** of the 2 classes):
 
-**5b.** Fill the following two matrices (for **each** of the 2 classes):
-
-**Table B — Pass/Fail (functionality preservation):**
-Tests developed on C\_0 are **executed** on all versions. Verifies whether the refactored variants preserved the original behaviour or introduced regressions.
+**Table B — Pass/Fail** (C\_0 tests executed on all versions):
 
 | Tests on C\_0 \ Version | C\_0 | C\_1 | C\_2 | C\_3 | C\_4 |
 |---|---|---|---|---|---|
@@ -459,187 +295,47 @@ Tests developed on C\_0 are **executed** on all versions. Verifies whether the r
 | Test RND | P (o bug) | P/F? | P/F? | P/F? | P/F? |
 | Test ES | P (o bug) | P/F? | P/F? | P/F? | P/F? |
 
-**Table C — Delta (test quality comparison):**
-For each variant, *new* automatic tests (LLM, RND, ES) are generated specifically for that variant and compared to those generated for C\_0. Measures how test quality changes across versions.
-- Delta metrics: Coverage, Mutation Score, Chiarezza, Manutenibilità, Smell, SonarCloud smell categories
+**Table C — Delta** (new auto tests per variant vs C\_0): Coverage, Mutation Score, Chiarezza, Manutenibilità, Smell, SonarCloud categories.
 
-**Analysis per variant (Falessi):**
-1. Does C\_X compile (alone and with the system)?
-2. Does C\_X have smells? (old removed? new introduced?)
-3. Are features positively correlated with bugginess higher in C\_X than C\_0? → maintainability may not have improved
-4. Are features negatively correlated with bugginess higher in C\_X than C\_0? → maintainability may have improved
+**Analysis per C\_X:** (1) compila solo e col sistema? (2) ha smell? (rimossi vecchi? nuovi introdotti?) (3) feature positive correlate a bugginess maggiori di C\_0? (4) feature negative correlate a bugginess maggiori di C\_0?
 
-### Step 6 — Report PDF (~12 pages) — see below
-
-### Step 7 — `classes.txt`
-Plain text file, 2 classes in alphabetical order, format: `<package>.<subpackage>.<ClassName>`
-
-### Step 8 — Submission
-Email to `guglielmo.deangelis@iasi.cnr.it` by deadline on TEAMS calendar.
-
-### Step 9 — Oral presentation
-Discussion on course topics + GitHub repo and CI evaluated.
+### Steps 6–9
+- **Step 6** — Report PDF (~12 pages) — see below
+- **Step 7** — `classes.txt`: 2 classi alfabetiche, formato `<package>.<ClassName>`
+- **Step 8** — Email a `guglielmo.deangelis@iasi.cnr.it` by deadline su TEAMS
+- **Step 9** — Oral presentation; GitHub repo + CI evaluated
 
 ---
 
 ## The 6 Test Suite Types
 
-| Sigla | Tipo | Come si produce | Metrica target | Iterata? |
+| Sigla | Tipo | Come si produce | Metrica | Iterata? |
 |---|---|---|---|---|
-| **Test BB** | Black-Box (Category Partition) | Manual; Category Partition + BVA da specs/docs | N test frames dal design | No |
-| **Test CF** | BB + branch coverage improvement | BB + JaCoCo: aggiungi test per rami scoperti | Branch coverage ↑ (JaCoCo) | Sì (da BB) |
-| **Test MT** | CF + mutation score improvement | CF + PITest: aggiungi test che uccidono mutanti sopravvissuti | Mutation score ↑ (PITest) | Sì (da CF) |
-| **Test RND** | Random automatic | Randoop: sequenze casuali di chiamate API; one-shot | Branch coverage + mutation score (misurati) | No |
-| **Test ES** | EvoSuite evolutionary automatic | Algoritmo genetico sul test suite (bytecode); one-shot | Branch coverage (EvoSuite interno) | No |
-| **Test LLM** | LLM-prompted automatic | 10+ prompt documentati (zero-shot/few-shot/CoT/ToT); one-shot | Branch coverage + mutation score (misurati) | No |
+| **BB** | Black-Box Category Partition | Manual; CP + BVA da specs/docs | N test frames design | No |
+| **CF** | BB + branch coverage | BB + JaCoCo: aggiungi test rami scoperti | Branch coverage ↑ | Sì (da BB) |
+| **MT** | CF + mutation score | CF + PITest: kill mutanti sopravvissuti | Mutation score ↑ | Sì (da CF) |
+| **RND** | Random automatic | Randoop: sequenze casuali API; one-shot | Branch cov + mut score | No |
+| **ES** | EvoSuite evolutionary | GA sul test suite (bytecode); one-shot | Branch cov (interno) | No |
+| **LLM** | LLM-prompted | 10+ prompt (zero-shot/few-shot/CoT/ToT); one-shot | Branch cov + mut score | No |
 
-Key insights:
-- **BB → CF → MT** è una progressione iterativa della stessa suite manuale; ogni step produce una versione più raffinata e supersede la precedente. Test MT è il più completo.
-- **RND, ES, LLM** sono tre suite automatiche indipendenti, generate una volta sola; non si iterano.
-- L'algoritmo evolutivo di EvoSuite (crossover + mutazione sul test suite) non ha nulla a che fare con il mutation testing di PITest (che opera sul SUT).
-- Le 3 suite automatiche esistono per confrontare coverage/mutation score rispetto alla suite manuale — non per sostituirla.
+Key: BB→CF→MT = same manual suite, 3 maturity stages; MT supersedes. RND/ES/LLM = 3 independent auto suites, one-shot, for comparison. EvoSuite GA ≠ PITest mutation (EvoSuite on test suite; PITest on SUT).
 
 ---
 
 ## Report Requirements (LaTeX/PDF)
 
-The final deliverable is a **PDF report** written in LaTeX, covering all testing activities for **both target classes**. Strict formatting rules:
+- ~12 A4 pages, single spacing, Arial 10pt. No excessive titles/margins/decoration.
+- Figures/tables/listings: append at end, NOT counted toward 12 pp, no inline explanation (discussion in body only).
+- Must describe+justify all activities: what/context/problems/methodology (cite professor's frameworks)/results as **concrete numbers** (e.g. "branch coverage 42% → 67%").
+- **Terminology:** error / fault / failure (precise, no generic "bug"). Cite Dijkstra: *"testing can show the presence of bugs, not their absence"*.
+- **Classify every activity:** Level (Unit/Integration/System/Acceptance) + Method (BB/WB/Non-functional) + Type (Manual/Automated).
+- **Adequacy section:** what branch coverage + mutation score measure, why chosen, limits (100% coverage ≠ no faults), what measured values mean for the specific class.
 
-- Length: ~12 A4 pages, single line spacing, Arial 10pt
-- **No excessive titles, margins, or typographic decoration**
-- Figures, tables, and code listings: include them but **append at the end** (they do not count toward the 12 pages)
-- Figures/tables/listings must have **no explanatory text of their own** — all discussion goes in the main body
-- The report must be **detailed** and must **describe and justify** all activities and decisions:
-  - What was done, in what context, what problems were being addressed
-  - The methodology followed and **why** (connect to the professor's frameworks: Category Partition, CFG criteria, Offutt mutation schema, etc.)
-  - The results obtained as **concrete numbers** (e.g., "branch coverage increased from 42% to 67%"), not vague statements
-
-**Terminology (mandatory precision, never use "bug" generically):**
-- *error* = human mistake; *fault* = code defect introduced by an error; *failure* = observable wrong behavior caused by a fault
-- Testing detects failures; debugging localizes and removes the fault; fault is necessary but not sufficient for failure
-- Cite Dijkstra when discussing testing limits: *"testing can show the presence of bugs, not their absence"*
-
-**Classify every test activity along the 3 orthogonal dimensions:** Level (Unit / Integration / System / Acceptance) + Method (BB / WB / Non-functional) + Type (Manual / Automated).
-
-**Adequacy section must address:** what branch coverage and mutation score measure, why they were chosen, what their limits are (e.g., 100% branch coverage ≠ absence of faults), and what the measured values mean specifically for the class under test.
-
-### Workflow
-
-- After each meaningful commit, discuss with the user before updating the LaTeX source
-- Never update the LaTeX silently — always propose changes and get approval first
-- The LaTeX source lives in `report/`
-
-## Lecture Context — Professor De Angelis (ISW2 — Software Testing)
-
-This section accumulates key concepts from each lecture so that report writing and test design remain aligned with what the professor expects.
+**Workflow:** After each commit, discuss LaTeX changes first — never update silently. Source in `report/`.
 
 ---
 
-### Lezione 5 — Introduzione e Concetti Generali
-
-- **V&V**: Verification = conforme alle specifiche; Validation = conforme alle attese utente (Boehm)
-- **Modello D-P-S-C**: P soddisfa S sse ∀d∈D, P(d)=S(d). Testing non può provarla → esplora un campione di D
-- **Terminologia (usarla precisa nel report)**: error (causa umana) → fault (difetto nel codice) → failure (comportamento scorretto osservabile). Fault è condizione necessaria ma non sufficiente per failure
-- **Tre strategie**: defect prevention (rimuovi errori umani) | defect reduction (testing+debugging) | defect containment (failure prevention)
-- **Testing vs Debugging**: testing trova le failure; debugging localizza e rimuove il fault
-- **Struttura test (SEEV)**: Setup → Exercise → Verify (assert) → Teardown
-- **3 domande fondamentali**: quali input? (partizione dominio, classi equivalenza) | quando smettere? (criteri copertura) | come verifico? (oracle problem → valori da specifica)
-- **Correttezza vs Reliability**: correttezza = proprietà assoluta (prove formali); reliability = attributo statistico = 1 − PFD (probability of failure on demand)
-- **Operational Profile**: distribuzione di probabilità sugli input reali. Profilo uniforme (Step 4c del progetto) → reliability = test_passati / test_totali
-- **Dijkstra**: "testing can show the presence of bugs, not their absence" — citarlo nel report quando si discutono i limiti
-
----
-
-### Lezione 2 — Panoramica del corso
-
-- Sillabo: Intro+GC → AT+CT → Unit+Integration → Approaches to Test Generation → Adequacy (CF Coverage) → Adequacy (Mutation Testing) → Coverage-based Test Generation
-- Testi: Mathur "Foundations of SW Testing" 2/e (Pearson 2013); Garcia "Mastering SW Testing with JUnit 5" (Packt 2017); Tahchiev "JUnit in Action" 2a ed. (Manning 2010); Lewis "SW testing and continuous quality improvement" (CRC 2017); Humble & Farley "Continuous Delivery" (Addison-Wesley 2011)
-- Report: ~12 pp A4, singola interlinea, Arial 10pt; non esagerare con titoli/margini/fronzoli; figure/tabelle/listati in fondo NON contano verso le 12 pp e NON devono avere testo esplicativo (tutto nel body)
-- CI impatta sulla valutazione finale; Step 3a: fortemente raccomandato approccio BB, non da codice se non strettamente necessario; Step 4c: profilo operazionale uniforme; disabilitare failing test solo quando strettamente necessario per il build
-
----
-
-### Lezione 8 — SQA, Automated Testing, Continuous Testing
-
-- SQA: "systematic activities providing evidence of fitness for use of total software product" — 3 componenti: Software Testing + Quality Control + SW Configuration Management; Testing è SOLO UNO degli aspetti di SQA
-- 2^32 possibili test per `int myBuggyFact(int p)` — impossibile testare tutto → selezione obbligatoria (needle in haystack)
-- Automated Testing (AT): automazione in esecuzione, report, selezione/prioritizzazione, valutazione bontà test set; obiettivi: efficienza+efficacia; benefici: riduce costi/durata, aumenta ripetibilità e attendibilità statistica
-- Continuous Testing (CT): integrazione testing con ambienti sviluppo+build+versioning; test automaticamente dopo ogni evoluzione; politiche prioritizzazione/selezione/orchestrazione; notifiche asincrone (sviluppo NON si interrompe)
-- Ciclo CI+CT: Source control → (trigger) → Build server (config+build+test) → (report) → Development → (commit) → loop
-- Git: VCS distribuito open-source; 3 workflow (shared repo, integration manager/fork, dictator+lieutenants); GitHub fork+PR
-- Maven: fasi default lifecycle: validate→compile→test→package→integration-test→verify→install→deploy; più clean e site
-- JUnit 4.X (di riferimento nel corso): elementi dichiarati con annotazioni, setup/teardown, runners; JUnit 5.X: più modulare, composizione multipli runners, 2 use-case (API per scrittura test program + SPI per discovery/execution)
-- CI framework: Travis-CI, GitHub Actions, GitLab CI-CD, Circle-CI — tutti gratuiti per open-source; no subscription necessaria
-- CI+CT visione complessiva: blessed repo ← PR ← integration manager ← FORK developer public ← PUSH ← developer private (local Maven)
-
----
-
-### Lezione 11 — Q&A: Maven, GitHub, CI Set-up and Configurations
-
-- Lezione di Q&A: reminder link Maven quickstart, Git quickstart, GitHub Actions quickstart
-- Esercizio preliminare (9 step): install MVN → archetype Java → configura pom.xml → crea classe Java → build + inspect target/ → versiona su GitHub → agganciare CI (e.g. travis.yaml) → build automatico su ogni commit → controlla esito build
-- Secondo esercizio: fork Apache Bookkeeper, workspace locale, rimuovi tutti i test (cancella bookkeeper/\<modulo\>/src/test/), build locale, inspect target/
-
----
-
-### Lezione 14 — Unit and Integration Testing: Concepts
-
-- 3 dimensioni ortogonali del test: Level (Unit/Integration/System/Acceptance), Method (BB/WB/Non-functional), Type (Manual/Automated)
-- Piramide V&V: Unit+Integration = Development Testing (Verification); System+Acceptance = User Testing (Validation)
-- V-model: ogni artefatto di design ha un test corrispondente (Code↔Unit Test; Subsystem Design↔Integration Test; System Requirements↔System Test; Concept of Operations↔Acceptance Test)
-- V-model + CT: esecuzione automatica dei test ad ogni commit/PR, al rilascio di nuova funzionalità, ad ogni nuova versione
-- Test di unità: rivela malfunzionamenti singolo modulo in isolamento; white-box o black-box; può precedere il codice (TDD); adeguatezza = N funzionalità/requisiti controllati + metriche copertura
-- JUnit: framework per IMPLEMENTARE ed ESEGUIRE unit test Java; NON dà indicazioni su strategia di test, quali test usare, quali valori di input selezionare
-- JUnit 4: @Test (metodo pubblico), @Before/@After (ogni test, ordine tra più metodi NON specificato), @BeforeClass/@AfterClass (una volta sola per tutti i @Test, ordine NON specificato); test parametrizzato: @RunWith(Parameterized.class), @Parameters→Collection, costruttore con N argomenti
-- Responsabilità designer: identificare valori attesi (oracolo o valori puntuali); Responsabilità programmatore: implementare Assert
-- Test di integrazione: malfunzionamenti da interazione 2+ moduli; assunzione = unit test già passati; stub = componente del test environment che mima unità mancante (non soggetta a test); test driver = configurazione ambiente + coordinamento risorse + clean-up + logica integrazione
-
----
-
-### Lezione 17 — Unit and Integration Testing: Frameworks
-
-- Strategie integration testing: big bang (tutto in 1 passo), top-down (interfacce+stub per mancanti, scenari d'uso), bottom-up (unità elementari+test driver, stub per funzionalità mancanti); trovare soluzione ottima è NP-complete
-- Strumenti OO per integration testing: JUnit come test driver + Mockito per stubbing/mocking
-- Mockito: framework stub/mock Java; dichiarare mock, definire return values, ridefinire comportamenti; supporta TDD/BDD
-- Mockito costrutti: mock(), spy(); annotazioni @Mock, @Spy, @Captor, @InjectMocks; Mockito.when().thenReturn(), BDDMockito.given().willReturn(); thenAnswer per comportamenti custom; Mockito.verify(), BDDMockito.then().should(); MockitoJUnitRunner, MockitoJUnit.rule()
-- Maven Surefire Plugin: fase `test`; pattern classi: Test*/*Test/*Tests/*TestCase; report in `target/surefire-reports/TEST-*.xml`; pom.xml: `maven-surefire-plugin` 3.0.0-M4; dipendenza JUnit con `<scope>test</scope>`
-- Maven Failsafe Plugin: fase `integration-test/verify`; pattern: IT*/*IT/*ITCase; report in `target/failsafe-reports/failsafe-summary.xml`; goals: integration-test + verify
-- Raccomandazioni esplicite del prof: unit test via Surefire+CI; integration test via Failsafe+CI; mock via Mockito per unit+integration test
-
----
-
-### Lezioni 20-23-26 — Test Generation Approaches
-
-- 3 domande fondamentali: quali input? → quando smettere? → come verifico? (oracle problem)
-- Scale reali: Google 800K builds/day, 150M test runs/day; Bookkeeper 617 test classes, 3228 @Test
-- ATTENZIONE: NON giustificare un numero basso di test con "mantenere i costi bassi" — il prof penalizza questa motivazione
-
-**Category Partition (BB) — 5 step:**
-1. Identificare dominio di input (parametri + stato oggetto + persistenza + altri oggetti)
-2. Identificare classi di equivalenza per parametro (linee guida per tipo: range → 1 in + 2 out; string → valida/invalida/vuota/null; enum → 1 classe per valore; array → legale/vuoto/overflow; complex → iterativo + null)
-3. Combinare classi: unidimensionale (indipendente per parametro) o multidimensionale (prodotto cartesiano); default a multidimensionale e ridurre solo per combinazioni non ammissibili giustificate
-4. Eliminare combinazioni non ammissibili (documentare ogni eliminazione)
-5. Applicare BVA: per ogni boundary → valore-al-boundary, valore-sotto, valore-sopra
-
-**Regole critiche equivalence class:**
-- **Semantica sopra sintassi**: le classi devono riflettere il SIGNIFICATO del parametro, non solo il tipo. Esempio: `String password` → {vuota, null, valida+corretta, valida+scorretta, invalida}
-- **Validità ≠ correttezza**: un valore sintatticamente valido può essere CORRETTO (esiste nel SUT) o INCORRETTO (non esiste). Sono classi separate
-- **Non escludere invalid_instance**: non giustificare l'esclusione con "il costruttore garantisce correttezza" — polimorfismo può bypassarlo
-- **Test validi possono aspettarsi fallimenti**: un test con oracolo = eccezione è valido e significativo
-- **SUT = intera classe**: dominio di input include stato, persistenza, altri oggetti — non solo parametri del metodo chiamato
-- **BVA unidimensionale avverte**: coprire ogni boundary in almeno un test può non bastare; le combinazioni cross-parametro possono rivelare failure importanti
-
-**Randoop:**
-- Genera sequenze casuali di chiamate API; esegue; controlla violazioni di contratti Java (NullPointerException non attesa, equals non riflessivo, ecc.) — NON verifica correttezza logica del SUT
-- "Contract violation" = violazione di invariante Java universale (non bug di logica applicativa)
-- Sequenza senza violazioni → regression test (cristallizza comportamento attuale, non correttezza vs spec)
-- 3 condizioni necessarie per testare metodo M: (1) M deve poter essere chiamato nella sequenza; (2) il receiver deve essere in uno stato valido per M; (3) gli argomenti devono essere ammissibili
-- Comandi: `randoop.jar randoop.main.Main gentests --testclass=<FQN> --time-limit=<sec> --output-limit=<n>`
-
-**LLM prompting — pure-prompting schema (slide 55, 59):**
-PUT (Program Under Test) → Processed PUT → Prompt + Context → LLM → Raw generated tests → Validator → Selected and repaired tests. CoT aggiunge "chain of thoughts" al contesto prima del prompt.
-
-**Template dei prompt dal professore (da usare come riferimento):**
+## LLM Prompt Templates (Professor De Angelis)
 
 **(a) Zero-shot (slide 56):**
 ```
@@ -648,7 +344,7 @@ JUnit 4 test file ({class_name}Test.java) to comprehensively test all methods in
 following class named {class_name}. Your output file must start with ###Test START##
 and finish with ###Test END##. Here is the source code:\n{source_code}.
 ```
-Variante interessante (slide 57): rimuovere `{source_code}` dal prompt — studiare come cambia l'output e cosa rivela sull'LLM utilizzato.
+Variante (slide 57): rimuovere `{source_code}` — osservare come cambia output e cosa rivela sull'LLM.
 
 **(b) Few-shot (slide 58):**
 ```
@@ -674,82 +370,109 @@ proceed to the next step. If any expert realizes they're wrong at any point, the
 The Java class is:\n{source_code}\nAt the end they must propose one complete JUnit 4 test
 file. The complete JUnit test file must start with ###Test START## and finish with ###Test END##
 ```
-NOTA: Guided ToT può includere esempi come nel few-shot (non inclusi in questo template).
+Guided ToT può includere esempi come nel few-shot.
 
-**Numero di prompt — proposta esercizio preliminare (slide 64):** il professore propone un insieme di **10 prompt** come esercizio strutturato consigliato (non requisito stretto, ma raccomandazione operativa concreta):
-- **4 zero-shot**: variare le informazioni qualitative del contesto — livello di dettaglio dei test, chi li sta chiedendo ("professional software tester"), quanto estensiva la ricerca ("comprehensively"), numero di test da generare, ecc.
-- **4 few-shot**: stesse variazioni dello zero-shot + aggiungere un numero arbitrario di esempi nel prompt
-- **2 CoT/ToT**: stesse variazioni + aggiungere indicazioni operative su come procedere step by step
+**Slide 64 — proposta esercizio (10 prompt consigliati, non requisito obbligatorio):**
+- 4 zero-shot: variare livello dettaglio, ruolo ("professional software tester"), estensività ("comprehensively"), N test da generare
+- 4 few-shot: stesse variazioni + esempi nel prompt
+- 2 CoT/ToT: stesse variazioni + indicazioni operative step-by-step
 
-**Documentazione richiesta per ogni prompt:** testo esatto del prompt, codice generato, esito compile + pass/fail, ogni aspetto del processo di generazione.
-
-**Piano di descrizione nel report (slide 64):** documentare come sono state identificate le partizioni e come è stata condotta la boundary analysis; i prompt con le loro variazioni; suggerimenti preliminari di test da includere con risultato atteso.
-
----
-
-### Lezioni 29-32 — Test Adequacy: Control Flow Coverage
-
-- Adequacy problem: quanti test sono abbastanza? → risposta tramite criteri di copertura del CFG
-- CFG (Control Flow Graph): nodi = blocchi base, archi = trasferimento controllo
-- Criteri in ordine crescente di forza: statement coverage → block coverage → branch/decision coverage → condition coverage → BC (Branch+Condition) → MC (Multiple Condition, 2^N test) → MC/DC (N+1 test, standard aviazione DO-178C)
-- MC/DC: ogni condizione individuale deve indipendentemente influenzare l'esito della decisione composta; richiede coppie di test che differiscono solo per quella condizione e cambiano l'esito della decisione
-- JaCoCo: misura branch coverage; report HTML in `target/site/jacoco/`; integrazione Maven: `jacoco-maven-plugin`
-- Procedura MC/DC: T1 (statement/branch adeguato) → T2 (condition adeguato, aggiungi test per condizioni non coperte) → T3 (MC/DC adeguato, aggiungi coppie per ogni condizione indipendente)
+**Documentazione per ogni prompt:** testo esatto, codice generato, compile+pass/fail, ogni aspetto del processo.
+**Report (slide 64):** documentare come identificate partizioni e boundary analysis; i prompt con variazioni; suggerimenti test con risultato atteso.
 
 ---
 
-### Lezione 33 — Mutation Testing (introduzione)
+## Lecture Context — Prof. De Angelis (ISW2)
 
-- Mutation testing: terza categoria di criteri di adeguatezza (ortogonale a CF coverage e functional testing)
-- Idea: iniettare difetti artificiali (mutanti) nel codice; un test "uccide" un mutante se produce output diverso dal programma originale
-- Operatori di mutazione: AOR (aritm.), ROR (rel.), COR (cond.), SOR (shift), LOR (logico), ASR (assign.), SDL (statement deletion), SVR (variable replacement), …
-- Schema Offutt: programma originale → operatori → mutanti → test suite → esecuzione → confronto output → killed/survived/equivalent
-- Un test suite è mutation-adeguato se uccide tutti i mutanti non equivalenti
+### Lezione 5 — Concetti Generali
+- V&V: Verification = conforme alle specifiche; Validation = conforme alle attese utente (Boehm)
+- D-P-S-C: P soddisfa S sse ∀d∈D, P(d)=S(d). Testing non può provarla → esplora campione di D
+- error → fault → failure; fault necessario ma non sufficiente per failure
+- 3 strategie: defect prevention | defect reduction (testing+debugging) | defect containment
+- SEEV; 3 domande: quali input? (EQ classes) | quando smettere? (coverage) | come verifico? (oracle)
+- Correttezza = assoluta (prove formali); reliability = statistico = 1−PFD. Profilo uniforme → reliability = passati/totali
+- Dijkstra: "testing can show the presence of bugs, not their absence" — citare nel report
+
+### Lezione 2 — Panoramica
+- Testi: Mathur (Pearson 2013); Garcia (Packt 2017); Tahchiev (Manning 2010); Lewis (CRC 2017); Humble & Farley (Addison-Wesley 2011)
+- Report: ~12 pp A4, singola interlinea, Arial 10pt; figure/tabelle/listati in fondo, no testo esplicativo inline
+- CI impatta valutazione; BB fortemente raccomandato; codice solo se strettamente necessario; profilo operazionale uniforme
+
+### Lezione 8 — SQA, AT, CT
+- SQA = Software Testing + Quality Control + SW Config Mgmt; Testing è solo uno degli aspetti
+- AT: efficienza+efficacia; riduce costi/durata, aumenta ripetibilità
+- CT: test automatici dopo ogni evoluzione; notifiche asincrone (sviluppo NON si interrompe)
+- CI+CT: Source control → Build server (config+build+test) → report → Development → commit → loop
+- Maven lifecycle: validate→compile→test→package→integration-test→verify→install→deploy (+clean, site)
+- CI: Travis-CI, GitHub Actions, GitLab CI-CD, Circle-CI — gratuiti per open-source
+
+### Lezione 11 — Q&A Maven/GitHub/CI
+- Esercizio: install MVN → archetype Java → pom.xml → classe → build → GitHub → CI → build automatico
+- Secondo esercizio: fork Apache Bookkeeper, rimuovi `src/test/`, build locale, inspect `target/`
+
+### Lezione 14 — Unit e Integration Testing
+- 3 dimensioni ortogonali: Level (Unit/Integration/System/Acceptance) / Method (BB/WB/Non-functional) / Type (Manual/Automated)
+- V-model: Code↔Unit; Subsystem Design↔Integration; System Req↔System; ConOps↔Acceptance. +CT = esecuzione ad ogni commit/PR/release
+- JUnit: implementa ed esegue test Java; NON suggerisce strategia/input/valori. JUnit 4: @Test, @Before/@After (ordine non spec.), @BeforeClass/@AfterClass; parametrizzato: @RunWith(Parameterized.class)+@Parameters+costruttore N arg
+- Designer: identifica valori attesi (oracolo); Programmatore: implementa Assert
+- Integration test: 2+ moduli; stub = mima unità mancante; test driver = env setup + coord + cleanup + logica integrazione
+
+### Lezione 17 — Framework
+- Strategie integration: big bang / top-down (stub per mancanti) / bottom-up (test driver); NP-complete trovare ottimo
+- Surefire: fase `test`, pattern Test*/*Test/*Tests/*TestCase, report `target/surefire-reports/TEST-*.xml`
+- Failsafe: fase `integration-test/verify`, pattern IT*/*IT/*ITCase, report `target/failsafe-reports/failsafe-summary.xml`
+- Raccomandazione prof: unit → Surefire+CI; integration → Failsafe+CI; mock → Mockito in entrambi
+
+### Lezioni 20-23-26 — Test Generation
+- Scale reali: Google 800K builds/day, 150M test runs/day; Bookkeeper 617 test classes, 3228 @Test
+- **NON** giustificare basso N test con costi — il prof penalizza
+- Category Partition = metodo (non tecnica); 5 step: input domain → EQ classes → combina multidim → elimina non ammissibili → BVA → vedi Step 3b per dettaglio completo
+- Randoop: sequenze casuali API; controlla violazioni contratti Java (NullPointerException, equals non riflessivo) — NON verifica correttezza logica. Senza violazioni → regression test (cristallizza comportamento). 3 condizioni per M: (1) M referibile; (2) receiver in stato valido; (3) argomenti ammissibili
+- LLM pure-prompting schema: PUT → Processed PUT → Prompt+Context → LLM → Raw tests → Validator → Selected/repaired. CoT aggiunge chain-of-thoughts al contesto → vedi sezione LLM Prompt Templates
+
+### Lezioni 29-32 — Control Flow Coverage
+- Adequacy: quanti test bastano? → criteri CFG (nodi = blocchi base, archi = trasferimento controllo)
+- Gerarchia: statement → block → branch/decision → condition → BC → MC (2^N) → MC/DC (N+1, DO-178C)
+- MC/DC: ogni condizione influenza indipendentemente l'esito; richiede coppie che variano SOLO quella condizione
+- JaCoCo: `jacoco-maven-plugin`, HTML in `target/site/jacoco/`
+- MC/DC procedure: T1 (branch adequate) → T2 (condition adequate) → T3 (MC/DC adequate)
+
+### Lezione 33 — Mutation Testing
+- Iniettare difetti artificiali; test "uccide" mutante se output diverso dall'originale
+- Operatori: AOR, ROR, COR, SOR, LOR, ASR, SDL, SVR
+- Schema Offutt: originale → operatori → mutanti → test suite → esecuzione → killed/survived/equivalent
+- Suite mutation-adeguata = uccide tutti i non-equivalenti
+
+### Lezione 35 — Mutation Frameworks
+- Score: |D|/(|L|+|D|) oppure |D|/(|M|−|E|); D=killed, L=survived, M=totale, E=equivalenti
+- Kill: C1 raggiungibilità + C2 infezione (stato cambia) + C3 propagazione (cambia output)
+- Strong mutation: C1+C2+C3; weak: C1+C2 (meno robusto)
+- Equivalenza indecidibile; CPH: killing semplici sufficiente
+- PITest: `org.pitest:pitest-maven:1.5.1`; goal `mutationCoverage`; report `target/pit-reports`
+
+### Lezione 38 — Coverage-based Test Generation
+- SBSE: metaeuristiche (GA) per ottimizzare generazione automatica test
+- EvoSuite: massimizza coverage, minimizza asserzioni; bytecode; stand-alone/Eclipse/IntelliJ/Maven
+- GA: popolazione test suite → fitness = coverage + lunghezza; crossover + mutazione sul test suite (≠ PITest che opera sul SUT)
+- Refs: Fraser & Arcuri ESEC/FSE 2011; QSIC 2011; Fraser & Zeller TSE 2012 (μTEST); Xie 2006
+
+### μTEST (Fraser & Zeller TSE 2012)
+- Pipeline: Mutation Analysis + Unit Identification → Test Case Generation → Oracle Generation
+- Fitness: 1/(Df+Dm) + Im; Df=dist calling function; Dm=approach/branch/necessity dist verso mutazione; Im=(c·|C|+r·|A|)/(1+|t|)
+- 4 tipi asserzione: Primitive (return), Comparison (equals/compareTo), Inspector (no-side-effect), Field (public primitive)
+- Risultati: Joda-Time 80.36% (vs 70.36% manuali); Commons-Math 65.87% (vs 44.50%)
+
+### esempioMCDC (Mathur P7.14)
+- 3 condizioni: C1=`while(!done)`; C2=(x<y)AND(z*z>y)AND(prev=="East"); C3=(x<y)AND(z*z≤y)OR(current=="South")
+- T1 (4 test): branch adequate, NOT condition adequate
+- T2 (5=T1+t5): condition adequate, NOT MC/DC adequate
+- T3 (9=T2+t6-t9): MC/DC adequate — coppie variano SOLO una condizione cambiando l'esito della decisione
+- MC/DC: minimo N+1 test per N condizioni (vs MC=2^N)
 
 ---
 
-### Lezione 35 — Mutation Testing Frameworks
-
-- Mutation score formula #1: |D|/(|L|+|D|); formula #2: |D|/(|M|−|E|) dove D=killed, L=survived, M=totale mutanti, E=equivalenti
-- Condizioni per killing: C1 raggiungibilità (la mutazione viene eseguita) + C2 infezione (stato del programma cambia) + C3 propagazione (cambiamento arriva all'output)
-- Strong mutation: richiede C1+C2+C3; weak mutation: solo C1+C2 (più facile ma meno robusto)
-- Equivalenza dei mutanti: indecidibile in generale; CPH (Coupling Hypothesis): test che uccidono mutanti semplici uccidono anche mutanti complessi
-- PITest: `org.pitest:pitest-maven:1.5.1:maven-plugin`; goal `mutationCoverage`; report in `target/pit-reports`
-
----
-
-### Lezione 38 — Coverage-based Approaches to Test Generation
-
-- SBSE (Search-Based Software Engineering): usa metaeuristiche (GA, …) per ottimizzare la generazione automatica di test
-- EvoSuite: implementa SBSE; massimizza copertura codice, minimizza numero asserzioni; opera a bytecode Java (no sorgenti SUT); versioni stand-alone, Eclipse, IntelliJ, Maven
-- Algoritmo evolutivo: popolazione di test suite → fitness = copertura + lunghezza test; operatori: crossover + mutazione sul test suite — DISTINTO da mutation testing (PITest) che opera sul SUT
-- Riferimenti: Fraser & Arcuri ESEC/FSE 2011 (EvoSuite); Fraser & Arcuri QSIC 2011; Fraser & Zeller TSE 2012 (μTEST); Xie 2006
-
----
-
-### μTEST (Fraser & Zeller TSE 2012) — riferimento L38
-
-- Genera unit test automatici mirati a rilevare mutanti (non solo coprire codice)
-- Pipeline: Mutation Analysis + Unit Identification → Test Case Generation (fitness-based) → Oracle Generation
-- Fitness function: 1/(Df+Dm) + Im; Df = distanza alla calling function; Dm = approach/branch/necessity distance verso la mutazione; Im = impatto = (c·|C|+r·|A|)/(1+|t|)
-- 4 tipi asserzione generati: Primitive (return values), Comparison (compareTo/equals), Inspector (metodi no-side-effect), Field (public primitive fields)
-- Sperimentazione: Joda-Time mutation score 80.36% (vs 70.36% test manuali); Commons-Math 65.87% (vs 44.50%)
-
----
-
-### esempioMCDC (Mathur) — riferimento L29-32
-
-- P7.14 con 3 condizioni: C1 semplice (`while(!done)`); C2 = (x<y) AND (z*z>y) AND (prev=="East"); C3 = (x<y) AND (z*z≤y) OR (current=="South")
-- T1 (4 test): statement/branch adeguato, NON condition adeguato
-- T2 (5 test = T1+t5): condition adeguato, NON MC/DC adeguato
-- T3 (9 test = T2+t6-t9): MC/DC adeguato — ogni condizione ha coppie che variano SOLO quella condizione cambiando l'esito della decisione composta
-- MC/DC richiede minimo N+1 test per N condizioni (molto più efficiente di MC = 2^N)
-
----
-
-## Repository Structure Notes
-
-- Multi-module Maven project; root `pom.xml` aggregates all submodules
-- `openjpa-junit5/` — JUnit 5 integration module already present
-- `openjpa-lib/`, `openjpa-kernel/`, `openjpa-jdbc/`, `openjpa-persistence/` — core modules likely to contain target classes
-- `scripts/` — utility scripts (mostly Windows `.bat`; prefer adding shell equivalents when needed)
+## Repository Structure
+- Multi-module Maven; root `pom.xml` aggrega tutti i submoduli
+- `openjpa-junit5/` — JUnit 5 integration module present
+- `openjpa-lib/`, `openjpa-kernel/`, `openjpa-jdbc/`, `openjpa-persistence/` — core modules
+- `scripts/` — utility scripts (Windows `.bat`; aggiungere shell equivalents se necessario)
