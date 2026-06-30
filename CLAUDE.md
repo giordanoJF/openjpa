@@ -1,5 +1,7 @@
 # OpenJPA — University Software Testing Project
 
+IF I MAKE A MISTAKE ASK THE USER IF HE WANT TO UPDATE MEMORY AND CLAUDE.md WITH THE CORRECTIONS.
+
 ## Collaboration Rules
 
 1. **Never commit or push without explicit user approval.** Always show what would be committed and ask first.
@@ -9,10 +11,14 @@
 ## Testing Methodology Rules (mandatory)
 
 4. **Separate DESIGN from IMPLEMENTATION.** Design (categories, choices, constraints, test frames, abstract specs) must be complete before writing any JUnit. Never collapse phases.
-5. **Respect BB vs WB absolutely.** BB: derive from docs/specs/declared interfaces only. WB: base on CFG/branches/paths. Never mix silently.
+5. **Respect BB vs WB absolutely.** BB: derive from docs/specs/declared interfaces only. WB: base on IMPLEMENTATIONS. Never mix silently. **BB has nothing to do with method visibility (public/protected/private):** a protected or private method with Javadoc is testable in BB. BB violation = reading a method body to derive TEST
 6. **Precise terminology always.** error (human mistake) → fault (code defect) → failure (observable wrong behavior). Fault necessary but not sufficient for failure. No generic "bug" in report. Testing finds failures; debugging removes faults.
 7. **Every test follows SEEV:** Setup → Exercise → Verify (assert) → Teardown. Oracle values from spec/docs, never inferred from code. Applies to all 6 suites.
 8. **Oracle problem:** failure = behavior deviating from expected. Without spec/oracle, cannot confirm failure exists. Designer produces input→expected output tuples per test frame. Implementer translates to asserts, never invents values.
+9. **Oracle sources (in priority order):**
+   - Return value documented in Javadoc (diretto).
+   - FIRME METODI O DOCUMENTAZIONE
+   - Never infer oracle from method bodies (WB violation).
 
 ## Project Context
 
