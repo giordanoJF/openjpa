@@ -11,3 +11,4 @@ nbactions*.xml
 .checkstyle
 .vscode
 
+/pdf/
