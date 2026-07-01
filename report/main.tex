@@ -5,13 +5,19 @@
 \usepackage[italian]{babel}
 \usepackage{helvet}
 \renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
 \usepackage{setspace}
 \singlespacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{7pt plus 1pt minus 1pt}
 \usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=4pt, partopsep=0pt}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage[hyphens]{url}
 \usepackage{hyperref}
 \usepackage{caption}
 \usepackage{float}
@@ -47,7 +53,7 @@
 
 \input{sections/01_introduzione}
 \input{sections/02_ambiente}
-\input{sections/03_classi_target}
+\input{sections/03_CP}
 
 \newpage
 \appendix

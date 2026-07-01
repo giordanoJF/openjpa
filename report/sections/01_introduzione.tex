@@ -6,10 +6,20 @@ Il presente documento descrive la campagna di testing condotta sul progetto
 Apache OpenJPA, versione 4.1.1.
 L'obiettivo del lavoro è applicare un insieme di tecniche di testing,
 sia manuali che automatiche, su due classi target selezionate,
-misurarne la qualità e analizzare varianti refactored delle stesse classi.\\
+misurarne la qualità e analizzare varianti refactored delle stesse classi.
 
 Le due classi target sono:
 \begin{itemize}
-    \item \texttt{openjpa-kernel/src/main/java/org/apache/openjpa/kernel/BrokerImpl.java}
-    \item \texttt{openjpa-examples/opentrader/src/main/java/org/apache/openjpa/trader/client/LoginDialog.java}
+    \item \url{openjpa-kernel/src/main/java/org/apache/openjpa/kernel/BrokerImpl.java}
+    \item \url{openjpa-examples/opentrader/src/main/java/org/apache/openjpa/trader/client/LoginDialog.java}
 \end{itemize}
+
+\texttt{BrokerImpl} è una delle classi centrali del kernel di OpenJPA.
+Implementa l'interfaccia \texttt{Broker} e gestisce il ciclo di vita
+delle entità persistenti.
+
+\texttt{LoginDialog} è un componente dell'applicazione di esempio
+OpenTrader, sviluppata con Google Web Toolkit (GWT).
+La classe gestisce la finestra di dialogo per l'autenticazione
+dell'utente, includendo la logica di validazione dell'input e la
+comunicazione con il server tramite RPC.

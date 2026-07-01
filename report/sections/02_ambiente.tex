@@ -5,20 +5,20 @@
 Il progetto Apache OpenJPA è stato ottenuto tramite fork del repository
 ufficiale su GitHub.
 Il lavoro si è svolto sul branch \texttt{release-4.1.1}, corrispondente
-al tag di rilascio \texttt{4.1.1}.\\
+al tag di rilascio \texttt{4.1.1}.
 
 OpenJPA 4.1.1 supporta Java 11 e versioni successive, come indicato nel
 \texttt{pom.xml} del progetto.
 Java 17 è stato scelto come versione di riferimento per le operazioni di
 build e testing in quanto compatibile con il progetto e privo di problemi
-di compilazione; java 26 causa errori durante la build nel modulo
+di compilazione; Java 26 causa errori durante la build nel modulo
 \texttt{openbooks}.
 
 \subsection{Rimozione dei Test Originali}
 
 Al fine di sostituire interamente la suite di test con quella sviluppata
 nel presente progetto, i sorgenti di test originali sono stati rimossi
-da tutte le directory \texttt{src/test} dei sottomoduli.\\
+da tutte le directory \texttt{src/test} dei sottomoduli.
 
 La rimozione dei contenuti di \texttt{src/test} ha reso non valide alcune
 \texttt{<execution>} Maven definite nei \texttt{pom.xml} di diversi
