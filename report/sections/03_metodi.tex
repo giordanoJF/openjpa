@@ -1,10 +1,6 @@
 % ============================================================
-\section{Category Partition}
+\section{Metodi scelti e documentazione}
 % ============================================================
-
-\textit{Category Partition} è applicato come tecnica di progettazione
-black-box: le partizioni derivano da documentazione pubblica
-e conoscenza di dominio.
 
 \subsection{BrokerImpl}
 
@@ -23,7 +19,7 @@ L'analisi dei metodi è stata guidata all'interno di questo perimetro, ed è sta
 perimetro, il focus è stato dedicato maggiormente a \texttt{Broker} e \texttt{StoreContext} in quanto
 ipotizzate come più rilevanti.
 
-Gli attributi di \texttt{BrokerImpl} sono stati consultati per identificare le categorie di stato del SUT.
+Gli attributi di \texttt{BrokerImpl} sono stati consultati per identificare i parametri di stato del SUT.
 Alcuni metodi variano solo lo stato di oggetti passati in input, quindi anche questi sono stati analizzati.
 
 Anche il manuale OpenJPA e la documentazione online sono state utilizzate, tuttavia descrivono \texttt{BrokerImpl}
@@ -36,11 +32,13 @@ possibile disporre di un oracolo completo).
 Per gestire la grande mole di metodi, una prima scrematura è stata effettuata
 ordinando in modo decrescente i metodi per linee di javadoc.
 
-\subsubsection*{Metodi selezionati e contesto della documentazione}
+I metodi selezionati, con l'interfaccia o la classe che li dichiara, sono riportati in
+Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
+
+\subsubsection{Analisi della documentazione}
 
 \begin{itemize}[itemsep=12pt, parsep=7pt]
-    \item \texttt{find(Object oid, boolean validate, FindCallbacks call)}
-    (interfaccia \texttt{StoreContext})
+    \item\texttt{find(Object oid, boolean validate, FindCallbacks call)}
 
     \textit{Documentato esplicitamente:} restituisce l'istanza della classe persistente
     associata all'oid dato. Il Javadoc distingue tre casi: \texttt{validate=true} e oggetto
@@ -72,8 +70,7 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     \texttt{processReturn} (riceve in input l'oid e uno state manager, ritorna l'oggetto da
     restituire).
 
-    \item \texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}
-    (interfaccia \texttt{Broker})
+    \item\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}
 
     \textit{Documentato esplicitamente:} assicura che l'istanza indicata venga bloccata al
     livello richiesto. Il Javadoc documenta solo \texttt{timeout} come millisecondi di
@@ -97,8 +94,7 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     può anche essere quello corrente impostato nella \texttt{FetchConfiguration} del broker,
     non solo un valore passato esplicitamente come nell'overload scelto.
 
-    \item \texttt{detachAll(Collection objs, OpCallbacks call)}
-    (interfaccia \texttt{Broker})
+    \item\texttt{detachAll(Collection objs, OpCallbacks call)}
 
     \textit{Documentato esplicitamente:} stacca dal broker le istanze indicate, producendo
     copie non gestite, adatte alla serializzazione e alla manipolazione al di fuori di un
@@ -123,8 +119,7 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     collezione. Il
     parametro \texttt{call} è di tipo \texttt{OpCallbacks} (vedi \texttt{lock}).
 
-    \item \texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}
-    (interfaccia \texttt{Broker})
+    \item\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}
 
     \textit{Documentato esplicitamente:} importa nel broker le istanze indicate. Distingue
     due comportamenti in base allo stato di ogni istanza: se precedentemente staccata da
@@ -134,14 +129,13 @@ ordinando in modo decrescente i metodi per linee di javadoc.
 
     \textit{Dedotto / documentato altrove:} \texttt{StoreContext} espone
     \texttt{getPostLoadOnMerge()} e \\ \texttt{setPostLoadOnMerge(boolean)} con informazioni riguardanti il ramo di
-    ``merge'' di \texttt{attachAll}, potenziale categoria di stato del SUT.
+    ``merge'' di \texttt{attachAll}, potenziale parametro di stato del SUT.
     Come per \texttt{detachAll}, oltre a partizionare
     cosa può essere un singolo elemento di \texttt{objs}, va partizionato anche quanti
     elementi contiene la collezione. Il parametro \texttt{call} è di tipo \texttt{OpCallbacks}
     (vedi \texttt{lock}).
 
-    \item \texttt{newInstance(Class cls)}
-    (interfaccia \texttt{Broker})
+    \item\texttt{newInstance(Class cls)}
 
     \textit{Documentato esplicitamente:} crea una nuova istanza di tipo \texttt{cls}.
     Documenta due esiti: se \texttt{cls} è un'interfaccia o una classe astratta con metodi
@@ -149,9 +143,7 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     se \texttt{cls} è già un tipo managed concreto, ne restituisce direttamente un'istanza;
     altrimenti lancia \texttt{IllegalArgumentException}.
 
-
-    \item \texttt{isDetached(Object obj, boolean find)}
-    (classe \texttt{BrokerImpl})
+    \item\texttt{isDetached(Object obj, boolean find)}
 
     \textit{Documentato esplicitamente:} verifica se l'oggetto fornito è staccato. Se
     \texttt{find=true}, come ultima risorsa verifica anche l'esistenza dell'oggetto nel
@@ -163,8 +155,7 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     esplicitamente cosa significhi ``detached'' in questo progetto: un'istanza ``che può
     essere riagganciata a un Broker tramite una chiamata a \texttt{Broker\#attach}''.
 
-    \item \texttt{persist(Object pc, Object id, OpCallbacks call)}
-    (interfaccia \texttt{Broker})
+    \item\texttt{persist(Object pc, Object id, OpCallbacks call)}
 
     \textit{Documentato esplicitamente:} rende persistente l'istanza data; il \texttt{@return}
     documenta che restituisce lo state manager assegnato alla nuova istanza. Documenta
@@ -182,10 +173,6 @@ ordinando in modo decrescente i metodi per linee di javadoc.
     eccezione da considerare per l'oracolo. \texttt{Broker} espone anche \texttt{isDetachedNew()}/
     \texttt{setDetachedNew(boolean)}: una proprietà
     pubblica del broker che condiziona il comportamento di \texttt{persist} sulle relazioni
-    verso istanze staccate, potenziale categoria di stato del SUT. Il
+    verso istanze staccate, potenziale parametro di stato del SUT. Il
     parametro \texttt{call} è di tipo \texttt{OpCallbacks} (vedi \texttt{lock}).
 \end{itemize}
-
-\subsection{LoginDialog}
-
-% analisi da svolgere

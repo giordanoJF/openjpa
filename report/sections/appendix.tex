@@ -1,1 +1,44 @@
 \section*{Appendice}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{X l}
+\toprule
+Metodo & Interfaccia / classe \\
+\midrule
+\texttt{find(Object oid, boolean validate, FindCallbacks call)} & \texttt{StoreContext} \\
+\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{detachAll(Collection objs, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{newInstance(Class cls)} & \texttt{Broker} \\
+\texttt{isDetached(Object obj, boolean find)} & \texttt{BrokerImpl} \\
+\texttt{persist(Object pc, Object id, OpCallbacks call)} & \texttt{Broker} \\
+\bottomrule
+\end{tabularx}
+\caption{Metodi di \texttt{BrokerImpl} selezionati per Category Partition.}
+\label{tab:brokerimpl-metodi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{oid} & \{null\} -- \{non valido\} -- \{valido\} \\
+\texttt{cache}* & \{presente\} -- \{non presente\} \\
+\texttt{store}* & \{presente\} -- \{non presente\} \\
+\midrule
+\texttt{validate} & \{true\} -- \{false\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}** & \{ritorna un id non-null\} -- \{ritorna null\} -- \{lancia
+\texttt{OpenJPAException}\} \\
+\texttt{call.processReturn}*** & \{ritorna un valore non-null\} -- \{ritorna null\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{find(Object oid, boolean validate, FindCallbacks call)}.
+* richiede \texttt{oid} valido. ** richiede \texttt{call} non null. *** richiede \texttt{call}
+non null e \texttt{processArgument} senza eccezione.}
+\label{tab:find-classi}
+\end{table}

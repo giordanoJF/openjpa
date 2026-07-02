@@ -21,6 +21,11 @@
 \usepackage{hyperref}
 \usepackage{caption}
 \usepackage{float}
+\usepackage{titlesec}
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\titleformat{\paragraph}{\normalfont\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{2.5ex plus 1ex minus .2ex}{1em}
 
 \hypersetup{
     colorlinks=true,
@@ -53,7 +58,8 @@
 
 \input{sections/01_introduzione}
 \input{sections/02_ambiente}
-\input{sections/03_CP}
+\input{sections/03_metodi}
+\input{sections/04_CP}
 
 \newpage
 \appendix

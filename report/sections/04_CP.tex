@@ -1,0 +1,79 @@
+% ============================================================
+\section{Category Partition}
+% ============================================================
+
+\textit{Category Partition} è applicato come tecnica di progettazione
+black-box: le classi di equivalenza derivano da documentazione pubblica
+e conoscenza di dominio.
+
+\subsection{BrokerImpl}
+
+\subsubsection{\texttt{find(Object oid, boolean validate, FindCallbacks call)}}
+
+\textit{Categorie e partizioni:} oltre ai tre parametri di input (\texttt{oid},
+\texttt{validate}, \texttt{call}) ci sono altri quattro parametri non formali: la presenza
+dell'entità identificata da \texttt{oid} in cache e nello store (richiedono \texttt{oid}
+valido), e i valori restituiti dai due metodi documentati di \texttt{call}
+(\texttt{processArgument}, \texttt{processReturn}), che pur essendo output di \texttt{call}
+sembrerebbero (documentazione ambigua) modificare il comportamento di \texttt{find}. Per
+\texttt{oid}, ``valido'' indica un formato compatibile con lo schema di identità di una classe
+persistente gestita dal broker. Le classi di equivalenza sono in Tabella~\ref{tab:find-classi}
+(Appendice).
+
+\textit{Osservazioni:}
+
+\begin{itemize}[itemsep=6pt, parsep=4pt]
+    \item La classe \{istanza non valida\} di \texttt{call} non è stata considerata:
+    a differenza di \texttt{oid}, per \texttt{call} non esiste una chiara documentazione
+    per cosa renda un'istanza ``non valida'' oltre a ciò che
+    \texttt{processArgument}/\texttt{processReturn} già coprono. Non è stato possibile definirla con
+    la sola documentazione pubblica; resta
+    un'ipotesi da riconsiderare in un'eventuale analisi white-box.
+    \item Il commento di campo ``managed object caches'' su \texttt{\_cache}/
+    \texttt{\_transCache} e il Javadoc di \texttt{findCached} (``L1 cache'') potrebbe rivelare la presenza di più
+    tipi di cache, senza che nessuna delle due fonti ne documenti un effetto diverso su
+    \texttt{find}, quindi sono ipotizzate equivalenti.
+    \item Il Javadoc di \texttt{FindCallbacks.processArgument} documenta anche il lancio di
+    \texttt{OpenJPAException} per valore non ammissibile, oltre al ritorno di id/\texttt{null}.
+    \item \textbf{Ipotesi}: \texttt{call.processReturn} potrebbe essere raggiungibile
+    solo se anche \texttt{call.processArgument} non ha lanciato eccezione. Nessun Javadoc lo
+    conferma.
+    \item La presenza dell'entità in cache e quella nello store sono modellate come due
+    parametri separati, entrambi dipendenti da \texttt{oid} valido, non come
+    classi interne di \texttt{oid}: le classi di una riga devono partizionare lo stesso
+    parametro, ed essere quindi mutuamente esclusive rispetto ad esso. Stesso
+    principio applicato a \texttt{call.processArgument} e \texttt{call.processReturn}.
+    \item \textbf{Ipotesi}: se il valore restituito da \texttt{processReturn}
+    diventa il valore di ritorno di \texttt{find} (ipotizzato dalla doc ambigua del metodo),
+    allora leggendo il Javadoc di \texttt{find} (``mai null'' se
+    \texttt{validate=false}) emergerebbe una potenziale incoerenza. Dipende interamente dalla premessa non
+    confermata: se falsa, l'osservazione decade.
+    \item I \texttt{@return} di \texttt{processArgument}/\texttt{processReturn} dichiarano
+    il ruolo dei valori restituiti (``the id to look up'', ``the object to
+    return''), ma nessuna fonte descrive la meccanica completa dell'invocazione (quando, se
+    sempre entrambi, in che ordine): le ipotesi fatte si basano sulla lettura dei
+    due \texttt{@return}. Essendo \texttt{FindCallbacks} un'interfaccia, un'implementazione
+    concreta potrebbe in teoria essere riusata in contesti anche molto diversi da
+    \texttt{find}, indebolendo l'ipotesi fatta sul suo utilizzo; il nome dell'interfaccia e lo
+    scopo dichiarato nella sua Javadoc di classe (``control the particulars of the find
+    operation'') suggeriscono però un'implementazione pensata apposta per specializzarsi a
+    \texttt{find}, a bilanciare il dubbio.
+\end{itemize}
+
+\textit{Combinazioni:} il prodotto cartesiano grezzo dei sette parametri in
+Tabella~\ref{tab:find-classi} è 3 (\texttt{oid}) $\times$ 2 (cache) $\times$ 2 (store) $\times$
+2 (\texttt{validate}) $\times$ 2 (\texttt{call}) $\times$ 3 (\texttt{processArgument}) $\times$
+2 (\texttt{processReturn}) = 288.
+
+\textit{Eliminazioni:} quando \texttt{oid} non è valido, le classi di
+cache e store collassano; quando \texttt{call} è null, le classi di
+\texttt{processArgument}/\texttt{processReturn} collassano allo stesso modo; quando
+\texttt{processArgument} lancia eccezione, le 2 classi di \texttt{processReturn} collassano in
+una sola (ipotesi non documentata). Combinazioni valide risultanti: 72 (216 eliminate).
+
+\textit{Boundary Value Analysis:} non applicabile. La BVA riguarda parametri con un
+range numerico o una soglia (es. il \texttt{timeout} di \texttt{lock}, confine documentato a
+\texttt{-1}). Nessuno dei sette parametri di \texttt{find} ne ha uno.
+\subsection{LoginDialog}
+
+% analisi da svolgere
