@@ -34,11 +34,13 @@ Parametro & Classi di equivalenza \\
 \texttt{call} & \{null\} -- \{non null\} \\
 \texttt{call.processArgument}** & \{ritorna un id non-null\} -- \{ritorna null\} -- \{lancia
 \texttt{OpenJPAException}\} \\
-\texttt{call.processReturn}*** & \{ritorna un valore non-null\} -- \{ritorna null\} \\
+\texttt{call.processReturn}** & \{ritorna un valore non-null\} -- \{ritorna null\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{find(Object oid, boolean validate, FindCallbacks call)}.
-* richiede \texttt{oid} valido. ** richiede \texttt{call} non null. *** richiede \texttt{call}
-non null e \texttt{processArgument} senza eccezione.}
+* richiede \texttt{oid} valido. ** richiede \texttt{call} non null.}
 \label{tab:find-classi}
 \end{table}
+
+% Tabella 3 (tutte le 84 combinazioni valide con oracolo) in lavorazione:
+% bozza in report/data/find_combinazioni.csv, da inserire qui solo dopo revisione.
