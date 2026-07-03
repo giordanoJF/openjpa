@@ -34,13 +34,131 @@ Parametro & Classi di equivalenza \\
 \texttt{call} & \{null\} -- \{non null\} \\
 \texttt{call.processArgument}** & \{ritorna un id non-null\} -- \{ritorna null\} -- \{lancia
 \texttt{OpenJPAException}\} \\
-\texttt{call.processReturn}** & \{ritorna un valore non-null\} -- \{ritorna null\} \\
+\texttt{call.processReturn}** & \{ritorna un oggetto non-null\} -- \{ritorna null\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{find(Object oid, boolean validate, FindCallbacks call)}.
-* richiede \texttt{oid} valido. ** richiede \texttt{call} non null.}
+* richiede un'identità effettiva (\texttt{oid} valido con \texttt{call} null, oppure un id
+sostituito con successo da \texttt{processArgument}). ** richiede \texttt{call} non null.}
 \label{tab:find-classi}
 \end{table}
 
-% Tabella 3 (tutte le 84 combinazioni valide con oracolo) in lavorazione:
-% bozza in report/data/find_combinazioni.csv, da inserire qui solo dopo revisione.
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito, non ancora persistito\} -- \{gestito,
+presente nello store\} \\
+\texttt{level} & \{valore noto (incl. \texttt{LOCK\_NONE})\} -- \{valore non noto\} \\
+\texttt{timeout} & \{-1\} -- \{0\} -- \{positivo\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{\texttt{ACT\_NONE}\} -- \{azione:
+\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{lock(Object pc, int level, int timeout,
+OpCallbacks call)}. * richiede \texttt{call} non null.}
+\label{tab:lock-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{objs} & \{null\} -- \{vuota\} -- \{un elemento gestito\} -- \{un elemento non gestito\}
+-- \{elementi misti (un gestito e un non gestito)\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{\texttt{ACT\_NONE}\} -- \{azione\} -- \{lancia
+\texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{detachAll(Collection objs, OpCallbacks call)}.
+* richiede \texttt{call} non null.}
+\label{tab:detachall-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.42\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{objs} & \{null\} -- \{vuota\} -- \{un elemento precedentemente \texttt{detached}\} --
+\{un elemento nuovo\} -- \{un elemento già gestito da questo broker\} -- \{un elemento non
+valido\} -- \{elementi misti (un valido e un non valido)\} \\
+\texttt{copyNew} & \{true\} -- \{false\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{\texttt{ACT\_NONE}\} -- \{azione\} -- \{lancia
+\texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{attachAll(Collection objs, boolean copyNew,
+OpCallbacks call)}. * richiede \texttt{call} non null.}
+\label{tab:attachall-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{cls} & \{null\} -- \{interfaccia con metodi JavaBeans\} -- \{classe astratta con
+metodi JavaBeans\} -- \{tipo managed concreto\} -- \{interfaccia senza metodi JavaBeans\} --
+\{tipo non managed, non interfaccia\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{newInstance(Class cls)}.}
+\label{tab:newinstance-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{obj} & \{null\} -- \{non gestito\} -- \{detached\} -- \{non detached (gestito,
+persistente)\} \\
+\texttt{find} & \{true\} -- \{false\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{isDetached(Object obj, boolean find)}.}
+\label{tab:isdetached-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito\} \\
+\texttt{id} & \{null\} -- \{non null\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{\texttt{ACT\_NONE}\} -- \{azione\} -- \{lancia
+\texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{persist(Object pc, Object id, OpCallbacks call)}.
+* richiede \texttt{call} non null.}
+\label{tab:persist-classi}
+\end{table}
+
+% Tabelle esaustive combinazioni+oracolo, tutte in lavorazione come CSV, da inserire
+% qui solo dopo revisione:
+% find       -> report/data/find_combinazioni.csv        (84 righe)
+% lock       -> report/data/lock_combinazioni.csv         (96 righe)
+% detachAll  -> report/data/detachAll_combinazioni.csv    (20 righe)
+% attachAll  -> report/data/attachAll_combinazioni.csv    (56 righe)
+% newInstance-> report/data/newInstance_combinazioni.csv   (6 righe)
+% isDetached -> report/data/isDetached_combinazioni.csv    (8 righe)
+% persist    -> report/data/persist_combinazioni.csv      (24 righe)
