@@ -1,0 +1,7 @@
+cls,fonte_oracolo,oracolo,nota
+null,ipotesi,eccezione (tipo non specificato),cls null: eccezione assunta
+interfaccia con metodi JavaBeans,diretto,istanza non-null (implementazione concreta generata dai metadati),documentato: ramo JavaBeans
+classe astratta con metodi JavaBeans,diretto,istanza non-null (implementazione concreta generata dai metadati),documentato: ramo JavaBeans
+tipo managed concreto,diretto,istanza non-null del tipo specificato,documentato: ramo tipo managed
+interfaccia senza metodi JavaBeans,ipotesi,"eccezione (tipo non specificato, possibile IllegalArgumentException)",ambiguita' doc (@throws vs ramo creazione): eccezione assunta
+"tipo non managed, non interfaccia",diretto,lancia IllegalArgumentException,documentato: @throws esplicito
