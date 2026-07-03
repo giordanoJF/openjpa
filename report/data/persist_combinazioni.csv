@@ -1,0 +1,25 @@
+pc,id,call,processArgument,fonte_oracolo,oracolo,nota
+null,null,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,null,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,null,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga
+null,non null,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non null,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,non null,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,non null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga
+non gestito,null,null,--,diretto,"state manager non-null, id di default assegnato","PCState.TRANSIENT ('unmanaged instance'): caso documentato da persist, id di default da @param"
+non gestito,null,non null,ACT_NONE,ipotesi,"state manager non-null, id di default assegnato",azione non documentata: base assunta invariata
+non gestito,null,non null,azione (CASCADE/RUN),ipotesi,"state manager non-null, id di default assegnato",azione non documentata: base assunta invariata
+non gestito,null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga
+non gestito,non null,null,--,diretto,"state manager non-null, con l'id specificato assegnato","PCState.TRANSIENT ('unmanaged instance'): caso documentato da persist, id fornito da @param"
+non gestito,non null,non null,ACT_NONE,ipotesi,"state manager non-null, con l'id specificato assegnato",azione non documentata: base assunta invariata
+non gestito,non null,non null,azione (CASCADE/RUN),ipotesi,"state manager non-null, con l'id specificato assegnato",azione non documentata: base assunta invariata
+non gestito,non null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga
+gestito,null,null,--,ipotesi,"state manager non-null, id di default assegnato","PCState.PNEW/PCLEAN/PDIRTY/HOLLOW: gia persistente, comportamento non documentato, si assume per analogia stessa postcondizione"
+gestito,null,non null,ACT_NONE,ipotesi,"state manager non-null, id di default assegnato",azione non documentata: base assunta invariata
+gestito,null,non null,azione (CASCADE/RUN),ipotesi,"state manager non-null, id di default assegnato",azione non documentata: base assunta invariata
+gestito,null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga
+gestito,non null,null,--,ipotesi,"state manager non-null, con l'id specificato assegnato","PCState.PNEW/PCLEAN/PDIRTY/HOLLOW: gia persistente, comportamento non documentato, si assume per analogia stessa postcondizione"
+gestito,non null,non null,ACT_NONE,ipotesi,"state manager non-null, con l'id specificato assegnato",azione non documentata: base assunta invariata
+gestito,non null,non null,azione (CASCADE/RUN),ipotesi,"state manager non-null, con l'id specificato assegnato",azione non documentata: base assunta invariata
+gestito,non null,non null,eccezione,inferenza,eccezione propagata da persist,eccezione di processArgument si propaga

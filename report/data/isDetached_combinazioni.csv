@@ -1,0 +1,9 @@
+obj,find,fonte_oracolo,oracolo,nota
+null,true,ipotesi,false,metodo predicato: risposta negativa assunta
+null,false,ipotesi,false,metodo predicato: risposta negativa assunta
+non gestito,true,ipotesi,false,tipo non gestito: risposta negativa assunta
+non gestito,false,ipotesi,false,tipo non gestito: risposta negativa assunta
+detached,true,diretto,true,documentato: @return diretto
+detached,false,diretto,true,documentato: @return diretto
+"non detached (gestito, persistente)",true,diretto,false,documentato: ramo 'false otherwise'
+"non detached (gestito, persistente)",false,diretto,false,documentato: ramo 'false otherwise'

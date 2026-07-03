@@ -1,0 +1,57 @@
+objs,copyNew,call,processArgument,fonte_oracolo,oracolo,nota
+null,true,null,--,ipotesi,eccezione (tipo non specificato),objs null: eccezione assunta
+null,true,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,true,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+null,false,null,--,ipotesi,eccezione (tipo non specificato),objs null: eccezione assunta
+null,false,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,false,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+null,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+vuota,true,null,--,inferenza,array vuoto,@return plurale: cardinalita' corrispondente
+vuota,true,non null,ACT_NONE,ipotesi,array vuoto,azione non documentata: base assunta invariata
+vuota,true,non null,azione (CASCADE/RUN),ipotesi,array vuoto,azione non documentata: base assunta invariata
+vuota,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+vuota,false,null,--,inferenza,array vuoto,@return plurale: cardinalita' corrispondente
+vuota,false,non null,ACT_NONE,ipotesi,array vuoto,azione non documentata: base assunta invariata
+vuota,false,non null,azione (CASCADE/RUN),ipotesi,array vuoto,azione non documentata: base assunta invariata
+vuota,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento precedentemente detached,true,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
+un elemento precedentemente detached,true,non null,ACT_NONE,ipotesi,istanza persistente esistente con le modifiche mergiate,azione non documentata: base assunta invariata
+un elemento precedentemente detached,true,non null,azione (CASCADE/RUN),ipotesi,istanza persistente esistente con le modifiche mergiate,azione non documentata: base assunta invariata
+un elemento precedentemente detached,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento precedentemente detached,false,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
+un elemento precedentemente detached,false,non null,ACT_NONE,ipotesi,istanza persistente esistente con le modifiche mergiate,azione non documentata: base assunta invariata
+un elemento precedentemente detached,false,non null,azione (CASCADE/RUN),ipotesi,istanza persistente esistente con le modifiche mergiate,azione non documentata: base assunta invariata
+un elemento precedentemente detached,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento nuovo,true,null,--,diretto,"istanza persistita come nuova, copia dell'originale",documentato: ramo nuovo + @param copyNew
+un elemento nuovo,true,non null,ACT_NONE,ipotesi,"istanza persistita come nuova, copia dell'originale",azione non documentata: base assunta invariata
+un elemento nuovo,true,non null,azione (CASCADE/RUN),ipotesi,"istanza persistita come nuova, copia dell'originale",azione non documentata: base assunta invariata
+un elemento nuovo,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento nuovo,false,null,--,diretto,"istanza persistita come nuova, non copiata",documentato: ramo nuovo + @param copyNew
+un elemento nuovo,false,non null,ACT_NONE,ipotesi,"istanza persistita come nuova, non copiata",azione non documentata: base assunta invariata
+un elemento nuovo,false,non null,azione (CASCADE/RUN),ipotesi,"istanza persistita come nuova, non copiata",azione non documentata: base assunta invariata
+un elemento nuovo,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento gia' gestito da questo broker,true,null,--,ipotesi,comportamento non determinato dai due rami documentati,"stato non coperto: assunto come merge, nessuna duplicazione"
+un elemento gia' gestito da questo broker,true,non null,ACT_NONE,ipotesi,comportamento non determinato dai due rami documentati,azione non documentata: base assunta invariata
+un elemento gia' gestito da questo broker,true,non null,azione (CASCADE/RUN),ipotesi,comportamento non determinato dai due rami documentati,azione non documentata: base assunta invariata
+un elemento gia' gestito da questo broker,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento gia' gestito da questo broker,false,null,--,ipotesi,comportamento non determinato dai due rami documentati,"stato non coperto: assunto come merge, nessuna duplicazione"
+un elemento gia' gestito da questo broker,false,non null,ACT_NONE,ipotesi,comportamento non determinato dai due rami documentati,azione non documentata: base assunta invariata
+un elemento gia' gestito da questo broker,false,non null,azione (CASCADE/RUN),ipotesi,comportamento non determinato dai due rami documentati,azione non documentata: base assunta invariata
+un elemento gia' gestito da questo broker,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento non valido,true,null,--,ipotesi,eccezione (tipo non specificato),"PCState.PDELETED ('Persistent-Deleted'): comportamento non documentato per attachAll, eccezione assunta"
+un elemento non valido,true,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+un elemento non valido,true,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+un elemento non valido,true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+un elemento non valido,false,null,--,ipotesi,eccezione (tipo non specificato),"PCState.PDELETED ('Persistent-Deleted'): comportamento non documentato per attachAll, eccezione assunta"
+un elemento non valido,false,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+un elemento non valido,false,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+un elemento non valido,false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+elementi misti (un valido e un non valido),true,null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si estende per analogia l'eccezione dell'elemento non valido all'intera chiamata
+elementi misti (un valido e un non valido),true,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+elementi misti (un valido e un non valido),true,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+elementi misti (un valido e un non valido),true,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga
+elementi misti (un valido e un non valido),false,null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si estende per analogia l'eccezione dell'elemento non valido all'intera chiamata
+elementi misti (un valido e un non valido),false,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+elementi misti (un valido e un non valido),false,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
+elementi misti (un valido e un non valido),false,non null,eccezione,inferenza,eccezione propagata da attachAll,eccezione di processArgument si propaga

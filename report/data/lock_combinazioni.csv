@@ -1,0 +1,97 @@
+pc,level,timeout,call,processArgument,fonte_oracolo,oracolo,nota
+null,noto,-1,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,noto,-1,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,noto,-1,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,noto,0,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,0,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,0,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+null,noto,positivo,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,positivo,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,positivo,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+null,non noto,-1,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,non noto,-1,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,non noto,-1,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+null,non noto,0,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,0,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,0,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+null,non noto,positivo,null,--,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,positivo,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,positivo,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"pc null: non gestibile, eccezione assunta"
+null,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+non gestito,noto,-1,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,noto,-1,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,noto,-1,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,noto,0,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,0,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,0,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+non gestito,noto,positivo,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,positivo,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,positivo,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+non gestito,non noto,-1,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,non noto,-1,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,non noto,-1,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+non gestito,non noto,0,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,0,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,0,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+non gestito,non noto,positivo,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,positivo,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,positivo,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non bloccabile, eccezione assunta"
+non gestito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito non persistito,noto,-1,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,noto,-1,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,noto,-1,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,noto,0,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza"
+gestito non persistito,noto,0,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,noto,0,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito non persistito,noto,positivo,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza"
+gestito non persistito,noto,positivo,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,noto,positivo,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito non persistito,non noto,-1,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,non noto,-1,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,non noto,-1,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito non persistito,non noto,0,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza"
+gestito non persistito,non noto,0,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,non noto,0,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito non persistito,non noto,positivo,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),"PCState.PNEW ('Persistent-New'): 'ensure' esteso per analogia al caso persistito, nessuna fonte conferma il comportamento pre-persistenza"
+gestito non persistito,non noto,positivo,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,non noto,positivo,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito non persistito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito persistito,noto,-1,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,noto,-1,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,noto,-1,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,noto,0,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel"
+gestito persistito,noto,0,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,noto,0,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito persistito,noto,positivo,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel"
+gestito persistito,noto,positivo,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,noto,positivo,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito persistito,non noto,-1,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,non noto,-1,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,non noto,-1,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,"eccezione di processArgument si propaga (LockManager generalizza a 'negativo', qui si usa -1 esatto)"
+gestito persistito,non noto,0,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel"
+gestito persistito,non noto,0,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,non noto,0,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
+gestito persistito,non noto,positivo,null,--,diretto,getLockLevel(pc) == level (postcondizione),"documentato: PCState.PCLEAN/PDIRTY/HOLLOW ('Persistent-Clean'/'Persistent-Dirty'/'exists in data store') + ""ensure"" + getLockLevel"
+gestito persistito,non noto,positivo,non null,ACT_NONE,ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,non noto,positivo,non null,azione (CASCADE/RUN),ipotesi,getLockLevel(pc) == level (postcondizione),azione di processArgument non documentata per lock: si assume che 'ensure locked' resti comunque garantito
+gestito persistito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,eccezione di processArgument si propaga
