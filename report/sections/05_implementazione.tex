@@ -50,6 +50,10 @@ con \texttt{mockStatic}. Per la classe "gestito" il codice conferma indipendente
 assunto in design: se lo stato di detached è già noto tramite lo state manager, il ramo "store"
 non viene mai raggiunto.
 
+Alla prima esecuzione la build falliva per il plugin \texttt{apache-rat}: il nuovo file di test
+non aveva l'header di licenza Apache richiesto su ogni sorgente del repository. Risolto
+aggiungendo l'header standard, identico a quello già presente nei file di produzione.
+
 \subsection{LoginDialog}
 
 % analisi da svolgere
