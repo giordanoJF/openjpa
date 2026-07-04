@@ -1,21 +1,16 @@
 objs,call,processArgument,fonte_oracolo,oracolo,nota
-null,null,--,ipotesi,eccezione (tipo non specificato),objs null: eccezione assunta
-null,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-null,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-null,non null,eccezione,inferenza,eccezione propagata da detachAll,eccezione di processArgument si propaga
-vuota,null,--,inferenza,array vuoto,@return plurale: cardinalita' corrispondente
-vuota,non null,ACT_NONE,ipotesi,array vuoto,azione non documentata: base assunta invariata
-vuota,non null,azione (CASCADE/RUN),ipotesi,array vuoto,azione non documentata: base assunta invariata
-vuota,non null,eccezione,inferenza,eccezione propagata da detachAll,eccezione di processArgument si propaga
-un elemento gestito,null,--,inferenza,array con un elemento; isDetached(elemento) == true,@return + definizione 'detached' da isDetached; PCState diverso da TRANSIENT
-un elemento gestito,non null,ACT_NONE,ipotesi,array con un elemento; isDetached(elemento) == true,azione non documentata: base assunta invariata
-un elemento gestito,non null,azione (CASCADE/RUN),ipotesi,array con un elemento; isDetached(elemento) == true,azione non documentata: base assunta invariata
-un elemento gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,eccezione di processArgument si propaga
-un elemento non gestito,null,--,ipotesi,eccezione (tipo non specificato),"PCState.TRANSIENT ('unmanaged instance'): non gestito, eccezione assunta"
-un elemento non gestito,non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-un elemento non gestito,non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-un elemento non gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,eccezione di processArgument si propaga
-elementi misti (un gestito e un non gestito),null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si estende per analogia l'eccezione del solo elemento non gestito all'intera chiamata
-elementi misti (un gestito e un non gestito),non null,ACT_NONE,ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-elementi misti (un gestito e un non gestito),non null,azione (CASCADE/RUN),ipotesi,eccezione (tipo non specificato),azione non documentata: base assunta invariata
-elementi misti (un gestito e un non gestito),non null,eccezione,inferenza,eccezione propagata da detachAll,eccezione di processArgument si propaga
+null,null,--,ipotesi,eccezione (tipo non specificato),"non c'e' nulla da staccare, eccezione assunta"
+null,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
+null,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+vuota,null,--,inferenza,array vuoto,@return al plurale: si assume un array vuoto
+vuota,non null,azione,ipotesi,array vuoto,il codice azione non ha effetto noto: resta un array vuoto
+vuota,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+un elemento gestito,null,--,inferenza,array con un elemento; isDetached(elemento) == true,isDetached deve risultare true sull'elemento restituito
+un elemento gestito,non null,azione,ipotesi,array con un elemento; isDetached(elemento) == true,il codice azione non ha effetto noto: il risultato non cambia
+un elemento gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+un elemento non gestito,null,--,ipotesi,eccezione (tipo non specificato),"istanza non gestita (TRANSIENT): non staccabile, eccezione assunta"
+un elemento non gestito,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
+un elemento non gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+elementi misti (un gestito e un non gestito),null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si assume che fallisca come con un solo elemento non gestito
+elementi misti (un gestito e un non gestito),non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
+elementi misti (un gestito e un non gestito),non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga

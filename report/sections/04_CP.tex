@@ -88,40 +88,58 @@ persistito\}, \{gestito, presente nello store\} — definite tramite \texttt{PCS
 (\texttt{TRANSIENT}, \texttt{PNEW}, \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}
 rispettivamente), esposto da \texttt{getPCState()} su \texttt{OpenJPAStateManager} (collegato
 strutturalmente a \texttt{call}, terzo parametro di \texttt{OpCallbacks.processArgument}).
-\texttt{level}: \{valore noto\}, \{valore non noto\} — \texttt{LockManager.lock}
-(\texttt{LockManager} raggiungibile via \texttt{StoreContext.getLockManager()}) documenta
-esplicitamente \texttt{@param level}: ``one of the lock constants defined in
-\texttt{LockLevels}, or a custom level''. Il primo gruppo copre tutte le costanti dichiarate in
-\texttt{LockLevels} (\texttt{LOCK\_NONE}=0, \texttt{LOCK\_READ}=10, \texttt{LOCK\_WRITE}=20) e in
-\texttt{MixedLockLevels} (interfaccia che estende \texttt{LockLevels}:
-\texttt{LOCK\_OPTIMISTIC}=15, \texttt{LOCK\_OPTIMISTIC\_FORCE\_INCREMENT}=25,
-\texttt{LOCK\_PESSIMISTIC\_READ}=30, \texttt{LOCK\_PESSIMISTIC\_WRITE}=40,
-\texttt{LOCK\_PESSIMISTIC\_FORCE\_INCREMENT}=50) — \texttt{LOCK\_NONE} incluso, dato che il testo
-lo elenca esplicitamente tra ``the lock constants defined in \texttt{LockLevels}'', senza
-distinguerlo dagli altri; il secondo gruppo qualunque valore non tra queste costanti.
-\texttt{timeout}: \{\texttt{-1}\}, \{0\},
+\texttt{level}: \{valore noto\}, \{valore non noto\} — \texttt{Broker} estende direttamente
+\texttt{LockLevels}, che dichiara tre costanti con Javadoc proprio (\texttt{LOCK\_NONE}=0, ``No
+lock''; \texttt{LOCK\_READ}=10, ``Generic read lock level''; \texttt{LOCK\_WRITE}=20, ``Generic
+write lock level''). Il primo gruppo copre queste 3 costanti, il secondo qualunque altro valore
+\texttt{int}.
+\texttt{timeout}: \{altro negativo ($<-1$)\}, \{\texttt{-1}\}, \{0\},
 \{positivo\}. \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}* (richiede
-\texttt{call} non null): \{\texttt{ACT\_NONE}\}, \{azione: \texttt{ACT\_CASCADE}/
-\texttt{ACT\_RUN}\}, \{lancia \texttt{OpenJPAException}\}. \texttt{OpCallbacks} ha un solo
-metodo di callback (nessun equivalente di \texttt{processReturn}). Classi in
+\texttt{call} non null): \{ritorna un codice azione (\texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/
+\texttt{ACT\_RUN}, tutte equivalenti)\}, \{lancia \texttt{OpenJPAException}\}. \texttt{OpCallbacks}
+ha un solo metodo di callback (nessun equivalente di \texttt{processReturn}). Classi in
 Tabella~\ref{tab:lock-classi} (Appendice).
 
-\textit{Note di modellazione:} \texttt{level} è passato per due revisioni. La prima proposta,
+\textit{Note di modellazione:} \texttt{level} è passato per più revisioni. La prima proposta,
 \{\texttt{LOCK\_NONE}\}/\{positivo\}, univa in una sola classe ``positivo'' qualunque valore
 positivo (costante dichiarata o arbitrario) — stesso problema di equivalenza indebita già
-corretto per \texttt{pc}. La seconda proposta correggeva questo separando \{\texttt{LOCK\_NONE}\},
-\{positivo noto\}, \{positivo non noto\}, ma introduceva un errore diverso: la separazione di
-\texttt{LOCK\_NONE} dal resto era motivata solo dalla sua diversità semantica (``nessun lock''),
-lo stesso tipo di criterio già scartato per \texttt{LOCK\_READ} vs \texttt{LOCK\_WRITE} (semantica-
-mente distinti — lettura vs scrittura — ma uniti perché nessuna fonte ne documenta un effetto
-diverso). Applicando lo stesso criterio in modo coerente: \texttt{LockManager.lock} elenca
-\texttt{LOCK\_NONE} esplicitamente tra ``the lock constants defined in \texttt{LockLevels}'',
-nello stesso gruppo testuale di \texttt{LOCK\_READ}/\texttt{LOCK\_WRITE}, non in un gruppo a
-parte — la partizione corretta è quindi a due classi (\{valore noto\}/\{valore non noto\}), non a
-tre. Nessuna fonte specifica per \texttt{lock} documenta un effetto diverso tra le due classi
-finali, ma la distinzione testuale in \texttt{LockManager.lock} le rende comunque due categorie
-separate degne di verifica empirica (un valore non noto molto distante dalle costanti dichiarate
-potrebbe rivelare un comportamento non documentato che le costanti note non rivelerebbero). Le
+corretto per \texttt{pc}. Una seconda proposta correggeva questo separando \{\texttt{LOCK\_NONE}\},
+\{positivo noto\}, \{positivo non noto\}, motivando la separazione di \texttt{LOCK\_NONE} dal
+resto solo con la sua diversità semantica (``nessun lock''), lo stesso tipo di criterio già
+scartato per \texttt{LOCK\_READ} vs \texttt{LOCK\_WRITE} (semanticamente distinti — lettura vs
+scrittura — ma uniti perché nessuna fonte ne documenta un effetto diverso su \texttt{lock}).
+Applicando lo stesso criterio in modo coerente, \texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/
+\texttt{LOCK\_WRITE} uniscono in un'unica classe \{valore noto\}: \texttt{LockLevels} le dichiara
+come tre costanti sorelle, nessuna delle tre documentata con un effetto diverso sull'esito di
+\texttt{lock} — la partizione corretta è quindi a due classi (\{valore noto\}/\{valore non
+noto\}), non a tre.
+
+Una revisione successiva ha inoltre rimosso un riferimento, presente in una versione precedente
+di questa analisi, a \texttt{LockManager.lock} e a \texttt{MixedLockLevels} come fonti per il
+dominio di \texttt{level}. \texttt{LockManager} è raggiungibile da \texttt{Broker} (tramite
+\texttt{StoreContext.getLockManager()}, la stessa distanza strutturale già usata per
+\texttt{StoreManager}), ma il suo metodo \texttt{lock(OpenJPAStateManager, int, int, Object)} è
+un metodo diverso, su un'interfaccia diversa, senza alcuna relazione di delega dichiarata con
+\texttt{Broker.lock(Object, int, int, OpCallbacks)}: usare il suo Javadoc (``one of the lock
+constants defined in \texttt{LockLevels}, or a custom level'') per definire il dominio di
+\texttt{Broker.lock} avrebbe richiesto assumere che quest'ultimo deleghi internamente al primo,
+cosa verificabile solo leggendo l'implementazione (violazione BB). \texttt{MixedLockLevels} era
+una fonte ancora più debole: non è estesa né da \texttt{Broker} né da \texttt{LockManager} (che
+estende solo \texttt{LockLevels}), e le sue costanti compaiono nel codice sorgente solo dentro
+\texttt{FetchConfigurationImpl}, una classe di implementazione concreta priva di qualunque
+connessione strutturale con \texttt{BrokerImpl} — una citazione non ammissibile, rimossa.
+L'unica fonte strutturalmente diretta per i valori noti di \texttt{level} resta quindi
+\texttt{LockLevels}, estesa direttamente da \texttt{Broker}: 3 costanti, non 8.
+
+Va inoltre precisato che un valore non noto (es. \texttt{level=10000}) non ha un significato di
+dominio interpretabile da chi progetta i test: \texttt{level} è dichiarato semplicemente
+\texttt{int}, senza altra restrizione nel Javadoc di \texttt{Broker.lock}, e nessuna fonte
+strutturalmente connessa a \texttt{BrokerImpl} descrive un significato per valori diversi dalle 3
+costanti di \texttt{LockLevels} (non esiste, ad esempio, una scala documentata di livelli
+intermedi). La classe \{valore non noto\} è quindi trattata a scatola nera come ``qualunque
+intero non tra le costanti dichiarate''. In assenza di qualunque fonte, si assume (\emph{ipotesi})
+un comportamento diverso da quello dei livelli noti, verosimilmente un'eccezione, anziché
+identico. Le
 classi di \texttt{pc} sostituiscono un'iniziale coppia \{non valido\}/\{valido\} basata su
 conoscenza di dominio generica, poco verificabile in pratica.
 \texttt{PCState} documenta esplicitamente il significato di ciascuno stato (\texttt{TRANSIENT}:
@@ -129,9 +147,7 @@ conoscenza di dominio generica, poco verificabile in pratica.
 \texttt{PDIRTY}: ``Persistent-Clean''/``Persistent-Dirty''), verificabile in un test mockando
 \texttt{getPCState()}. Il livello di lock corrente di \texttt{pc} non è tracciato come parametro
 a sé: la postcondizione dichiarata (``ensure locked at the given level'') non dipende dallo
-stato di partenza. \texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} sono unite in un'unica classe: sono
-valori distinti dichiarati (struttura bitmask, potenze di due) ma senza alcun effetto
-documentato che li distingua per \texttt{lock}. \texttt{PCState} dichiara in totale 23
+stato di partenza. \texttt{PCState} dichiara in totale 23
 costanti; oltre alle 4 già usate, solo \texttt{HOLLOW} (``Hollow; exists in data store'') ha un
 appiglio testuale diretto rilevante qui, e viene incluso nella classe \{gestito, presente nello
 store\} per lo stesso criterio già usato per \texttt{PCLEAN}/\texttt{PDIRTY} — confermato anche
@@ -149,23 +165,26 @@ una parola nel nome non basta ad assumere lo stesso significato; per confermarlo
 leggere le classi di transizione di stato (WB), quindi restano fuori, non incluse in
 \{non gestito\}; gli stati \texttt{Embedded} riguardano value object, non risulta
 che \texttt{lock} li accetti come \texttt{pc}; le combinazioni di flush/delete sono casi limite
-della pipeline di cancellazione, senza alcuna fonte che li distingua per \texttt{lock}. Il caso
-di \texttt{LockException} per
-\texttt{timeout} scaduto (\texttt{LockManager.lock}, fonte secondaria: \texttt{@throws
-LockException if a lock cannot be obtained in the given number of milliseconds}) non è incluso
-nella combinatoria: richiede una contesa concorrente reale (un secondo thread/broker che
-mantiene il lock su \texttt{pc} oltre il \texttt{timeout}), quindi un test di integrazione con
-più componenti reali, non un unit test con collaboratori mockati — candidato per una fase di
-test di integrazione separata (dimensione Level: Unit/Integration).
+della pipeline di cancellazione, senza alcuna fonte che li distingua per \texttt{lock}. Un
+eventuale esito di timeout scaduto sotto contesa concorrente non è documentato da
+\texttt{Broker.lock} stesso e non è incluso nella combinatoria: richiede comunque una contesa
+concorrente reale (un secondo thread/broker che mantiene il lock su \texttt{pc} oltre il
+\texttt{timeout}), quindi un test di integrazione con più componenti reali, non un unit test con
+collaboratori mockati — candidato per una fase di test di integrazione separata (dimensione
+Level: Unit/Integration).
 
 \textit{Ipotesi sull'oracolo:} per \texttt{pc} null o \texttt{TRANSIENT} (non gestito), quando
 \texttt{processArgument} non lancia essa stessa un'eccezione, nessuna fonte documenta l'esito: si
 assume un'eccezione (tipo non specificato), \emph{ipotesi} senza appiglio testuale. Per
-\texttt{pc} \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW} (gestito, presente nello
-store), la postcondizione (\texttt{getLockLevel(pc) == level}, verificata con l'inspector
-\texttt{StoreContext.getLockLevel}) è \emph{diretta}. Per \texttt{pc} \texttt{PNEW} (gestito, non
-ancora persistito) non è documentato se ``ensure'' valga anche prima del flush verso lo store:
-si assume, per analogia, che la stessa postcondizione valga comunque — \emph{ipotesi}, non
+\texttt{pc} gestito (\texttt{PNEW}, oppure \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}) con
+\texttt{level} \emph{non noto}, si assume anch'esso un'eccezione (tipo non specificato),
+\emph{ipotesi} (stesso giudizio di progettazione motivato sopra). Resta invece \texttt{pc}
+gestito con \texttt{level}
+\emph{noto}: per \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW} (gestito, presente nello store)
+la postcondizione (\texttt{getLockLevel(pc) == level}, verificata con l'inspector
+\texttt{StoreContext.getLockLevel}) è \emph{diretta}. Per \texttt{PNEW} (gestito, non ancora
+persistito) non è documentato se ``ensure'' valga anche prima del flush verso lo store: si
+assume, per analogia, che la stessa postcondizione valga comunque — \emph{ipotesi}, non
 \emph{diretta}, perché estende un caso documentato a uno strutturalmente diverso. La premessa
 ``non ancora persistito'' non è solo dedotta dal nome \texttt{PNEW}: \texttt{StoreManager.flush}
 (\texttt{Collection<OpenJPAStateManager> sms}) distingue esplicitamente stati che ``do not
@@ -183,41 +202,102 @@ leggere l'override in \texttt{PNewState} (WB, stessa esclusione già applicata a
 classe \{gestito, presente nello store\}. Quando \texttt{call.processArgument} lancia
 eccezione, si assume la propagazione da \texttt{lock} (\emph{inferenza}: propagazione delle
 eccezioni non gestite, stessa proprietà usata per \texttt{find}) — indipendentemente dalla
-classe di \texttt{pc}: è un fatto di semantica Java, non legato allo stato dell'istanza, stesso
-trattamento già usato per \texttt{detachAll}/\texttt{attachAll}/\texttt{persist}. Quando
-ritorna \texttt{ACT\_NONE} o un'azione, l'effetto su \texttt{lock} non è documentato da
-\texttt{OpCallbacks} (interfaccia generica, condivisa da tutte le operazioni, senza semantica
-specifica per \texttt{lock}): il valore atteso resta identico a quello della riga diretta
-gemella (stesso \texttt{pc}/\texttt{level}/\texttt{timeout}, ma \texttt{call} null) — si assume
-che ``ensure locked at the given level'' resti comunque garantito, senza essere alterato dal
-codice azione — ma il tier scende a \emph{ipotesi} perché quel codice azione introduce
-un'interazione non documentata che potrebbe, in teoria, cambiare l'esito. Il
-\texttt{timeout=-1} è documentato esattamente da \texttt{Broker.lock}; una fonte secondaria
-(\texttt{LockManager.lock}) generalizza a ``qualsiasi negativo'' — si usa la fonte primaria, il
-comportamento per altri valori negativi resta da verificare.
+classe di \texttt{pc} o di \texttt{level}: è un fatto di semantica Java, non legato allo stato
+dell'istanza, stesso trattamento già usato per \texttt{detachAll}/\texttt{attachAll}/
+\texttt{persist}. Quando \texttt{pc} è gestito con \texttt{level} \emph{non noto} e
+\texttt{processArgument} ritorna un codice azione (senza lanciare eccezione), il valore atteso
+resta lo stesso dell'intera riga (eccezione, per il giudizio di progettazione appena descritto):
+il codice azione non cambia l'ipotesi, dato che a monte non ci si aspetta comunque che il
+livello venga applicato. Quando invece \texttt{level} è \emph{noto} e \texttt{processArgument}
+ritorna un codice azione, l'effetto su \texttt{lock} non è
+documentato da \texttt{OpCallbacks} (interfaccia generica, condivisa da tutte le operazioni,
+senza semantica specifica per \texttt{lock}): il valore atteso resta identico a quello della
+riga gemella con \texttt{call} null (stesso \texttt{pc}/\texttt{level}/\texttt{timeout}) — si
+assume che ``ensure locked at the given level'' resti comunque garantito, senza essere alterato
+dal codice azione — ma il tier scende comunque a \emph{ipotesi} (o resta \emph{ipotesi}, se la
+gemella già lo era) perché quel codice azione introduce un'interazione non documentata che
+potrebbe, in teoria, cambiare l'esito. Il \texttt{timeout=-1} è documentato esattamente da
+\texttt{Broker.lock} (``-1 for no limit''); nessuna fonte strutturalmente connessa a
+\texttt{Broker.lock} — ci si affida solo alla documentazione di \texttt{lock()} stesso, non a
+\texttt{LockManager} — documenta il comportamento per un negativo diverso da \texttt{-1}. Per
+\texttt{pc} gestito con \texttt{level} \emph{noto}, la riga con \texttt{timeout} esattamente
+\texttt{-1} resta \emph{diretta} (o \emph{ipotesi} se già scesa per altri motivi, es.
+\texttt{PNEW} o azione non eccezionale); per la classe \{altro negativo ($<-1$)\} si assume
+invece un'eccezione (tipo non specificato), \emph{ipotesi}: dato che solo il valore esatto
+\texttt{-1} è documentato, un negativo diverso è più plausibilmente respinto che trattato allo
+stesso modo. Per le righe dove il tier era già
+\emph{ipotesi} per un motivo indipendente da \texttt{timeout} (\texttt{pc} non
+gestito/\texttt{null}, o \texttt{level} non noto) la classe \{altro negativo\} non cambia
+nulla — l'oracolo era già ``eccezione''; per le righe con propagazione di eccezione da
+\texttt{processArgument} resta \emph{inferenza} indipendentemente da \texttt{timeout} (fatto di
+semantica Java, non legato al valore numerico).
 
-\textit{Combinazioni:} $4 (\texttt{pc}) \times 2 (\texttt{level}) \times 3 (\texttt{timeout})
-\times 2 (\texttt{call}) \times 3 (\texttt{processArgument}) = 144$.
+\textit{Correzione di una partizione non esaustiva su \texttt{timeout}:} una revisione
+successiva del parametro \texttt{timeout} ha rilevato che la partizione iniziale
+$\{\texttt{-1}\}, \{0\}, \{\texttt{positivo}\}$ non copriva l'intero dominio dei valori
+ammissibili per un \texttt{int}: ogni valore negativo diverso da \texttt{-1} (es. \texttt{-2},
+\texttt{-100}) non apparteneva a nessuna delle tre classi. L'errore nasceva dal confondere due
+fasi distinte del metodo Category Partition: la definizione delle classi di equivalenza
+(partizionare il dominio di un parametro, verificando che l'unione delle classi copra l'intero
+dominio) e il Boundary Value Analysis (scegliere, \emph{dentro} una classe già definita, un
+valore rappresentativo al confine). Trattare \texttt{-1} come l'unico rappresentante scelto per
+un'ipotetica classe ``negativo'' avrebbe fatto collassare silenziosamente queste due fasi: la
+classe ``negativo'' non era mai stata definita esplicitamente al di là del singolo valore
+\texttt{-1}, quindi tutti gli altri negativi restavano semplicemente non testati, senza che una
+decisione di eliminazione lo giustificasse esplicitamente. La correzione consiste
+nell'aggiungere la classe mancante \{altro negativo ($<-1$)\}, completando la partizione (ora
+esaustiva su tutto il dominio \texttt{int}); il valore rappresentativo scelto per questa classe
+via BVA è \texttt{-2}, il confine adiacente a \texttt{-1} (l'altro estremo della classe è
+illimitato verso $-\infty$ e non ha un confine documentato da esplorare). La lezione generale,
+applicata poi a ritroso su tutti gli altri parametri numerici già modellati per gli altri 6
+metodi (nessun altro caso analogo trovato): per ogni parametro, prima verificare che le classi
+di equivalenza già definite coprano esaustivamente l'intero dominio dichiarato, e solo dopo, per
+ciascuna classe, applicare il BVA per scegliere un valore di confine — mai lasciare che un
+singolo valore scelto per comodità (perché documentato, o perché ``ovvio'') faccia da
+sostituto implicito per un'intera classe più ampia mai definita esplicitamente.
+
+\textit{Correzione di una classe di equivalenza non giustificata su
+\texttt{call.processArgument}:} una revisione ha rilevato che \{\texttt{ACT\_NONE}\} e
+\{azione: \texttt{ACT\_CASCADE}/\texttt{ACT\_RUN}\} erano tenute come due classi separate senza
+alcuna fonte che le distinguesse: \texttt{OpCallbacks.java} non ha Javadoc per nessuna delle tre
+costanti (verificato leggendo il file), esattamente come nessuna fonte distingueva
+\texttt{LOCK\_NONE} da \texttt{LOCK\_READ}/\texttt{LOCK\_WRITE} per \texttt{level} — stesso
+errore, stessa correzione: le tre costanti uniscono in un'unica classe \{ritorna un codice
+azione\}. La partizione di \texttt{call.processArgument} passa quindi da tre classi a due:
+\{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\}.
+
+\textit{Combinazioni:} $4 (\texttt{pc}) \times 2 (\texttt{level}) \times 4 (\texttt{timeout})
+\times 2 (\texttt{call}) \times 2 (\texttt{processArgument}) = 128$.
 
 \textit{Eliminazioni:} solo strutturale, quando \texttt{call} è null non esiste
-\texttt{processArgument} da invocare (collassa da 3 a 1). Combinazioni valide:
-$4 \times 2 \times 3 \times (1+3) = 96$ (48 eliminate).
+\texttt{processArgument} da invocare (collassa da 2 a 1). Combinazioni valide:
+$4 \times 2 \times 4 \times (1+2) = 96$ (32 eliminate).
 
 \textit{Boundary Value Analysis:} \texttt{timeout} ha un confine documentato esplicitamente a
-\texttt{-1}; le classi \{-1\}, \{0\}, \{positivo\} coprono già i punti rilevanti (valore
-sentinella esatto, non un range continuo da esplorare oltre il confine stesso). \texttt{level}
-non ha un confine numerico documentato con effetto diverso su \texttt{lock} (nessun limite
-superiore, nessuna soglia dichiarata) — la partizione \{noto\}/\{non noto\} è una classe di
-equivalenza CP (Step 2, da distinzione testuale), non un confine BVA (Step 5): non si applica
-BVA su un dominio senza soglia documentata.
+\texttt{-1} (fonte primaria \texttt{Broker.lock}): la classe \{\texttt{-1}\} è un valore
+sentinella singolo, non un range, quindi coincide col proprio stesso rappresentante. La classe
+\{altro negativo ($<-1$)\} ha un confine noto solo sul lato adiacente a \texttt{-1}
+(rappresentante BVA: \texttt{-2}) e nessun confine documentato verso $-\infty$. Le classi
+\{0\} e \{positivo\} condividono il confine $0$/$1$, già coperto scegliendo \texttt{0} e un
+valore positivo qualunque come rappresentanti delle rispettive classi. \texttt{level} non ha
+un confine numerico documentato con effetto diverso su \texttt{lock} (nessun limite superiore,
+nessuna soglia dichiarata) — la partizione \{noto\}/\{non noto\} è una classe di equivalenza
+Category Partition (da distinzione testuale), non un confine BVA: non si applica BVA su un
+dominio senza soglia documentata.
 
-\textit{Oracolo:} su 96 combinazioni valide, 6 hanno oracolo diretto (\texttt{pc}
-\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \texttt{call} null, su entrambe le classi di
-\texttt{level}), 24 per inferenza (propagazione eccezione di \texttt{processArgument}, su tutte
-e 4 le classi di \texttt{pc} e le 2 di \texttt{level}: la propagazione è un fatto strutturale di
-Java, indipendente da entrambi), 66 per ipotesi (\texttt{pc} non gestito o \texttt{null} con
-\texttt{call} nullo o azione non eccezionale, \texttt{pc} \texttt{PNEW}, o \texttt{call} con
-azione non eccezionale). Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 96 combinazioni valide, 3 hanno oracolo diretto (\texttt{pc}
+\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \texttt{call} null, \texttt{level} \emph{noto},
+\texttt{timeout} esattamente \{\texttt{-1}\}, \{0\} o \{positivo\} — non \{altro negativo\}), 32
+per inferenza (propagazione eccezione di \texttt{processArgument} su tutte le combinazioni di
+\texttt{pc}/\texttt{level}/\texttt{timeout}: la propagazione è un fatto strutturale di Java,
+indipendente da entrambi), 61 per ipotesi: 52 con oracolo ``eccezione'' (\texttt{pc} non gestito
+o \texttt{null}; \texttt{pc} gestito con \texttt{level} \emph{non noto}; oppure \texttt{pc}
+gestito con \texttt{level} \emph{noto} e \texttt{timeout} \{altro negativo\} — nei due casi
+``non noto''/``altro negativo'' un giudizio di progettazione, non un fatto documentato) e 9 con
+oracolo ``postcondizione'' (\texttt{pc} \texttt{PNEW} con \texttt{level} \emph{noto} e
+\texttt{timeout} $\neq$ \{altro negativo\}, o \texttt{call} con azione non eccezionale su
+\texttt{pc} gestito con \texttt{level} \emph{noto} e \texttt{timeout} $\neq$ \{altro negativo\}).
+Materializzate per esteso in Appendice.
 
 \subsubsection{\texttt{detachAll(Collection objs, OpCallbacks call)}}
 
@@ -231,9 +311,11 @@ coerenza con la logica CP di classi di equivalenza piuttosto che dimensioni esau
 classe ``elementi misti'' testa l'atomicità non documentata dell'operazione su collezione:
 nessuna fonte dice se un elemento non gestito faccia fallire l'intera chiamata o solo il proprio
 elemento, lasciando intatti gli altri. \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}*
-(richiede \texttt{call} non null): \{\texttt{ACT\_NONE}\}, \{azione\}, \{lancia
-\texttt{OpenJPAException}\} (stessa semplificazione già applicata a \texttt{lock}, stesso tipo
-\texttt{OpCallbacks}). Classi in Tabella~\ref{tab:detachall-classi} (Appendice).
+(richiede \texttt{call} non null): \{ritorna un codice azione\}, \{lancia
+\texttt{OpenJPAException}\} (stesso tipo \texttt{OpCallbacks} di \texttt{lock}, stessa unione
+di \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} in un'unica classe: nessuna delle
+tre ha Javadoc, nessuna fonte le distingue). Classi in Tabella~\ref{tab:detachall-classi}
+(Appendice).
 
 \textit{Note di modellazione:} le classi di \texttt{objs} sostituiscono un'iniziale coppia
 \{un elemento non valido\}/\{un elemento valido\}, la cui etichetta non coincideva col criterio
@@ -259,23 +341,23 @@ ipotetico a uno strutturalmente diverso (non un'estensione di un caso diretto). 
 vuota: un array vuoto, dedotto per corrispondenza di cardinalità col \texttt{@return} plurale,
 \emph{inferenza}. \texttt{processArgument} che lancia eccezione: propagazione da
 \texttt{detachAll} (\emph{inferenza}, stessa proprietà generale usata per \texttt{find}/
-\texttt{lock}). Per \texttt{ACT\_NONE}/azione: nessuna descrizione dell'effetto su
+\texttt{lock}). Per il codice azione: nessuna descrizione dell'effetto su
 \texttt{detachAll} in \texttt{OpCallbacks} (interfaccia generica, non specifica); si assume che
 il comportamento di base non cambi, \emph{ipotesi} senza un verbo di garanzia assoluto a
 supporto (a differenza di \texttt{lock}).
 
-\textit{Combinazioni:} $5 (\texttt{objs}) \times 2 (\texttt{call}) \times 3
-(\texttt{processArgument}) = 30$.
+\textit{Combinazioni:} $5 (\texttt{objs}) \times 2 (\texttt{call}) \times 2
+(\texttt{processArgument}) = 20$.
 
 \textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-3 a 1. Combinazioni valide: $5 \times (1+3) = 20$ (10 eliminate).
+2 a 1. Combinazioni valide: $5 \times (1+2) = 15$ (5 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
 documentata.
 
-\textit{Oracolo:} su 20 combinazioni valide, 7 per inferenza (cardinalità/inspector,
-propagazione eccezione), 13 per ipotesi (\texttt{objs} inammissibile o mista, o \texttt{call}
-con azione non eccezionale). Nessuna riga diretta. Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 15 combinazioni valide, 7 per inferenza (cardinalità/inspector,
+propagazione eccezione), 8 per ipotesi (\texttt{objs} inammissibile o mista, o \texttt{call}
+con codice azione). Nessuna riga diretta. Materializzate per esteso in Appendice.
 
 \subsubsection{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}
 
@@ -285,9 +367,10 @@ broker\} (caso non coperto dai due rami documentati, si veda sotto), \{un elemen
 (\texttt{PCState.PDELETED}, ``Persistent-Deleted'' — marcato per cancellazione, stato non
 considerato da nessuno dei rami documentati), \{elementi misti (un valido e un non valido
 insieme)\}. \texttt{copyNew}: \{true\}, \{false\}. \texttt{call}: \{null\}, \{non null\}.
-\texttt{call.processArgument}* (richiede \texttt{call} non null): \{\texttt{ACT\_NONE}\},
-\{azione\}, \{lancia \texttt{OpenJPAException}\}. Classi in Tabella~\ref{tab:attachall-classi}
-(Appendice).
+\texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice azione\},
+\{lancia \texttt{OpenJPAException}\} (stessa unione già applicata a \texttt{lock}/
+\texttt{detachAll}: nessuna delle tre costanti ha Javadoc). Classi in
+Tabella~\ref{tab:attachall-classi} (Appendice).
 
 \textit{Note di modellazione:} il Javadoc descrive esattamente due rami per lo stato di un
 elemento di \texttt{objs}: precedentemente distaccato (merge) o nuovo (persistito). Un elemento
@@ -317,23 +400,23 @@ l'esito, si assume un'eccezione (\emph{ipotesi}). \texttt{objs} con elementi mis
 per analogia col caso di solo elemento non valido, che l'intera chiamata fallisca con eccezione
 (\emph{ipotesi}, estende un caso già ipotetico). \texttt{objs} null (\emph{ipotesi}) ed
 eccezione di \texttt{processArgument} (\emph{inferenza}, propagazione) seguono lo stesso
-trattamento già usato per gli altri metodi. \texttt{ACT\_NONE}/azione: nessuna descrizione
+trattamento già usato per gli altri metodi. Il codice azione: nessuna descrizione
 dell'effetto su questo metodo, si assume che il comportamento di base non cambi
 (\emph{ipotesi}).
 
 \textit{Combinazioni:} $7 (\texttt{objs}) \times 2 (\texttt{copyNew}) \times 2 (\texttt{call})
-\times 3 (\texttt{processArgument}) = 84$.
+\times 2 (\texttt{processArgument}) = 56$.
 
 \textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-3 a 1. Combinazioni valide: $7 \times 2 \times (1+3) = 56$ (28 eliminate).
+2 a 1. Combinazioni valide: $7 \times 2 \times (1+2) = 42$ (14 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
 documentata.
 
-\textit{Oracolo:} su 56 combinazioni valide, 4 dirette (rami merge/nuovo con \texttt{call}
-null), 16 per inferenza (cardinalità vuota, propagazione eccezione), 36 per ipotesi
-(\texttt{objs} inammissibile, già gestito, non valido, o misto, o \texttt{call} con azione non
-eccezionale). Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 42 combinazioni valide, 4 dirette (rami merge/nuovo con \texttt{call}
+null), 16 per inferenza (cardinalità vuota, propagazione eccezione), 22 per ipotesi
+(\texttt{objs} inammissibile, già gestito, non valido, o misto, o \texttt{call} con codice
+azione). Materializzate per esteso in Appendice.
 
 \subsubsection{\texttt{newInstance(Class cls)}}
 
@@ -368,7 +451,8 @@ del metodo: quello che il metodo deve determinare correttamente. \{non gestito\}
 \texttt{detachAll}/\texttt{persist} — la distinzione valido/non valido su \texttt{obj} è quindi
 realizzata tramite \texttt{PCState}, con l'eccezione di \{detached\}: tra le 23 costanti di
 \texttt{PCState} non ne esiste una che rappresenti ``detached''; questo stato è definito solo
-dal Javadoc di \texttt{Broker.isDetached(Object)} (vedi sotto), non da \texttt{PCState}.
+dal Javadoc di \texttt{Broker.isDetached(Object)} (citato in
+Sezione~\ref{sec:brokerimpl-analisi-doc}), non da \texttt{PCState}.
 \texttt{find}: \{true\}, \{false\}. Classi in Tabella~\ref{tab:isdetached-classi} (Appendice).
 
 \textit{Note di modellazione:} il Javadoc di \texttt{find} (``as a last resort this method will
@@ -405,9 +489,10 @@ novo). Delle restanti 18 costanti di \texttt{PCState} (varianti non-transazional
 qualificate, \texttt{Embedded}, casi limite di flush/delete), nessuna ha un appiglio testuale
 diverso da quello già usato per \texttt{lock}: stessa esclusione, stesse motivazioni. \texttt{id}: \{null\}, \{non null\} —
 dominio esplicitamente dichiarato nel Javadoc del parametro. \texttt{call}: \{null\}, \{non
-null\}. \texttt{call.processArgument}* (richiede \texttt{call} non null): \{\texttt{ACT\_NONE}\},
-\{azione\}, \{lancia \texttt{OpenJPAException}\}. Classi in Tabella~\ref{tab:persist-classi}
-(Appendice).
+null\}. \texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice
+azione\}, \{lancia \texttt{OpenJPAException}\} (stessa unione già applicata a \texttt{lock}/
+\texttt{detachAll}/\texttt{attachAll}: nessuna delle tre costanti ha Javadoc). Classi in
+Tabella~\ref{tab:persist-classi} (Appendice).
 
 \textit{Note di modellazione:} le classi di \texttt{pc} sostituiscono un'iniziale coppia
 \{non valido\}/\{valido\} basata su conoscenza di dominio generica, stesso problema già
@@ -428,21 +513,21 @@ stessa postcondizione (\emph{ipotesi}, non \emph{diretta}, per lo stesso motivo 
 \texttt{lock} per \texttt{PNEW}: estende un caso documentato a uno strutturalmente diverso).
 \texttt{pc} null: non documentato, si assume un'eccezione (\emph{ipotesi}).
 \texttt{processArgument} che lancia eccezione: propagazione (\emph{inferenza}, stessa proprietà
-generale già usata per gli altri metodi). \texttt{ACT\_NONE}/azione: nessuna descrizione
+generale già usata per gli altri metodi). Il codice azione: nessuna descrizione
 dell'effetto su questo metodo, si assume che il comportamento di base non cambi (\emph{ipotesi}).
 
-\textit{Combinazioni:} $3 (\texttt{pc}) \times 2 (\texttt{id}) \times 2 (\texttt{call}) \times 3
-(\texttt{processArgument}) = 36$.
+\textit{Combinazioni:} $3 (\texttt{pc}) \times 2 (\texttt{id}) \times 2 (\texttt{call}) \times 2
+(\texttt{processArgument}) = 24$.
 
 \textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-3 a 1. Combinazioni valide: $3 \times 2 \times (1+3) = 24$ (12 eliminate).
+2 a 1. Combinazioni valide: $3 \times 2 \times (1+2) = 18$ (6 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
 documentata.
 
-\textit{Oracolo:} su 24 combinazioni valide, 2 dirette (\texttt{pc} \texttt{TRANSIENT},
-\texttt{call} null), 6 per inferenza (propagazione eccezione), 16 per ipotesi (\texttt{pc} null
-o già \texttt{gestito}, o \texttt{call} con azione non eccezionale). Materializzate per esteso in
+\textit{Oracolo:} su 18 combinazioni valide, 2 dirette (\texttt{pc} \texttt{TRANSIENT},
+\texttt{call} null), 6 per inferenza (propagazione eccezione), 10 per ipotesi (\texttt{pc} null
+o già \texttt{gestito}, o \texttt{call} con codice azione). Materializzate per esteso in
 Appendice.
 
 \subsection{LoginDialog}

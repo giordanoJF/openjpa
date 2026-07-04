@@ -91,19 +91,26 @@ Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
     \texttt{StoreContext.getStoreManager()}) conferma il significato di \texttt{HOLLOW} (metodo
     \texttt{load}) e che le istanze \texttt{PNEW} non hanno ancora una riga fisica nello store
     prima del flush (metodo \texttt{flush}). Questi stati definiscono le classi di \texttt{pc}.
-    \texttt{LockManager} (raggiungibile via \texttt{StoreContext.getLockManager()}) documenta
-    \texttt{@param level}: ``one of the lock constants defined in \texttt{LockLevels}, or a
-    custom level'' — distingue esplicitamente costanti dichiarate (incluso \texttt{LOCK\_NONE},
-    elencato nello stesso gruppo testuale di \texttt{LOCK\_READ}/\texttt{LOCK\_WRITE}, e quelle
-    di \texttt{MixedLockLevels}, che estende \texttt{LockLevels}) da valori non noti arbitrari;
-    questi due gruppi definiscono le classi di \texttt{level}.
+    \texttt{LockLevels} (estesa direttamente da \texttt{Broker}) dichiara con Javadoc proprio
+    3 costanti (\texttt{LOCK\_NONE}=0 ``No lock'', \texttt{LOCK\_READ}=10 ``Generic read lock
+    level'', \texttt{LOCK\_WRITE}=20 ``Generic write lock level''), nessuna distinta da un
+    effetto diverso su \texttt{lock}: definiscono le classi di \texttt{level} (\{valore
+    noto\}/\{valore non noto\}). Un valore ``non noto'' (es. \texttt{10000}) non è comunque
+    un valore da rifiutare secondo alcuna fonte, ma non se ne può interpretare un significato di
+    dominio oltre a ``non è una delle 3 costanti dichiarate''. \texttt{timeout} è documentato da
+    \texttt{Broker.lock} solo per il valore esatto \texttt{-1} (``-1 for no limit''); nessuna
+    fonte strutturalmente connessa a \texttt{Broker.lock} documenta il comportamento per un
+    negativo diverso da \texttt{-1}. (\texttt{LockManager}, raggiungibile via
+    \texttt{StoreContext.getLockManager()}, dichiara un proprio metodo \texttt{lock} con un
+    Javadoc più esteso su \texttt{level}/\texttt{timeout}, ma è un metodo diverso su
+    un'interfaccia diversa, senza delega dichiarata verso \texttt{Broker.lock}: non è usato
+    come fonte per il dominio del metodo target, dettaglio in Sezione~\ref{sec:cp}.)
 
     \textit{Riferimenti:} \texttt{Broker.java} (\texttt{lock} a 4 e 2 parametri),
-    \texttt{LockLevels.java}, \texttt{MixedLockLevels.java}, \texttt{StoreContext.java}
-    (\texttt{getLockLevel}, \texttt{getStoreManager}, \texttt{getLockManager}),
+    \texttt{LockLevels.java}, \texttt{StoreContext.java}
+    (\texttt{getLockLevel}, \texttt{getStoreManager}),
     \texttt{OpCallbacks.java}, \texttt{OpenJPAStateManager.java} (\texttt{getPCState}),
-    \texttt{PCState.java}, \texttt{StoreManager.java} (\texttt{load}, \texttt{flush}),
-    \texttt{LockManager.java} (\texttt{lock}).
+    \texttt{PCState.java}, \texttt{StoreManager.java} (\texttt{load}, \texttt{flush}).
 
     \item\texttt{detachAll(Collection objs, OpCallbacks call)}
 
