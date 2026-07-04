@@ -42,10 +42,10 @@ University testing campaign on Apache OpenJPA, 2 target classes → detailed LaT
 
 Each tool = specific phase + metric. Do not swap.
 
-- **Maven + Surefire** — unit tests (fase `test`); patterns `Test*/*Test/*Tests/*TestCase`; reports `target/surefire-reports/TEST-*.xml`
-- **Maven Failsafe** — integration tests (fase `integration-test/verify`); patterns `IT*/*IT/*ITCase`; reports `target/failsafe-reports/`; goals: `integration-test` + `verify`
-- **JUnit 5** — test framework (`openjpa-junit5` module present); course reference = JUnit 4 annotations but JUnit 5 is implementation target
-- **Mockito** — stub/mock; `mock()`, `@Mock`, `when().thenReturn()`, `verify()`; `MockitoJUnitRunner`/`MockitoJUnit.rule()`. Mock everything not the SUT in unit tests; in integration tests, mock only modules outside the group being integrated.
+- **Maven + Surefire** — unit tests (fase `test`); patterns `Test*/*Test/*Tests/*TestCase`; reports `target/surefire-reports/TEST-*.xml`; versione usata dal professore nei suoi esempi: `maven-surefire-plugin:3.0.0-M4`
+- **Maven Failsafe** — integration tests (fase `integration-test/verify`); patterns `IT*/*IT/*ITCase`; reports `target/failsafe-reports/`; goals: `integration-test` + `verify`; versione usata dal professore: `maven-failsafe-plugin:3.0.0-M4`
+- **JUnit 4** — versione esatta usata dal professore nei `pom.xml` reali dei suoi esempi (`Lezione14esempiInClasse`, `Lezione17esempiInClasse`): `junit:junit:4.11`. Decisione definitiva (corregge una scelta precedente per JUnit 5): si usa JUnit 4.11, non JUnit 5, per allinearsi esattamente al materiale del corso. Il modulo `openjpa-junit5` esistente nel repo è una libreria di supporto per utenti finali di OpenJPA, non l'infrastruttura di test di questo progetto — non è la fonte da seguire per la versione.
+- **Mockito** — versione esatta usata dal professore: `org.mockito:mockito-core:3.3.3`. Stub/mock; `mock()`, `@Mock`, `when().thenReturn()`, `verify()`; `MockitoJUnitRunner` (JUnit 4, non `MockitoExtension` che è JUnit 5). Mock everything not the SUT in unit tests; in integration tests, mock only modules outside the group being integrated.
 - **JaCoCo** — branch coverage (covered/total branches); HTML report `target/site/jacoco/`; plugin: `jacoco-maven-plugin`
 - **PITest v1.5.1** — mutation testing; goal `mutationCoverage`; report `target/pit-reports/`; score = |D|/(|M|−|E|) where D=killed, M=total, E=equivalent
 - **EvoSuite** — evolutionary test generation via GA on the **test suite** (NOT SUT); bytecode level; fitness = branch coverage + suite compactness; stand-alone JAR or Maven plugin
@@ -69,6 +69,19 @@ When adding any plugin/dependency to `pom.xml`, flag here and propose LaTeX upda
 
 ### Lezione29-32EsempiInClasse — Unreachable paths
 - **UnreachableCodeSimpleExample**: `catch(Exception2)`/`catch(Exception)` unreachable (`op1`/`op2` only throw `Exception1`). 100% branch coverage not always achievable — document, not a coverage failure.
+
+## Convenzione decisa per l'implementazione JUnit di BrokerImpl
+
+Una classe di test per metodo selezionato (`FindTest`, `LockTest`, `DetachAllTest`, `AttachAllTest`,
+`NewInstanceTest`, `IsDetachedTest`, `PersistTest`), non una classe unica per `BrokerImpl`. Motivo:
+`@RunWith(Parameterized.class)` si applica all'intera classe (ogni `@Test` viene rieseguito una volta
+per tupla in `@Parameters`), e ciascuno dei 7 metodi ha una forma di tupla diversa (colonne CSV
+diverse) — non si possono mettere due metodi con forma diversa nella stessa classe parametrizzata
+senza forzare tuple innaturali. Rispecchia inoltre 1:1 la struttura di progettazione già fatta
+(Category Partition organizzata per metodo in `04_CP.tex`), e la convenzione Surefire (`*Test`).
+Pattern per classe: `@RunWith(Parameterized.class)` + `@Parameters` con le tuple del CSV
+corrispondente (hardcoded nel metodo, canonico `ParametrizedCalculatorTestAdd`) + un solo `@Test`
+che esercita il metodo e verifica l'oracolo.
 
 ## Mockito Quick Reference
 
