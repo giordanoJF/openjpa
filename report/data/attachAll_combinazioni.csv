@@ -11,33 +11,33 @@ vuota,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccez
 vuota,false,null,--,inferenza,array vuoto,@return al plurale: si assume un array vuoto
 vuota,false,non null,azione,ipotesi,array vuoto,il codice azione non ha effetto noto: resta un array vuoto
 vuota,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento precedentemente detached,true,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
-un elemento precedentemente detached,true,non null,azione,ipotesi,istanza persistente esistente con le modifiche mergiate,il codice azione non ha effetto noto: il risultato non cambia
-un elemento precedentemente detached,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento precedentemente detached,false,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
-un elemento precedentemente detached,false,non null,azione,ipotesi,istanza persistente esistente con le modifiche mergiate,il codice azione non ha effetto noto: il risultato non cambia
-un elemento precedentemente detached,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento nuovo,true,null,--,diretto,"istanza persistita come nuova, copia dell'originale",documentato: ramo nuovo + copyNew
-un elemento nuovo,true,non null,azione,ipotesi,"istanza persistita come nuova, copia dell'originale",il codice azione non ha effetto noto: il risultato non cambia
-un elemento nuovo,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento nuovo,false,null,--,diretto,"istanza persistita come nuova, non copiata",documentato: ramo nuovo + copyNew
-un elemento nuovo,false,non null,azione,ipotesi,"istanza persistita come nuova, non copiata",il codice azione non ha effetto noto: il risultato non cambia
-un elemento nuovo,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento gia' gestito da questo broker,true,null,--,ipotesi,comportamento non determinato dai due rami documentati,"nessuno dei due rami lo copre: si assume un merge, senza duplicazione"
-un elemento gia' gestito da questo broker,true,non null,azione,ipotesi,comportamento non determinato dai due rami documentati,il codice azione non ha effetto noto: il risultato non cambia
-un elemento gia' gestito da questo broker,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento gia' gestito da questo broker,false,null,--,ipotesi,comportamento non determinato dai due rami documentati,"nessuno dei due rami lo copre: si assume un merge, senza duplicazione"
-un elemento gia' gestito da questo broker,false,non null,azione,ipotesi,comportamento non determinato dai due rami documentati,il codice azione non ha effetto noto: il risultato non cambia
-un elemento gia' gestito da questo broker,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento non valido,true,null,--,ipotesi,eccezione (tipo non specificato),"istanza marcata cancellata (PDELETED): comportamento non documentato, eccezione assunta"
-un elemento non valido,true,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
-un elemento non valido,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-un elemento non valido,false,null,--,ipotesi,eccezione (tipo non specificato),"istanza marcata cancellata (PDELETED): comportamento non documentato, eccezione assunta"
-un elemento non valido,false,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
-un elemento non valido,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-elementi misti (un valido e un non valido),true,null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si assume che fallisca come con un solo elemento non valido
-elementi misti (un valido e un non valido),true,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
-elementi misti (un valido e un non valido),true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
-elementi misti (un valido e un non valido),false,null,--,ipotesi,eccezione (tipo non specificato),atomicita' non documentata: si assume che fallisca come con un solo elemento non valido
-elementi misti (un valido e un non valido),false,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
-elementi misti (un valido e un non valido),false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all new,true,null,--,diretto,"istanza persistita come nuova, copia dell'originale",documentato: ramo nuovo + copyNew
+all new,true,non null,azione,ipotesi,"istanza persistita come nuova, copia dell'originale",il codice azione non ha effetto noto: il risultato non cambia
+all new,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all new,false,null,--,diretto,"istanza persistita come nuova, non copiata",documentato: ramo nuovo + copyNew
+all new,false,non null,azione,ipotesi,"istanza persistita come nuova, non copiata",il codice azione non ha effetto noto: il risultato non cambia
+all new,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all old,true,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
+all old,true,non null,azione,ipotesi,istanza persistente esistente con le modifiche mergiate,il codice azione non ha effetto noto: il risultato non cambia
+all old,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all old,false,null,--,diretto,istanza persistente esistente con le modifiche mergiate,documentato: ramo merge esplicito
+all old,false,non null,azione,ipotesi,istanza persistente esistente con le modifiche mergiate,il codice azione non ha effetto noto: il risultato non cambia
+all old,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all attached,true,null,--,ipotesi,nessuna modifica: l'istanza resta quella gia' gestita,nessuno dei due rami documentati la copre: si assume un no-op
+all attached,true,non null,azione,ipotesi,nessuna modifica: l'istanza resta quella gia' gestita,il codice azione non ha effetto noto: il risultato non cambia
+all attached,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+all attached,false,null,--,ipotesi,nessuna modifica: l'istanza resta quella gia' gestita,nessuno dei due rami documentati la copre: si assume un no-op
+all attached,false,non null,azione,ipotesi,nessuna modifica: l'istanza resta quella gia' gestita,il codice azione non ha effetto noto: il risultato non cambia
+all attached,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+misti: validi eterogenei,true,null,--,inferenza,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",elaborazione per elemento assunta indipendente: ciascuno segue il proprio ramo documentato secondo il tipo (rappresentante esatto scelto in BVA)
+misti: validi eterogenei,true,non null,azione,ipotesi,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",il codice azione non ha effetto noto: il risultato non cambia
+misti: validi eterogenei,true,non null,eccezione,inferenza,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",l'eccezione di processArgument si propaga
+misti: validi eterogenei,false,null,--,inferenza,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",elaborazione per elemento assunta indipendente: ciascuno segue il proprio ramo documentato secondo il tipo (rappresentante esatto scelto in BVA)
+misti: validi eterogenei,false,non null,azione,ipotesi,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",il codice azione non ha effetto noto: il risultato non cambia
+misti: validi eterogenei,false,non null,eccezione,inferenza,"ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica",l'eccezione di processArgument si propaga
+misti: almeno 1 invalido,true,null,--,ipotesi,eccezione (tipo non specificato),"atomicita' non documentata: si assume che un solo invalido faccia fallire tutto, indipendentemente da quanti validi (anche zero) lo accompagnino"
+misti: almeno 1 invalido,true,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
+misti: almeno 1 invalido,true,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga
+misti: almeno 1 invalido,false,null,--,ipotesi,eccezione (tipo non specificato),"atomicita' non documentata: si assume che un solo invalido faccia fallire tutto, indipendentemente da quanti validi (anche zero) lo accompagnino"
+misti: almeno 1 invalido,false,non null,azione,ipotesi,eccezione (tipo non specificato),il codice azione non ha effetto noto: resta l'eccezione
+misti: almeno 1 invalido,false,non null,eccezione,inferenza,eccezione propagata da attachAll,l'eccezione di processArgument si propaga

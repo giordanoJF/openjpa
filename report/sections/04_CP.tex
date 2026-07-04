@@ -321,7 +321,16 @@ tre ha Javadoc, nessuna fonte le distingue). Classi in Tabella~\ref{tab:detachal
 \{un elemento non valido\}/\{un elemento valido\}, la cui etichetta non coincideva col criterio
 usato per l'oracolo (``gestito''/``non gestito''): stesso problema di deriva terminologica già
 corretto per \texttt{pc} in \texttt{lock}/\texttt{persist}, qui risolto allineando l'etichetta al
-criterio, senza bisogno di un nuovo costrutto (già disponibile tramite \texttt{PCState}). Il
+criterio, senza bisogno di un nuovo costrutto (già disponibile tramite \texttt{PCState}). Un
+elemento già precedentemente \texttt{detached} (rilevabile solo tramite
+\texttt{Broker.isDetached(Object)}, non tramite \texttt{PCState}: ``detached'' non è uno dei 23
+stati, si veda \texttt{isDetached}) resta incluso nella classe \{non gestito\}, non separato in
+una classe a sé: a differenza di \texttt{lock} (dove ``presente nello store'' vs ``non ancora
+persistito'' aveva un meccanismo concreto a supporto, confermato da \texttt{StoreManager.flush})
+o di \texttt{isDetached} stesso (il cui scopo è proprio distinguere ``mai gestito'' da
+``detached''), qui non c'è alcun meccanismo noto per cui \texttt{detachAll} tratterebbe
+diversamente un elemento mai gestito da uno già rilasciato: l'operazione dipende solo dallo
+stato attuale (gestito o no), non dalla storia dell'istanza. Il
 \texttt{@return} di \texttt{detachAll} (``the detached instances'') non definisce da solo cosa
 significhi ``detached'': la definizione è nel Javadoc di \texttt{isDetached} (``an object that
 can be reattached... via \texttt{Broker\#attach}''), un metodo diverso. L'oracolo per l'elemento
@@ -361,47 +370,85 @@ con codice azione). Nessuna riga diretta. Materializzate per esteso in Appendice
 
 \subsubsection{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}
 
-\textit{Categorie e partizioni:} \texttt{objs}: \{null\}, \{vuota\}, \{un elemento
-precedentemente \texttt{detached}\}, \{un elemento nuovo\}, \{un elemento già gestito da questo
-broker\} (caso non coperto dai due rami documentati, si veda sotto), \{un elemento non valido\}
-(\texttt{PCState.PDELETED}, ``Persistent-Deleted'' — marcato per cancellazione, stato non
-considerato da nessuno dei rami documentati), \{elementi misti (un valido e un non valido
-insieme)\}. \texttt{copyNew}: \{true\}, \{false\}. \texttt{call}: \{null\}, \{non null\}.
-\texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice azione\},
-\{lancia \texttt{OpenJPAException}\} (stessa unione già applicata a \texttt{lock}/
-\texttt{detachAll}: nessuna delle tre costanti ha Javadoc). Classi in
-Tabella~\ref{tab:attachall-classi} (Appendice).
+\textit{Categorie e partizioni:} \texttt{objs}: \{null\}; \{vuota\}; \{all new\} — collezione
+non vuota i cui elementi sono tutti \texttt{TRANSIENT} (mai gestiti); \{all old\} — collezione
+non vuota i cui elementi sono tutti precedentemente \texttt{detached}; \{all attached\} —
+collezione non vuota i cui elementi sono tutti già gestiti da questo broker (né distaccati né
+nuovi, caso non coperto dai due rami documentati, si veda sotto); \{misti: validi eterogenei\}
+— collezione con almeno due elementi di tipo diverso tra \texttt{new}/\texttt{old}/
+\texttt{attached}, nessun elemento non valido; \{misti: almeno 1 invalido\} — collezione con
+zero o più elementi validi di uno qualunque dei tre tipi precedenti (nessun limite inferiore:
+include anche il caso di soli elementi non validi, senza validi) e almeno un elemento
+\texttt{PCState.PDELETED} (``Persistent-Deleted'' — marcato per cancellazione, stato non
+considerato da nessuno dei rami documentati). \texttt{copyNew}: \{true\}, \{false\}.
+\texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}* (richiede \texttt{call}
+non null): \{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\} (stessa unione già
+applicata a \texttt{lock}/\texttt{detachAll}: nessuna delle tre costanti ha Javadoc). Classi in
+Tabella~\ref{tab:attachall-classi} (Appendice) — i nomi brevi in tabella rimandano a queste
+definizioni precise, necessarie per l'implementazione dei test.
 
 \textit{Note di modellazione:} il Javadoc descrive esattamente due rami per lo stato di un
-elemento di \texttt{objs}: precedentemente distaccato (merge) o nuovo (persistito). Un elemento
-già gestito dallo stesso broker (né distaccato né nuovo) non rientra in nessuno dei due — gap
-già individuato in fase di analisi documentale, mantenuto come classe a sé perché descrive uno
-stato realmente costruibile e distinto, non una sotto-classificazione inventata. Il flag
+elemento di \texttt{objs}: precedentemente distaccato (merge, esplicitamente ``from this or
+another broker'' — nessuna distinzione per broker di origine, quindi un'unica classe \{all
+old\} indipendentemente da quale broker abbia distaccato l'istanza) o nuovo (persistito). Un
+elemento già gestito dallo stesso broker (né distaccato né nuovo) non rientra in nessuno dei
+due — gap già individuato in fase di analisi documentale, mantenuto come classe a sé perché
+descrive uno stato realmente costruibile e distinto, non una sotto-classificazione inventata:
+un'istanza mai distaccata non ha una copia separata da mergiare nell'istanza persistente, quindi
+il ramo ``merge'' non si applica bene a questo caso. Rispetto a una prima ipotesi (comportamento
+analogo al merge), una revisione successiva ha preferito l'ipotesi di un no-op: a differenza di
+\texttt{PDELETED} (concettualmente incompatibile con attach/merge, marcato per cancellazione),
+un'istanza già gestita non ha nulla di concettualmente sbagliato — semplicemente non necessita di
+alcuna transizione, essendo già nello stato finale desiderato; per questo non è stata unita alla
+classe degli invalidi, nonostante entrambe non siano coperte da alcun ramo documentato: unirle
+avrebbe significato scegliere una sola delle ipotesi plausibili, precludendo ai test la
+possibilità di rivelare quale sia quella corretta. Il flag
 \texttt{getPostLoadOnMerge}/\texttt{setPostLoadOnMerge} (default \texttt{false}) condiziona un
 evento di lifecycle durante il merge, non il valore di ritorno: non tracciato come dimensione,
 irrilevante per l'oracolo scelto (il valore restituito, non gli effetti collaterali). A
 differenza di \texttt{detachAll}/\texttt{lock}/\texttt{persist}, qui \texttt{TRANSIENT} non
 rappresenta il caso non valido: coincide semanticamente col ramo documentato ``nuovo'' (un'
-istanza mai gestita, introdotta per la prima volta tramite \texttt{attachAll}). Il caso non
-valido è quindi definito su un altro stato non documentato per questo metodo:
-\texttt{PDELETED}, un'istanza già marcata per cancellazione — concettualmente incompatibile con
-un'operazione di attach/merge, ma nessuna fonte lo conferma esplicitamente. La classe
-``elementi misti'' testa, come per \texttt{detachAll}, l'atomicità non documentata
-dell'operazione su collezione.
+istanza mai gestita, introdotta per la prima volta tramite \texttt{attachAll}).
 
-\textit{Ipotesi sull'oracolo:} ramo ``precedentemente \texttt{detached}'' (\emph{diretta}):
-l'istanza persistente viene aggiornata con le modifiche, indipendente da \texttt{copyNew} (il
-cui \texttt{@param} lo scopa esplicitamente alle sole istanze nuove). Ramo ``nuovo''
-(\emph{diretta}): istanza persistita come nuova; \texttt{copyNew=true} implica una copia
-dell'originale, \texttt{copyNew=false} no, per dichiarazione esplicita del parametro. Ramo
-``già gestito'' (\emph{ipotesi}, nessun appiglio): si assume, per analogia col ramo merge,
-nessuna duplicazione. \texttt{objs} non valido (\texttt{PDELETED}): nessuna fonte documenta
-l'esito, si assume un'eccezione (\emph{ipotesi}). \texttt{objs} con elementi misti: si assume,
-per analogia col caso di solo elemento non valido, che l'intera chiamata fallisca con eccezione
-(\emph{ipotesi}, estende un caso già ipotetico). \texttt{objs} null (\emph{ipotesi}) ed
-eccezione di \texttt{processArgument} (\emph{inferenza}, propagazione) seguono lo stesso
-trattamento già usato per gli altri metodi. Il codice azione: nessuna descrizione
-dell'effetto su questo metodo, si assume che il comportamento di base non cambi
+\texttt{\{all new\}}/\texttt{\{all old\}}/\texttt{\{all attached\}} sono rappresentanti di
+cardinalità ``non vuota, un solo tipo di elemento'' (più elementi dello stesso tipo non
+aggiungono classi, stessa convenzione già usata per \texttt{detachAll}): il numero esatto di
+elementi identici non ha alcun effetto documentato o ipotizzabile. Una revisione ha invece
+individuato un buco reale: una collezione con \emph{tipi validi diversi} mescolati (es. un
+elemento nuovo e uno precedentemente \texttt{detached}) non era coperta da nessuna classe
+esistente, ed era stata inizialmente scartata assumendo (senza verificarlo) che si riducesse a
+una composizione di comportamenti già noti — lo stesso tipo di eliminazione basata su un
+oracolo previsto, mai ammessa altrove in questo documento. La classe \{misti: validi
+eterogenei\} colma il buco: testa l'ipotesi che ogni elemento sia elaborato secondo il proprio
+ramo/tipo, indipendentemente dagli altri elementi della collezione — ipotesi con un appiglio
+testuale diretto (il Javadoc descrive i due rami noti per istanza, non per chiamata), ma pur
+sempre un'estensione, non un fatto dichiarato esplicitamente per le collezioni miste. La classe
+\{misti: almeno 1 invalido\} testa invece l'atomicità non documentata dell'operazione: sotto
+l'ipotesi che un elemento non valido faccia fallire l'intera chiamata a prescindere da quanti
+validi, di quale tipo, lo accompagnino (anche zero), un solo rappresentante basta — se
+l'ipotesi è falsa, anche un solo test già lo rivela; la composizione esatta del rappresentante
+(quali tipi, quanti elementi) è una scelta implementativa rimandata alla scrittura dei test, non
+un confine numerico da trattare in fase di Boundary Value Analysis: non c'è qui nessuna soglia
+da esplorare, solo un rappresentante da scegliere dentro una classe già definita. Questa classe
+assorbe anche quello che in una versione precedente era \{all
+invalido\} (solo elementi non validi, senza validi): sotto la stessa ipotesi di atomicità
+produce lo stesso oracolo, quindi non serve più come classe separata.
+
+\textit{Ipotesi sull'oracolo:} \{all old\} (\emph{diretta}): l'istanza persistente viene
+aggiornata con le modifiche, indipendente da \texttt{copyNew} (il cui \texttt{@param} lo scopa
+esplicitamente alle sole istanze nuove). \{all new\} (\emph{diretta}): istanza persistita come
+nuova; \texttt{copyNew=true} implica una copia dell'originale, \texttt{copyNew=false} no, per
+dichiarazione esplicita del parametro. \{all attached\} (\emph{ipotesi}, nessun appiglio): si
+assume un no-op, nessuna modifica, l'istanza resta quella già gestita. \{misti: validi
+eterogenei\} (\emph{inferenza}): ogni elemento segue il proprio ramo secondo il tipo (\texttt{new}
+persistito come nuovo, \texttt{old} aggiornato con merge, \texttt{attached} invariato),
+indipendentemente da quanti elementi di ciascun tipo compongano la collezione — \texttt{copyNew}
+si applica a tutti gli elementi \texttt{new} presenti, non a un singolo elemento. \{misti:
+almeno 1 invalido\} (\emph{ipotesi}): si assume che l'intera chiamata fallisca con eccezione,
+indipendentemente da quali validi (anche nessuno) siano coinvolti. \texttt{objs} null
+(\emph{ipotesi}) ed eccezione di \texttt{processArgument} (\emph{inferenza}, propagazione)
+seguono lo stesso trattamento già usato per gli altri metodi. Il codice azione: nessuna
+descrizione dell'effetto su questo metodo, si assume che il comportamento di base non cambi
 (\emph{ipotesi}).
 
 \textit{Combinazioni:} $7 (\texttt{objs}) \times 2 (\texttt{copyNew}) \times 2 (\texttt{call})
@@ -413,68 +460,144 @@ dell'effetto su questo metodo, si assume che il comportamento di base non cambi
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
 documentata.
 
-\textit{Oracolo:} su 42 combinazioni valide, 4 dirette (rami merge/nuovo con \texttt{call}
-null), 16 per inferenza (cardinalità vuota, propagazione eccezione), 22 per ipotesi
-(\texttt{objs} inammissibile, già gestito, non valido, o misto, o \texttt{call} con codice
-azione). Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 42 combinazioni valide, 4 dirette (\{all new\}/\{all old\} con
+\texttt{call} null), 18 per inferenza (cardinalità vuota, \{misti: validi eterogenei\} con
+\texttt{call} null, propagazione eccezione), 20 per ipotesi (\texttt{objs} inammissibile,
+\{all attached\}, \{misti: almeno 1 invalido\}, o \texttt{call} con codice azione).
+Materializzate per esteso in Appendice.
 
 \subsubsection{\texttt{newInstance(Class cls)}}
 
 \textit{Categorie e partizioni:} unico parametro formale, nessuno stato SUT aggiuntivo
-documentato. \texttt{cls}: \{null\}, \{interfaccia con metodi JavaBeans\}, \{classe astratta con
-metodi JavaBeans\}, \{tipo managed concreto\}, \{interfaccia senza metodi JavaBeans\}, \{tipo
-non managed, non interfaccia\}. Classi in Tabella~\ref{tab:newinstance-classi} (Appendice).
+documentato. \texttt{cls}: \{null\}, \{interfaccia con metodi JavaBeans\}, \{interfaccia senza
+metodi JavaBeans\}, \{classe astratta con metodi JavaBeans\}, \{classe astratta senza
+JavaBeans\}, \{tipo managed concreto\}, \{tipo non managed concreto\}. Classi in
+Tabella~\ref{tab:newinstance-classi} (Appendice).
 
-\textit{Ipotesi sull'oracolo:} i primi tre casi non-null hanno oracolo \emph{diretto}: i due rami
-descritti esplicitamente nel Javadoc (creazione di un'implementazione concreta per
-interfacce/classi astratte con convenzione JavaBeans; istanza diretta per un tipo managed) più il
-\texttt{@throws IllegalArgumentException if cls is not a managed type or interface} per il
-sesto caso. Il quinto caso (interfaccia senza convenzione JavaBeans) espone un'ambiguità
-testuale reale: il ramo di creazione richiede esplicitamente la convenzione JavaBeans, ma la
-clausola \texttt{@throws} esenta genericamente ``interfaccia'' senza ripetere quel vincolo.
-Nessun meccanismo di creazione valido si applicherebbe comunque: si assume un'eccezione
-(\emph{ipotesi}). \texttt{cls} null non è documentato: si assume un'eccezione, stesso
+\textit{Note di modellazione:} ``managed'' nel senso del secondo ramo del Javadoc (``if cls is
+a managed type, this will return an instance of the specified class'') si applica solo a tipi
+concreti: restituire ``un'istanza della classe specificata'' è realizzabile solo se \texttt{cls}
+è direttamente istanziabile, cosa che un'interfaccia o una classe astratta non sono mai in Java.
+Un'interfaccia o una classe astratta gestita passa quindi, se possibile, dal primo ramo
+(generazione di un'implementazione concreta, se segue la convenzione JavaBeans) — il
+managed-status non introduce un terzo meccanismo. Per questo \{tipo non managed concreto\}
+è definita esplicitamente su tipi concreti, e non serve distinguere per managed-status le classi
+astratte senza JavaBeans (si veda sotto).
+
+\textit{Ipotesi sull'oracolo:} \{interfaccia con JavaBeans\} e \{classe astratta con JavaBeans\}
+(\emph{dirette}): il primo ramo del Javadoc descrive esplicitamente la creazione di
+un'implementazione concreta per entrambe, senza distinguerle. \{tipo managed concreto\}
+(\emph{diretta}): secondo ramo, istanza diretta. \{tipo non managed concreto\} (\emph{diretta}):
+\texttt{@throws IllegalArgumentException if cls is not a managed type or interface} si applica
+senza ambiguità. \{interfaccia senza JavaBeans\} (\emph{ipotesi}): il primo ramo richiede
+esplicitamente la convenzione JavaBeans per creare l'implementazione, ma la clausola
+\texttt{@throws} esenta genericamente ``interface'' dall'eccezione senza ripetere quel vincolo —
+un conflitto testuale diretto tra le due frasi; nessun meccanismo di creazione si applicherebbe
+comunque, si assume un'eccezione. \{classe astratta senza JavaBeans\} (\emph{ipotesi}): stessa
+ambiguità, versione simmetrica sul secondo ramo invece che sulla clausola \texttt{@throws} — il
+secondo ramo non esclude esplicitamente le classi astratte dal ``managed type'', ma restituire
+un'istanza diretta di una classe astratta non è possibile in Java; per coerenza con il
+trattamento già scelto per \{interfaccia senza JavaBeans\} (un'unica classe, non divisa per
+managed-status), si assume la stessa eccezione, senza introdurre una classe aggiuntiva per il
+sotto-caso managed. \texttt{cls} null non è documentato: si assume un'eccezione, stesso
 trattamento degli altri parametri obbligatori (\emph{ipotesi}).
 
-\textit{Combinazioni:} un solo parametro, 6 classi $=$ 6 combinazioni, nessuna eliminazione.
+\textit{Combinazioni:} un solo parametro, 7 classi $=$ 7 combinazioni, nessuna eliminazione.
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
-\textit{Oracolo:} 4 dirette, 2 per ipotesi. Materializzate per esteso in Appendice.
+\textit{Oracolo:} 4 dirette, 3 per ipotesi. Materializzate per esteso in Appendice.
 
 \subsubsection{\texttt{isDetached(Object obj, boolean find)}}
 
-\textit{Categorie e partizioni:} \texttt{obj}: \{null\}, \{non gestito\}, \{detached\}, \{non
-detached (gestito, persistente)\} — le ultime due sono lo stato reale dell'oggetto, non l'esito
-del metodo: quello che il metodo deve determinare correttamente. \{non gestito\} è
-\texttt{PCState.TRANSIENT} (``unmanaged instance''), stesso costrutto usato per \texttt{lock}/
-\texttt{detachAll}/\texttt{persist} — la distinzione valido/non valido su \texttt{obj} è quindi
-realizzata tramite \texttt{PCState}, con l'eccezione di \{detached\}: tra le 23 costanti di
-\texttt{PCState} non ne esiste una che rappresenti ``detached''; questo stato è definito solo
-dal Javadoc di \texttt{Broker.isDetached(Object)} (citato in
-Sezione~\ref{sec:brokerimpl-analisi-doc}), non da \texttt{PCState}.
-\texttt{find}: \{true\}, \{false\}. Classi in Tabella~\ref{tab:isdetached-classi} (Appendice).
+\textit{Categorie e partizioni:} \texttt{obj}: \{null\}, \{gestito\}, \{non gestito\} — a
+differenza di \texttt{lock}/\texttt{persist}/\texttt{detachAll}/\texttt{attachAll} (che
+espongono \texttt{OpenJPAStateManager} tramite il parametro terzo di
+\texttt{OpCallbacks.processArgument}), \texttt{isDetached} non ha alcun parametro
+\texttt{OpCallbacks}: quel collegamento strutturale non esiste qui. La distinzione
+gestito/non gestito è invece fondata su \texttt{StoreContext.getStateManager(Object obj)}
+(estesa direttamente da \texttt{Broker}, stesso tipo di parametro \texttt{Object} di
+\texttt{isDetached} stesso): ``Return the state manager for the given instance... If \texttt{obj}
+is not a managed type or is managed by another context, throw an exception.'' \texttt{find}:
+\{true\}, \{false\}. \texttt{store}* (presenza dell'identità di \texttt{obj} nel datastore,
+dedotta dal testo di \texttt{find}: ``as a last resort this method will check whether or not
+the provided object exists in the DB''): \{presente\}, \{non presente\} — una proprietà reale e
+costruibile indipendentemente sia per \{gestito\} (es. \texttt{PNEW} non ancora flushato =
+non presente, \texttt{PCLEAN} = presente) sia per \{non gestito\}, indipendentemente da
+\texttt{find}; non si applica solo per \texttt{obj}=\{null\} (nessuna identità da cercare).
+Classi in Tabella~\ref{tab:isdetached-classi} (Appendice).
 
-\textit{Note di modellazione:} il Javadoc di \texttt{find} (``as a last resort this method will
-check whether or not the provided object exists in the DB'') descrive un meccanismo di verifica
-aggiuntivo attivato solo quando un controllo più economico non è dirimente — condizione interna
-non osservabile in BB. Nel modello adottato, \texttt{find} non cambia l'oracolo previsto per
-nessuna delle quattro classi di \texttt{obj} (il \texttt{@return} è incondizionato: vero se
-detached, falso altrimenti); resta comunque un parametro formale testato su entrambi i valori,
-per costruzione, non eliminato.
+\textit{Note di modellazione:} una revisione ha corretto un'assunzione precedente su cosa
+significhi ``detached'' per questo metodo. Il testo esatto: ``if true, as a last resort this
+method will check whether or not the provided object exists in the DB. If it is in the DB, the
+provided object is detached.'' È una frase ambigua tra due letture: (a) \emph{stativa} — se
+l'identità è trovata nel DB, l'oggetto \emph{viene classificato} come detached (una
+conclusione, non un'azione); (b) \emph{azione} — il metodo \emph{stacca} l'oggetto come effetto
+collaterale. Una prima analisi aveva trattato \{detached\} come una classe di \texttt{obj}
+costruibile indipendentemente, senza approfondire questa ambiguità. La lettura (a) è stata
+preferita per due motivi, entrambi di coerenza: primo, la definizione di ``detached'' già usata
+per \texttt{detachAll}/\texttt{attachAll} (Javadoc di \texttt{Broker.isDetached(Object)}, citato
+in Sezione~\ref{sec:brokerimpl-analisi-doc}: ``un oggetto che può essere riagganciato... tramite
+\texttt{Broker\#attach}'') descrive detached come una proprietà di dati realmente persistiti e
+riagganciabili, non come ``separato dal database'' — trovare l'identità nel DB conferma questa
+proprietà, non la contraddice. Secondo, un argomento pratico: \texttt{isDetached} restituisce
+solo un \texttt{boolean}; se ``staccasse'' davvero l'oggetto, non ci sarebbe un canale di
+ritorno per la copia risultante (a differenza di \texttt{detachAll}, che restituisce
+esplicitamente le istanze staccate), e mutare \texttt{obj} sul posto contraddirebbe il pattern
+già stabilito (\texttt{detachAll} produce copie, non muta gli originali). Di conseguenza,
+\{detached\} non è più una classe di \texttt{obj} costruibile a sé: emerge dalla combinazione
+\{non gestito\} + \{store presente\}, esattamente come cache/store per \texttt{find}. Il
+controllo sul DB è descritto come ``last resort'': scatta solo quando il controllo economico
+(state manager attivo o no) non è dirimente, cioè solo per \{non gestito\} — per \{gestito\}
+l'esito è già determinato, \texttt{find} è irrilevante. \{non gestito\} da sola è condizione
+necessaria ma non sufficiente per ``detached'': copre sia un'istanza mai stata persistita
+(nessuna identità nel datastore, semplicemente transient) sia un'istanza che lo era e non lo è
+più (identità presente, genuinamente detached) — indistinguibili dal solo controllo economico.
+Il controllo sul DB serve esattamente a scegliere tra i due; senza di esso (\texttt{find=false})
+non c'è modo di distinguerli, da cui l'ipotesi prudente (\texttt{false}). Nota per
+l'implementazione: a differenza degli altri sei metodi, qui non c'è un \texttt{OpCallbacks} da
+mockare per osservare/costruire lo stato di \texttt{obj} — costruire un \texttt{obj} realmente
+\{gestito\} per il broker sotto test potrebbe richiedere un'interazione con lo stato del broker
+stesso (es. una \texttt{persist} preventiva sullo stesso broker), non un semplice collaboratore
+mockato isolato; dettaglio da risolvere in fase di implementazione, non di design.
 
-\textit{Ipotesi sull'oracolo:} \texttt{obj} detached $\to$ \texttt{true}; \texttt{obj} non
-detached $\to$ \texttt{false}: entrambe \emph{dirette}, dal \texttt{@return} esplicito (``True if
-the provided obj is detached, false otherwise''). \texttt{obj} null o non gestito: non
-documentato; essendo un metodo predicato (query, non un'operazione), si assume una risposta
-negativa piuttosto che un'eccezione (\emph{ipotesi}).
+Una revisione ha inoltre corretto un'eliminazione non ammissibile: \texttt{store} era stato
+collassato anche per \{gestito\} e per \{non gestito\}/\texttt{find=false}, sulla base della
+previsione che l'oracolo non ne dipendesse. Ma \texttt{store} è una proprietà realmente
+costruibile in modo indipendente in entrambi i casi (uno stato \texttt{gestito} può comunque
+avere o non avere già una riga nello store; l'identità di un oggetto non gestito esiste o non
+esiste indipendentemente dal fatto che il metodo la controlli), quindi non è un'eliminazione
+strutturale — è esattamente il tipo di eliminazione basata su un oracolo previsto vietata
+altrove in questo documento. Le uniche combinazioni davvero irrealizzabili restano quelle con
+\texttt{obj}=\{null\}, dove non esiste alcuna identità da cercare.
 
-\textit{Combinazioni:} $4 (\texttt{obj}) \times 2 (\texttt{find}) = 8$, nessuna eliminazione (ogni
-parametro ha sempre un referente).
+\textit{Ipotesi sull'oracolo:} \texttt{obj} \{gestito\} (\emph{diretta}, indipendente da
+\texttt{find} e da \texttt{store}): ha uno state manager attivo, non è detached, dal
+\texttt{@return} (``false otherwise''); il controllo sul DB non viene mai raggiunto per questo
+stato (il controllo economico basta), quindi il suo esito resta lo stesso qualunque sia lo stato
+reale di \texttt{store}. \texttt{obj} \{non gestito\}, \texttt{find=true}, \texttt{store}
+presente (\emph{diretta}): esattamente il caso descritto dal testo (``if it is in the DB, the
+provided object is detached''). \texttt{obj} \{non gestito\}, \texttt{find=true}, \texttt{store}
+non presente (\emph{inferenza}): converso naturale del caso diretto, non dichiarato alla lettera
+ma fortemente implicito dal \texttt{@return} binario. \texttt{obj} \{non gestito\},
+\texttt{find=false}, qualunque \texttt{store} (\emph{ipotesi}): il controllo last-resort non
+viene eseguito, nessuna fonte dice cosa succeda; si assume una risposta negativa indipendente
+dallo stato reale di \texttt{store} (che il metodo non arriva a osservare), stesso trattamento
+prudente già usato per \texttt{obj} null. \texttt{obj} null (\emph{ipotesi}): non documentato;
+essendo un metodo predicato (query, non un'operazione), si assume una risposta negativa
+piuttosto che un'eccezione.
+
+\textit{Combinazioni:} $3 (\texttt{obj}) \times 2 (\texttt{find}) \times 2 (\texttt{store}) =
+12$.
+
+\textit{Eliminazioni:} solo strutturale, \texttt{store} non si applica (collassa da 2 a 1) solo
+quando \texttt{obj}=\{null\} (nessuna identità da cercare). Combinazioni valide:
+$2 \times 2 \times 2 + 1 \times 2 \times 1 = 10$ (2 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
-\textit{Oracolo:} 4 dirette, 4 per ipotesi. Materializzate per esteso in Appendice.
+\textit{Oracolo:} 5 dirette, 1 per inferenza, 4 per ipotesi. Materializzate per esteso in
+Appendice.
 
 \subsubsection{\texttt{persist(Object pc, Object id, OpCallbacks call)}}
 
@@ -485,50 +608,99 @@ tramite \texttt{PCState} (\texttt{TRANSIENT} per il primo caso, \texttt{PNEW}/\t
 \texttt{lock}, qui non si distinguono tra loro gli stati già gestiti: nessuna fonte descrive un
 comportamento diverso di \texttt{persist} tra \texttt{PNEW}, \texttt{PCLEAN}/\texttt{PDIRTY} e
 \texttt{HOLLOW}, tutti accomunati dall'essere già gestiti (nessuno stato manager da assegnare ex
-novo). Delle restanti 18 costanti di \texttt{PCState} (varianti non-transazionali, transient-
-qualificate, \texttt{Embedded}, casi limite di flush/delete), nessuna ha un appiglio testuale
-diverso da quello già usato per \texttt{lock}: stessa esclusione, stesse motivazioni. \texttt{id}: \{null\}, \{non null\} —
-dominio esplicitamente dichiarato nel Javadoc del parametro. \texttt{call}: \{null\}, \{non
-null\}. \texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice
-azione\}, \{lancia \texttt{OpenJPAException}\} (stessa unione già applicata a \texttt{lock}/
-\texttt{detachAll}/\texttt{attachAll}: nessuna delle tre costanti ha Javadoc). Classi in
-Tabella~\ref{tab:persist-classi} (Appendice).
+novo). Il motivo per cui, a differenza di \texttt{lock}, non serve distinguere \texttt{PNEW}
+(non ancora presente fisicamente nello store) dagli altri è concettuale, non solo di assenza di
+fonte: il nome stesso \texttt{PNEW} è ``Persistent-New'' — è già stata resa persistente nel
+senso in cui \texttt{persist()} usa il termine (ha già uno state manager, ha già un'identità
+assegnata); il fatto che non sia ancora scritta fisicamente sullo store è un dettaglio di
+\emph{quando} avviene il flush, non di \emph{se} è già stata resa persistente. Per
+\texttt{lock()} la distinzione contava perché bloccare richiede concettualmente una riga fisica
+(confermato da \texttt{StoreManager.flush}); per \texttt{persist()} il criterio rilevante è se
+``rendere persistente'' è già avvenuto una volta, e \texttt{PNEW} lo soddisfa per definizione
+tanto quanto \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}. Delle restanti 18 costanti di
+\texttt{PCState} (varianti non-transazionali, transient-qualificate, \texttt{Embedded}, casi
+limite di flush/delete), nessuna ha un appiglio testuale diverso da quello già usato per
+\texttt{lock}: stessa esclusione, stesse motivazioni. \texttt{id}: \{null\}, \{non null\} —
+dominio esplicitamente dichiarato nel Javadoc del parametro. \texttt{cascade}* (relazione
+marcata \texttt{ValueMetaData.CASCADE\_IMMEDIATE} verso un'istanza correlata non gestita):
+\{presente\}, \{assente\} — verifica direttamente la garanzia dichiarata nella prima frase del
+Javadoc (``this method does \textbf{not} immediately cascade to fields marked
+\texttt{CASCADE\_IMMEDIATE}''); non si applica per \texttt{pc}=\{null\} (nessun oggetto, nessun
+campo). \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}** (richiede
+\texttt{call} non null): \{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\}
+(stessa unione già applicata a \texttt{lock}/\texttt{detachAll}/\texttt{attachAll}: nessuna
+delle tre costanti ha Javadoc). Classi in Tabella~\ref{tab:persist-classi} (Appendice).
 
 \textit{Note di modellazione:} le classi di \texttt{pc} sostituiscono un'iniziale coppia
 \{non valido\}/\{valido\} basata su conoscenza di dominio generica, stesso problema già
-riscontrato e corretto per \texttt{lock}. L'overload scelto (a 3 parametri, con \texttt{id}) si
-distingue esplicitamente da ``altre operazioni di persist'' per non cascare immediatamente sui
-campi \texttt{CASCADE\_IMMEDIATE}: comportamento di cascata sui campi correlati di \texttt{pc},
-non sul valore di ritorno testato — non tracciato come dimensione separata, stessa scelta già
-applicata alle altre configurazioni di stato collaterali (\texttt{DetachState},
-\texttt{PostLoadOnMerge} per i metodi precedenti).
+riscontrato e corretto per \texttt{lock}.
+
+Una revisione ha corretto due punti. Primo: la garanzia su \texttt{CASCADE\_IMMEDIATE} era
+inizialmente scartata come dimensione, motivata come ``effetto collaterale su un campo
+correlato, non sul valore di ritorno testato'' — ma è una garanzia dichiarata esplicitamente
+nella prima frase del Javadoc del metodo target, quindi un comportamento verificabile a tutti
+gli effetti, non diverso per importanza dal resto dell'oracolo. Scartarla equivaleva a
+restringere l'oracolo solo al valore di ritorno per comodità, non per un motivo legittimo:
+corretto aggiungendo la classe \texttt{cascade}, verificabile controllando che un'istanza
+correlata raggiungibile da \texttt{pc} tramite un campo \texttt{CASCADE\_IMMEDIATE} resti non
+gestita subito dopo la chiamata.
+
+Secondo: l'ipotesi su \texttt{pc} già gestito è stata rivista. In precedenza si assumeva, per
+analogia col caso documentato, che valesse comunque la stessa postcondizione (nuovo
+\texttt{id} assegnato). Ma questo presuppone implicitamente qualcosa che il Javadoc non
+supporta: ``dare'' un'identità (\texttt{@param id}: ``the id to give the state manager'') ha
+senso solo per un'istanza che non ne ha ancora una — un'istanza già gestita ha già
+un'identità assegnata in precedenza, e sovrascriverla con un \texttt{id} diverso non è
+un'estensione naturale del caso documentato, è un comportamento nuovo e più aggressivo senza
+alcun appiglio. Per coerenza con la scelta già fatta per \texttt{attachAll} sullo stesso tipo
+di scenario (un'istanza già nello stato desiderato, senza transizione da compiere): si assume
+un no-op (\texttt{pc} resta quello già gestito, \texttt{id} ignorato) invece che la stessa
+postcondizione del caso documentato.
+
+L'overload scelto (a 3 parametri, con \texttt{id}) si distingue esplicitamente da ``altre
+operazioni di persist'' proprio per la garanzia su \texttt{CASCADE\_IMMEDIATE} discussa sopra.
+Le altre configurazioni di stato collaterali (\texttt{DetachState}, \texttt{PostLoadOnMerge} per
+i metodi precedenti) restano non tracciate: a differenza di \texttt{CASCADE\_IMMEDIATE}, non
+sono citate nella documentazione del metodo target stesso.
+
+Nota per l'implementazione: le righe \texttt{cascade}=\{presente\} e \texttt{pc}=\{gestito\}
+non sono realizzabili con un semplice collaboratore mockato isolato, come invece \texttt{id} e
+\texttt{call}. Per \texttt{cascade} serve una piccola classe entità di test con un campo
+dichiarato \texttt{CASCADE\_IMMEDIATE} verso un'istanza correlata transient, verificando dopo la
+chiamata che quest'ultima resti non gestita (tramite \texttt{getStateManager()}, senza
+mockare un datastore). Per \texttt{pc} già gestito serve un'interazione a due passi sullo stesso
+broker (es. una \texttt{persist} preventiva) prima di richiamare il metodo sotto test — stessa
+considerazione già fatta per \texttt{isDetached}.
 
 \textit{Ipotesi sull'oracolo:} \texttt{pc} \texttt{TRANSIENT} (non gestito), con \texttt{id} null
-o non null: entrambe \emph{dirette}, dal \texttt{@return} (``the state manager for the newly
-persistent instance'') combinato col \texttt{@param id} (``may be null for default'') — questo è
-il caso descritto dal Javadoc, un'istanza non gestita che diventa persistente. \texttt{pc} già
-\texttt{gestito} (\texttt{PNEW}/\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}): nessuna fonte
-documenta l'esito di \texttt{persist} su un'istanza già persistente; si assume, per analogia, che valga comunque la
-stessa postcondizione (\emph{ipotesi}, non \emph{diretta}, per lo stesso motivo già visto in
-\texttt{lock} per \texttt{PNEW}: estende un caso documentato a uno strutturalmente diverso).
+o non null, \texttt{cascade} assente: entrambe \emph{dirette}, dal \texttt{@return} (``the state
+manager for the newly persistent instance'') combinato col \texttt{@param id} (``may be null
+for default'') — questo è il caso descritto dal Javadoc, un'istanza non gestita che diventa
+persistente. \texttt{cascade} presente (\emph{diretta} anch'essa): l'istanza correlata resta non
+gestita, dalla stessa prima frase del Javadoc citata sopra. \texttt{pc} già \texttt{gestito}
+(\texttt{PNEW}/\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \emph{ipotesi}): nessuna fonte
+documenta l'esito di \texttt{persist} su un'istanza già persistente; si assume un no-op (stesso
+motivo già discusso per \texttt{attachAll}), non la stessa postcondizione del caso documentato.
 \texttt{pc} null: non documentato, si assume un'eccezione (\emph{ipotesi}).
 \texttt{processArgument} che lancia eccezione: propagazione (\emph{inferenza}, stessa proprietà
 generale già usata per gli altri metodi). Il codice azione: nessuna descrizione
 dell'effetto su questo metodo, si assume che il comportamento di base non cambi (\emph{ipotesi}).
 
-\textit{Combinazioni:} $3 (\texttt{pc}) \times 2 (\texttt{id}) \times 2 (\texttt{call}) \times 2
-(\texttt{processArgument}) = 24$.
+\textit{Combinazioni:} $3 (\texttt{pc}) \times 2 (\texttt{id}) \times 2 (\texttt{cascade}) \times
+2 (\texttt{call}) \times 2 (\texttt{processArgument}) = 48$.
 
-\textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-2 a 1. Combinazioni valide: $3 \times 2 \times (1+2) = 18$ (6 eliminate).
+\textit{Eliminazioni:} solo strutturale: \texttt{cascade} non si applica (collassa da 2 a 1)
+quando \texttt{pc}=\{null\}; \texttt{call} null collassa \texttt{processArgument} da 2 a 1.
+Combinazioni valide: $2 \times 2 \times 2 \times (1+2) + 1 \times 2 \times 1 \times (1+2) = 30$
+(18 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
 documentata.
 
-\textit{Oracolo:} su 18 combinazioni valide, 2 dirette (\texttt{pc} \texttt{TRANSIENT},
-\texttt{call} null), 6 per inferenza (propagazione eccezione), 10 per ipotesi (\texttt{pc} null
-o già \texttt{gestito}, o \texttt{call} con codice azione). Materializzate per esteso in
-Appendice.
+\textit{Oracolo:} su 30 combinazioni valide, 4 dirette (\texttt{pc} \texttt{TRANSIENT},
+\texttt{call} null, entrambe le classi di \texttt{cascade}), 10 per inferenza (propagazione
+eccezione), 16 per ipotesi (\texttt{pc} null o già \texttt{gestito}, o \texttt{call} con codice
+azione). Materializzate per esteso in Appendice.
 
 \subsection{LoginDialog}
 

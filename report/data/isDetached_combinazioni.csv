@@ -1,9 +1,11 @@
-obj,find,fonte_oracolo,oracolo,nota
-null,true,ipotesi,false,metodo predicato: risposta negativa assunta
-null,false,ipotesi,false,metodo predicato: risposta negativa assunta
-non gestito,true,ipotesi,false,tipo non gestito: risposta negativa assunta
-non gestito,false,ipotesi,false,tipo non gestito: risposta negativa assunta
-detached,true,diretto,true,documentato: @return diretto
-detached,false,diretto,true,documentato: @return diretto
-"non detached (gestito, persistente)",true,diretto,false,documentato: ramo 'false otherwise'
-"non detached (gestito, persistente)",false,diretto,false,documentato: ramo 'false otherwise'
+obj,find,store,fonte_oracolo,oracolo,nota
+null,true,--,ipotesi,false,risposta negativa assunta
+null,false,--,ipotesi,false,risposta negativa assunta
+gestito,true,presente,diretto,false,state manager attivo: non detached; controllo sul DB (last resort) non necessario
+gestito,true,non presente,diretto,false,state manager attivo: non detached; controllo sul DB (last resort) non necessario
+gestito,false,presente,diretto,false,state manager attivo: non detached; controllo sul DB (last resort) non necessario
+gestito,false,non presente,diretto,false,state manager attivo: non detached; controllo sul DB (last resort) non necessario
+non gestito,false,presente,ipotesi,false,controllo sul DB non eseguito (find=false): risposta negativa assunta comunque
+non gestito,false,non presente,ipotesi,false,controllo sul DB non eseguito (find=false): risposta negativa assunta
+non gestito,true,presente,diretto,true,"documentato: identita' trovata nel DB, l'istanza e' considerata detached"
+non gestito,true,non presente,inferenza,false,"converso naturale del caso diretto: identita' non trovata, mai stata persistita"

@@ -153,8 +153,9 @@ Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
     valido: coincide col ramo documentato ``nuovo''. Il caso non valido è invece
     \texttt{PCState.PDELETED} (``Persistent-Deleted''): un'istanza già marcata per cancellazione,
     concettualmente incompatibile con un attach/merge, non coperta da nessuno dei due rami
-    documentati. Aggiunta anche una classe con elementi misti (un valido e un non valido),
-    stesso motivo di \texttt{detachAll}.
+    documentati. Aggiunte anche due classi con elementi misti: validi di tipo diverso tra loro
+    (nuovo/detached/già gestito), e almeno un elemento non valido (stesso motivo atomicità già
+    usato per \texttt{detachAll}).
 
     \textit{Riferimenti:} \texttt{Broker.java} (\texttt{attachAll}), \texttt{OpCallbacks.java},
     \texttt{OpenJPAStateManager.java} (\texttt{getPCState}), \texttt{PCState.java}.
@@ -180,13 +181,21 @@ Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
     un solo parametro, \texttt{isDetached(Object obj)}, il cui Javadoc definisce
     esplicitamente cosa significhi ``detached'': un'istanza ``che può
     essere riagganciata a un Broker tramite una chiamata a \texttt{Broker\#attach}''.
-    Come per \texttt{lock}/\texttt{detachAll}/\texttt{persist}, \texttt{obj} non gestito è
-    definito tramite \texttt{PCState.TRANSIENT}; ``detached'' invece non è uno dei 23 stati di
-    \texttt{PCState} (verificato), è definito solo dal Javadoc di \texttt{isDetached} stesso.
+    A differenza di \texttt{lock}/\texttt{detachAll}/\texttt{persist}/\texttt{attachAll} (dove
+    \texttt{OpenJPAStateManager} è raggiungibile tramite \texttt{OpCallbacks.processArgument}),
+    \texttt{isDetached} non ha un parametro \texttt{OpCallbacks}: \texttt{obj} gestito/non
+    gestito è definito invece tramite \texttt{StoreContext.getStateManager(Object obj)} (estesa
+    direttamente da \texttt{Broker}), il cui Javadoc dichiara un'eccezione se \texttt{obj}
+    ``is not a managed type''. ``Detached'' non è uno dei 23 stati di \texttt{PCState}
+    (verificato) e non è una classe di \texttt{obj} costruibile a sé: emerge
+    dalla combinazione \texttt{obj} non gestito + identità presente nel datastore (il controllo
+    ``last resort'' descritto per \texttt{find=true}), coerentemente con la definizione di
+    ``detached'' data sopra (dati realmente persistiti, riagganciabili) piuttosto che un'azione
+    di distacco eseguita dal metodo.
 
     \textit{Riferimenti:} \texttt{BrokerImpl.java} (\texttt{isDetached} a 2 parametri),
     \texttt{Broker.java} (\texttt{isDetached} a 1 parametro),
-    \texttt{OpenJPAStateManager.java} (\texttt{getPCState}), \texttt{PCState.java}.
+    \texttt{StoreContext.java} (\texttt{getStateManager}), \texttt{PCState.java}.
 
     \item\texttt{persist(Object pc, Object id, OpCallbacks call)}
 
