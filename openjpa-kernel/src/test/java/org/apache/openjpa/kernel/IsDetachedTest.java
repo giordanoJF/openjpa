@@ -76,7 +76,6 @@ public class IsDetachedTest {
     private final boolean expected;
 
     private BrokerImpl broker;
-    private MetaDataRepository repo;
 
     public IsDetachedTest(String label, ObjKind objKind, boolean find, Boolean storePresente, boolean expected) {
         this.objKind = objKind;
@@ -90,10 +89,6 @@ public class IsDetachedTest {
         AbstractBrokerFactory factory = mock(AbstractBrokerFactory.class, RETURNS_DEEP_STUBS);
         StoreManager storeManager = mock(StoreManager.class, RETURNS_DEEP_STUBS);
         DelegatingStoreManager delegatingStoreManager = new DelegatingStoreManager(storeManager) { };
-        OpenJPAConfiguration conf = mock(OpenJPAConfiguration.class, RETURNS_DEEP_STUBS);
-        repo = mock(MetaDataRepository.class, RETURNS_DEEP_STUBS);
-        when(conf.getMetaDataRepositoryInstance()).thenReturn(repo);
-        when(factory.getConfiguration()).thenReturn(conf);
 
         broker = new BrokerImpl();
         broker.initialize(factory, delegatingStoreManager, false, ConnectionRetainModes.CONN_RETAIN_DEMAND, false);
@@ -126,16 +121,12 @@ public class IsDetachedTest {
         boolean result;
 
         if (objKind == ObjKind.NON_GESTITO && find) {
-            // Il ramo "last resort" richiama find(), un altro metodo bersaglio: lo si tratta
-            // come collaboratore gia' testato a se' (spy), non lo si riverifica qui.
             BrokerImpl spyBroker = spy(broker);
-            ClassMetaData meta = mock(ClassMetaData.class);
-            when(repo.getMetaData(any(Class.class), any(), eq(true))).thenReturn(meta);
             Object dummyOid = new Object();
             try (MockedStatic<ApplicationIds> appIds = mockStatic(ApplicationIds.class)) {
                 appIds.when(() -> ApplicationIds.create(any(), any())).thenReturn(dummyOid);
                 doReturn(Boolean.TRUE.equals(storePresente) ? new Object() : null)
-                    .when(spyBroker).find(eq(dummyOid), isNull(), any(java.util.BitSet.class), isNull(), eq(0));
+                    .when(spyBroker).find(eq(dummyOid), isNull(), eq(StoreContext.EXCLUDE_ALL), isNull(), eq(0));
                 result = spyBroker.isDetached(obj, find);
             }
         } else {

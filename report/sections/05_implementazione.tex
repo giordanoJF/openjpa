@@ -3,56 +3,40 @@
 \label{sec:implementazione}
 % ============================================================
 
-Build e test sono eseguiti con Java 17. Framework: JUnit 4.13.2 (già dipendenza del progetto,
-gestita nel \texttt{pom.xml} radice) e Mockito 5.23.0 — nessuna versione è imposta dal corso per
-questi due strumenti; Mockito è stato aggiornato rispetto a un esempio del professore (3.3.3) per
-avere il supporto nativo a \texttt{mockStatic}, necessario quando un collaboratore è esposto solo
-tramite un registro statico non documentato. Aggiunto in \texttt{dependencyManagement} nel
-\texttt{pom.xml} radice e come dipendenza in scope \texttt{test} di \texttt{openjpa-kernel}. Un
-Mockito più recente non sostituisce mai un test di integrazione con uno di unità: isola solo la
-logica propria del SUT, l'interazione reale con un collaboratore resta comunque verificata a
-parte, in un test di integrazione dedicato.
-
-In questa fase può essere necessario leggere il corpo di metodi reali del SUT per capire come
-costruirlo/invocarlo (collaboratori da mockare, precondizioni da soddisfare) — non per derivare
-classi di equivalenza o oracolo, fase già conclusa nella Category Partition
-(Sezione~\ref{sec:cp}).
-
-Non ogni tupla di design diventa sia un test di unità sia uno di integrazione: la maggioranza
-resta a livello di unità (tutti i collaboratori mockati); un insieme piccolo e curato verifica la
-cooperazione reale tra moduli a livello di integrazione. Le tuple che dipendono da uno stato non
-isolabile con un mock (es. un registro statico) si spostano interamente in integrazione.
-
-Ogni tupla di design viene comunque eseguita, anche quella per cui si prevede un fallimento; le
-tabelle CSV di design non vengono mai modificate. Un fallimento osservato a runtime viene
-analizzato restando black-box, usando solo i valori restituiti dall'esecuzione del test, mai il
-codice sorgente del SUT: se rivela un errore di costruzione del test si corregge il test; se
-rivela che l'oracolo assunto in design non regge, la correzione viene scritta in un file CSV
-separato per metodo (es. \texttt{isDetached\_correzioni.csv}), ottenuto per tentativi ragionati e
-mai da lettura di codice.
+Ogni tupla di design viene implementata ed eseguita; le
+tabelle CSV non vengono mai modificate. Un fallimento del test osservato a runtime viene
+analizzato usando solo i valori restituiti dall'esecuzione del test: se rivela un errore di implementazione del test si corregge il test; se
+rivela che l'oracolo assunto in design non regge, la tupla viene riesaminata e la correzione viene scritta in un file CSV
+separato per metodo.
 
 \subsection{BrokerImpl}
 
-Il SUT è costruito come istanza reale tramite \texttt{initialize(...)}, non un mock: i suoi
-collaboratori (\texttt{AbstractBrokerFactory}, \texttt{OpenJPAConfiguration},
-\texttt{StoreManager}, \texttt{MetaDataRepository}) sono mockati con
-\texttt{RETURNS\_DEEP\_STUBS} per evitare di enumerare a mano l'intera catena di getter richiesta
-da \texttt{initialize()}; si stubbano esplicitamente solo le chiamate rilevanti per l'oracolo del
-metodo sotto test.
+Il metodo \texttt{initialize}, necessario per costruire un'istanza utilizzabile del SUT, non
+è incluso tra i 7 metodi di Category Partition: il proprio Javadoc lo descrive come un passo di setup, non
+un'operazione rappresentativa puramente delle funzionalità di BrokerImpl.
+
+Gli argomenti di \texttt{initialize} sono stati impostati basandosi su javadoc e firme; unico input non sufficientemente
+documentato è \texttt{managed}. ConnectionRetainModes specificava inoltre i
+possibili valori di connMode. I valori sono stati scelti con l'obiettivo di presupporre meno condizione aggiuntive possibili.
+Inoltre l'assenza di diretta documentazione tra i metodi testati e questo metodo suggerisce indipendenza tra loro,
+non richiedendo una nuova progettazione dei test.
 
 \subsubsection{isDetached(Object obj, boolean find)}
 
-Le 10 tuple del CSV diventano 10 test di unità, tutte passate al primo tentativo. Il ramo
-"store" richiama internamente \texttt{find()} (altro metodo bersaglio): è isolato con uno spy sul
-broker, trattando \texttt{find()} come collaboratore già testato a sé; la funzione statica
-\texttt{ApplicationIds.create(pc, meta)}, usata per calcolare l'identità applicativa, è isolata
-con \texttt{mockStatic}. Per la classe "gestito" il codice conferma indipendentemente quanto già
-assunto in design: se lo stato di detached è già noto tramite lo state manager, il ramo "store"
-non viene mai raggiunto.
+Per costruire \texttt{obj} è necessario modellare il concetto astratto di \texttt{gestito}, tuttavia la documentazione non
+fornisce alcuna informazione a riguardo. In questo caso è stato necessario leggere l'implementazione di \texttt{isDetached},
+scoprendo la delega a \texttt{Im plHelper.isManageable(obj)} e l'interfaccia \texttt{PersistenceCapable}.
 
-Alla prima esecuzione la build falliva per il plugin \texttt{apache-rat}: il nuovo file di test
-non aveva l'header di licenza Apache richiesto su ogni sorgente del repository. Risolto
-aggiungendo l'header standard, identico a quello già presente nei file di produzione.
+Anche nel modellare la ricerca interna di find nel db non è stato possibile fare affidamento sulla documentazione. E'
+stato quindi necessario leggere l'implementazione di \texttt{isDetached}, scoprendo che la "ricerca nel DB" comincia
+recuperando i metadata della classe dell'oggetto, tramite \texttt{\_repo.getMetaData()}. Su quei metadata
+viene invocato un metodo statico di utilità.
+
+La "ricerca nel DB" non è un meccanismo nuovo/separato, è una chiamata diretta a this.find(...), gia analizzato
+come metodo da testare. Siccome find() è chiamato internamente come this.find(...),
+l'unico modo di far funzionare tutta la vera logica di brokerImpl tranne quell'ultima chiamata a find() che va mockata
+è uno spy.
+
 
 \subsection{LoginDialog}
 
