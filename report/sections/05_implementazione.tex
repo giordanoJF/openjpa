@@ -17,7 +17,7 @@ un'operazione rappresentativa puramente delle funzionalità di BrokerImpl.
 
 Gli argomenti di \texttt{initialize} sono stati impostati basandosi su javadoc e firme; unico input non sufficientemente
 documentato è \texttt{managed}. ConnectionRetainModes specificava inoltre i
-possibili valori di connMode. I valori sono stati scelti con l'obiettivo di presupporre meno condizione aggiuntive possibili.
+possibili valori di connMode. I valori sono stati scelti con l'obiettivo di presupporre meno condizioni aggiuntive possibili.
 Inoltre l'assenza di diretta documentazione tra i metodi testati e questo metodo suggerisce indipendenza tra loro,
 non richiedendo una nuova progettazione dei test.
 
@@ -25,17 +25,20 @@ non richiedendo una nuova progettazione dei test.
 
 Per costruire \texttt{obj} è necessario modellare il concetto astratto di \texttt{gestito}, tuttavia la documentazione non
 fornisce alcuna informazione a riguardo. In questo caso è stato necessario leggere l'implementazione di \texttt{isDetached},
-scoprendo la delega a \texttt{Im plHelper.isManageable(obj)} e l'interfaccia \texttt{PersistenceCapable}.
+scoprendo la delega a \texttt{ImplHelper.isManageable(obj)} e l'interfaccia \texttt{PersistenceCapable}.
 
-Anche nel modellare la ricerca interna di find nel db non è stato possibile fare affidamento sulla documentazione. E'
-stato quindi necessario leggere l'implementazione di \texttt{isDetached}, scoprendo che la "ricerca nel DB" comincia
-recuperando i metadata della classe dell'oggetto, tramite \texttt{\_repo.getMetaData()}. Su quei metadata
-viene invocato un metodo statico di utilità.
+Il Javadoc di \texttt{isDetached} documenta il comportamento generale della ricerca nel DB ("as a last resort this
+method will check whether or not the provided object exists in the DB"), ma non il meccanismo concreto con cui
+avviene. Per quello è stato necessario leggere l'implementazione, scoprendo che la ricerca comincia recuperando i
+metadata della classe dell'oggetto tramite \texttt{\_repo.getMetaData()}. Su quei metadata viene invocato un metodo
+statico di utilità.
 
-La "ricerca nel DB" non è un meccanismo nuovo/separato, è una chiamata diretta a this.find(...), gia analizzato
-come metodo da testare. Siccome find() è chiamato internamente come this.find(...),
-l'unico modo di far funzionare tutta la vera logica di brokerImpl tranne quell'ultima chiamata a find() che va mockata
-è uno spy.
+La ricerca nel DB non è un meccanismo nuovo/separato, è una chiamata diretta a \texttt{this.find(...)}, già
+analizzato come metodo da testare. Siccome \texttt{find()} è chiamato internamente come \texttt{this.find(...)},
+l'unico modo di far funzionare tutta la vera logica di \texttt{BrokerImpl} tranne quell'ultima chiamata a
+\texttt{find()} che va mockata è uno spy.
+
+Le 10 tuple del CSV diventano 10 test di unità, tutte passate.
 
 
 \subsection{LoginDialog}
