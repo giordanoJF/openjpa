@@ -1,0 +1,85 @@
+oid,validate,cache,store,call,processArgument,processReturn,fonte_oracolo,oracolo,nota
+null,true,--,--,null,--,--,osservazione,eccezione (ObjectNotFoundException),corretto da runtime: 'Cannot perform find using null object id.'; invertito rispetto a ipotesi originale (inferenza)
+null,false,--,--,null,--,--,osservazione,null,"corretto da runtime: nessuna eccezione, find ritorna null; invertito rispetto a ipotesi originale (inferenza)"
+non valido,true,--,--,null,--,--,osservazione,eccezione (MetaDataException),"corretto: _repo.getMetaData(oid,loader,true) e' invocato incondizionatamente rispetto a validate, con mustExist=true; invertito rispetto a ipotesi originale (inferenza)"
+non valido,false,--,--,null,--,--,inferenza,eccezione (tipo non specificato),"oid non valido: no cache/hollow, eccezione"
+valido,true,presente,presente,null,--,--,diretto,istanza non-null,"documentato: validate=true, store presente"
+valido,true,non presente,presente,null,--,--,diretto,istanza non-null,"documentato: validate=true, store presente"
+valido,true,presente,non presente,null,--,--,diretto,null,"documentato: validate=true, store assente"
+valido,true,non presente,non presente,null,--,--,diretto,null,"documentato: validate=true, store assente"
+valido,false,presente,presente,null,--,--,diretto,istanza in cache,documentato: cache presente
+valido,false,non presente,presente,null,--,--,ipotesi,istanza hollow non-null,"successo hollow non documentato, assunto"
+valido,false,presente,non presente,null,--,--,diretto,istanza in cache,documentato: cache presente
+valido,false,non presente,non presente,null,--,--,ipotesi,istanza hollow non-null,"successo hollow non documentato, assunto"
+null,true,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,true,presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+null,true,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,true,non presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+null,true,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,true,presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+null,true,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,true,non presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+null,true,--,--,non null,ritorna null,ritorna oggetto,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+null,true,--,--,non null,ritorna null,ritorna null,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+null,true,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+null,true,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+null,false,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,false,presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+null,false,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,false,non presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+null,false,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,false,presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+null,false,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+null,false,non presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+null,false,--,--,non null,ritorna null,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find (anche se processArgument ignora l'argomento)
+null,false,--,--,non null,ritorna null,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+null,false,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+null,false,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+non valido,true,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,true,presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+non valido,true,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,true,non presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+non valido,true,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,true,presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+non valido,true,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,true,non presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+non valido,true,--,--,non null,ritorna null,ritorna oggetto,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+non valido,true,--,--,non null,ritorna null,ritorna null,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+non valido,true,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+non valido,true,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+non valido,false,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,false,presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+non valido,false,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,false,non presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+non valido,false,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,false,presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+non valido,false,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+non valido,false,non presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+non valido,false,--,--,non null,ritorna null,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find (anche se processArgument ignora l'argomento)
+non valido,false,--,--,non null,ritorna null,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+non valido,false,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+non valido,false,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+valido,true,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,true,presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+valido,true,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,true,non presente,presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+valido,true,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,true,presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+valido,true,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,true,non presente,non presente,non null,ritorna id,ritorna null,inferenza,null,"processReturn=null sostituisce, nessun conflitto"
+valido,true,--,--,non null,ritorna null,ritorna oggetto,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+valido,true,--,--,non null,ritorna null,ritorna null,osservazione,eccezione (ObjectNotFoundException),corretto: oid=null (pArg ignora l'argomento) con validate=true lancia prima di raggiungere processReturn; invertito rispetto a ipotesi originale
+valido,true,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+valido,true,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+valido,false,presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,false,presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+valido,false,non presente,presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,false,non presente,presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+valido,false,presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,false,presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+valido,false,non presente,non presente,non null,ritorna id,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find
+valido,false,non presente,non presente,non null,ritorna id,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+valido,false,--,--,non null,ritorna null,ritorna oggetto,inferenza,"oggetto ritornato da processReturn (non-null, non ulteriormente specificato)",processReturn sostituisce il ritorno di find (anche se processArgument ignora l'argomento)
+valido,false,--,--,non null,ritorna null,ritorna null,osservazione,null,"corretto: find() ritorna esattamente il valore di processReturn, incluso null; l'ipotesi 'mai-null prevale' non regge"
+valido,false,--,--,non null,eccezione,ritorna oggetto,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
+valido,false,--,--,non null,eccezione,ritorna null,inferenza,eccezione propagata da find,eccezione di processArgument si propaga (processReturn non raggiunto)
