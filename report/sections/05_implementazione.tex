@@ -3,8 +3,8 @@
 \label{sec:implementazione}
 % ============================================================
 
-Ogni tupla di design viene implementata ed eseguita; le
-tabelle CSV non vengono mai modificate. Un fallimento del test osservato a runtime viene
+Ogni tupla di design viene implementata ed eseguita; i casi di test nel csv originale vengono mantenuti.
+Un fallimento del test osservato a runtime viene
 analizzato usando solo i valori restituiti dall'esecuzione del test: se rivela un errore di implementazione del test si corregge il test; se
 rivela che l'oracolo assunto in design non regge, la tupla viene riesaminata e la correzione viene scritta in un file CSV
 separato per metodo.
@@ -40,7 +40,43 @@ l'unico modo di far funzionare tutta la vera logica di \texttt{BrokerImpl} trann
 
 Le 10 tuple del CSV diventano 10 test di unità, tutte passate.
 
+\subsubsection{find(Object oid, boolean validate, FindCallbacks call)}
+
+Le 84 tuple del CSV diventano 84 test di unità, tutte passate.
+
+Per essere eseguito senza lanciare eccezioni, \texttt{find} richiede che sul broker sia
+abilitato il flag \texttt{NontransactionalRead}: viene quindi attivato esplicitamente
+(\texttt{Broker.setNontransactionalRead}) e dichiarato tra le opzioni supportate dalla configurazione
+mockata (\texttt{OpenJPAConfiguration.supportedOptions()}). Questa parte della costruzione è stata risolta
+solo con Javadoc e firme dichiarate, senza leggere l'implementazione di \texttt{find}.
+
+Per le tuple con \texttt{oid} valido o con \texttt{FindCallbacks}, \texttt{find} deve restituire un'istanza
+realmente gestita dal broker: il modo per farlo non è documentato, è stato quindi necessario leggere
+l'implementazione di
+\texttt{find}, \texttt{newStateManagerImpl} e \texttt{StateManagerImpl.initialize}. In OpenJPA questo richiede
+normalmente una classe passata dall'\textit{enhancer} (\texttt{PCEnhancer}, Javadoc dichiarato: "Bytecode
+enhancer used to enhance persistent classes from metadata"), un tool che a compile-time modifica il bytecode
+delle classi entità per farle implementare \texttt{PersistenceCapable}; le classi usate nei test non passano
+da questo tool. Si registra a runtime una classe fittizia in \texttt{PCRegistry} (il registro statico delle
+classi enhanced), tramite un suo metodo di registrazione, usando un'istanza mock come prototipo dell'oggetto
+da restituire. Store e cache sono simulati separatamente: lo store stubbando
+\texttt{StoreManager.initialize/exists}, la cache con una chiamata preliminare a \texttt{find}
+prima di quella effettivamente verificata dal test.
+
+L'esecuzione ha rivelato tre casi in cui l'oracolo di design non corrisponde al comportamento osservato:
+(1) \texttt{oid=null}: con \texttt{validate=true} \texttt{find} lancia eccezione, con \texttt{validate=false}
+ritorna \texttt{null}, l'opposto di quanto assunto in design;
+(2) \texttt{oid} non valido: sempre eccezione, indipendentemente da \texttt{validate}, perché la risoluzione
+di metadata avviene prima di qualunque controllo su \texttt{validate};
+(3) quando il callback \texttt{processReturn} ritorna \texttt{null}, il risultato di \texttt{find} è
+\texttt{null} anche con \texttt{validate=false}: l'ipotesi di design "la garanzia mai-null prevale" non è
+supportata dal codice. Tutte le correzioni sono in \texttt{find\_correzioni.csv}.
+
+Due tuple (\texttt{oid} valido, \texttt{validate=true}, store assente) avevano un problema: serviva forzare un
+controllo sullo store che \texttt{find} normalmente salta. Applicando quella forzatura al codice di
+costruzione condiviso da tutte le tuple con \texttt{oid} valido, altre tuple (già corrette) fallivano.
+La forzatura è stata quindi condizionata (\texttt{validate=true} e store assente), si attiva solo per
+queste due tuple e lascia invariate tutte le altre.
 
 \subsection{LoginDialog}
-
 % analisi da svolgere

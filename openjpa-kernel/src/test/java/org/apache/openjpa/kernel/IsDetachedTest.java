@@ -45,10 +45,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.MockedStatic;
 
-/**
- * Test BB: isDetached(Object obj, boolean find). Tuple e oracolo da
- * report/data/isDetached_combinazioni.csv (10 righe).
- */
+
 @RunWith(Parameterized.class)
 public class IsDetachedTest {
 
