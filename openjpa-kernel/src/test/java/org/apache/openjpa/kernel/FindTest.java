@@ -43,6 +43,7 @@ import org.apache.openjpa.meta.ClassMetaData;
 import org.apache.openjpa.meta.FieldMetaData;
 import org.apache.openjpa.meta.MetaDataRepository;
 import org.apache.openjpa.util.MetaDataException;
+import org.apache.openjpa.util.UserException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -433,12 +434,12 @@ public class FindTest {
 
         FindCallbacks callback = null;
         Object processReturnSentinel = null;
-        RuntimeException processArgumentException = null;
+        UserException processArgumentException = null;
         if (call) {
             callback = mock(FindCallbacks.class);
             switch (processArgument) {
                 case THROWS:
-                    processArgumentException = new RuntimeException("processArgument: errore simulato");
+                    processArgumentException = new UserException("processArgument: errore simulato");
                     when(callback.processArgument(any())).thenThrow(processArgumentException);
                     break;
                 case RETURNS_NULL:

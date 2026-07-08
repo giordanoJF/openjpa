@@ -60,17 +60,37 @@ Parametro & Classi di equivalenza \\
 \midrule
 \texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito, non ancora persistito\} -- \{gestito,
 presente nello store\} \\
-\texttt{level} & \{valore noto (incl. \texttt{LOCK\_NONE})\} -- \{valore non noto\} \\
+\texttt{level} & \{valore noto\} -- \{valore non noto\} \\
 \texttt{timeout} & \{altro negativo ($<-1$)\} -- \{-1\} -- \{0\} -- \{positivo\} \\
 \midrule
 \texttt{call} & \{null\} -- \{non null\} \\
-\texttt{call.processArgument}* & \{ritorna un codice azione (\texttt{ACT\_NONE}/
-\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN})\} -- \{lancia \texttt{OpenJPAException}\} \\
+\texttt{call.processArgument}* & \{ritorna un codice azione\} -- \{lancia \texttt{OpenJPAException}\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{lock(Object pc, int level, int timeout,
 OpCallbacks call)}. * richiede \texttt{call} non null.}
 \label{tab:lock-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza (corrette) \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito, non ancora persistito\} -- \{gestito,
+presente nello store\} \\
+\texttt{level} & \{valore noto\} -- \{valore non noto\} \\
+\texttt{timeout} & \{altro negativo ($<-1$)\} -- \{-1\} -- \{0\} -- \{positivo\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{ritorna \texttt{ACT\_RUN}\} -- \{ritorna \texttt{ACT\_NONE}/
+\texttt{ACT\_CASCADE}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza corrette per \texttt{lock(Object pc, int level, int timeout,
+OpCallbacks call)} (confronto con Tabella~\ref{tab:lock-classi}). * richiede \texttt{call} non null.}
+\label{tab:lock-classi-corrette}
 \end{table}
 
 \begin{table}[H]
@@ -83,8 +103,7 @@ Parametro & Classi di equivalenza \\
 -- \{elementi misti (un gestito e un non gestito)\} \\
 \midrule
 \texttt{call} & \{null\} -- \{non null\} \\
-\texttt{call.processArgument}* & \{ritorna un codice azione (\texttt{ACT\_NONE}/azione)\} --
-\{lancia \texttt{OpenJPAException}\} \\
+\texttt{call.processArgument}* & \{ritorna un codice azione\} -- \{lancia \texttt{OpenJPAException}\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{detachAll(Collection objs, OpCallbacks call)}.
@@ -103,8 +122,7 @@ Parametro & Classi di equivalenza \\
 \texttt{copyNew} & \{true\} -- \{false\} \\
 \midrule
 \texttt{call} & \{null\} -- \{non null\} \\
-\texttt{call.processArgument}* & \{ritorna un codice azione (\texttt{ACT\_NONE}/azione)\} --
-\{lancia \texttt{OpenJPAException}\} \\
+\texttt{call.processArgument}* & \{ritorna un codice azione\} -- \{lancia \texttt{OpenJPAException}\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{attachAll(Collection objs, boolean copyNew,
@@ -155,8 +173,7 @@ Parametro & Classi di equivalenza \\
 \texttt{cascade}* & \{presente\} -- \{assente\} \\
 \midrule
 \texttt{call} & \{null\} -- \{non null\} \\
-\texttt{call.processArgument}** & \{ritorna un codice azione (\texttt{ACT\_NONE}/azione)\} --
-\{lancia \texttt{OpenJPAException}\} \\
+\texttt{call.processArgument}** & \{ritorna un codice azione\} -- \{lancia \texttt{OpenJPAException}\} \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza per \texttt{persist(Object pc, Object id, OpCallbacks call)}.

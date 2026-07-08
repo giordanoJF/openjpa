@@ -78,5 +78,70 @@ costruzione condiviso da tutte le tuple con \texttt{oid} valido, altre tuple (gi
 La forzatura è stata quindi condizionata (\texttt{validate=true} e store assente), si attiva solo per
 queste due tuple e lascia invariate tutte le altre.
 
+\subsubsection{lock(Object pc, int level, int timeout, OpCallbacks call)}
+
+Le 96 tuple del CSV diventano 96 test di unità, tutte passate; altre 64 si aggiungono in una fase di
+approfondimento successiva (dettaglio più avanti), per 160 test di unità totali.
+
+\textit{Costruzione.} A differenza di \texttt{find}, \texttt{lock} richiede una transazione attiva
+(\texttt{Broker.begin()}, dichiarato). La verifica della postcondizione (\texttt{getLockLevel(pc) == level})
+passa per un collaboratore interno non documentato: letta, con autorizzazione, l'implementazione di
+\texttt{BrokerImpl.lock()}/\texttt{getLockLevel()}, si è scoperto che entrambe le operazioni delegano a un
+\texttt{LockManager} interno (creato da \texttt{conf.newLockManagerInstance()}, stesso meccanismo già visto
+per \texttt{\_fc} in \texttt{find}). Il mock di \texttt{LockManager} viene quindi reso "tracciante" (stesso
+pattern già usato per \texttt{pcReplaceStateManager}/\texttt{pcGetStateManager} in \texttt{find}): quando
+\texttt{lock} viene invocato memorizza il livello richiesto, e \texttt{getLockLevel} lo restituisce.
+
+\textit{Correzioni d'oracolo.} L'esecuzione ha rivelato che, nei 66 casi in cui il design assumeva
+un'eccezione (tier sempre \texttt{ipotesi}, mai \texttt{diretto}) o una postcondizione con codice azione
+restituito dal callback, il comportamento osservato è lo stesso: \texttt{lock} ritorna senza lanciare
+eccezioni e senza applicare il lock (\texttt{getLockLevel(pc)} resta \texttt{LOCK\_NONE}). Fa eccezione un
+sottoinsieme di 10 tuple (\texttt{pc} gestito, \texttt{call=null}, con \texttt{level} non noto o
+\texttt{timeout} non valido): qui il lock viene comunque applicato, perché senza un \texttt{OpCallbacks} non
+c'è alcun controllo intermedio che lo impedisca. Quando invece \texttt{pc} non è gestito e
+\texttt{processArgument} lancia eccezione, la propagazione avviene correttamente, confermando l'assunzione di
+design in quel caso. Tutte le correzioni sono in \texttt{lock\_correzioni.csv}.
+
+\textit{Approfondimento sulla classe "azione".} Il design tratta \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/
+\texttt{ACT\_RUN} come un'unica classe di equivalenza (nessuna documentazione li distingue), testata con un
+solo rappresentante (\texttt{ACT\_NONE}). Per verificare che i tre valori siano davvero equivalenti, un primo
+test esplorativo temporaneo ha chiamato \texttt{lock} con \texttt{ACT\_CASCADE} e poi con \texttt{ACT\_RUN}
+sulla stessa tupla rappresentativa usata per \texttt{level} (\texttt{pc} gestito persistito,
+\texttt{level=LOCK\_READ}, \texttt{timeout=-1}), osservando \texttt{getLockLevel(pc)} dopo ciascuna chiamata:
+\texttt{ACT\_CASCADE} ha dato \texttt{0} (nessun effetto, come \texttt{ACT\_NONE}), \texttt{ACT\_RUN} ha dato
+\texttt{10} (lock applicato, coerente con il livello richiesto). Questa divergenza ha motivato l'espansione
+permanente della suite: le 32 tuple con \texttt{processArgument} ``azione'' sono state estese con due
+varianti aggiuntive (\texttt{ACT\_CASCADE}, \texttt{ACT\_RUN}), aggiunte in \texttt{lock\_correzioni.csv} con
+l'oracolo di design originale (non quello già corretto per \texttt{ACT\_NONE}), poi corrette secondo lo
+stesso esito osservato sull'intera suite. L'esecuzione ha confermato il pattern del probe:
+\texttt{ACT\_CASCADE} si comporta come \texttt{ACT\_NONE} (58 delle 64 nuove tuple corrette allo stesso modo
+delle precedenti), ma \texttt{ACT\_RUN} no: quando \texttt{pc} è gestito, fa procedere \texttt{lock} anche
+con \texttt{level} non noto o \texttt{timeout} non valido, senza alcuna validazione. La classe "azione" del
+design non è quindi una vera classe di equivalenza: due dei tre valori si comportano in un modo, il terzo
+nell'altro. \texttt{lock\_correzioni.csv} contiene quindi le 96 righe di design (corrette dove necessario)
+più queste 64 righe aggiuntive, per 160 tuple totali. Le classi di equivalenza corrette sono in
+Tabella~\ref{tab:lock-classi-corrette} (Appendice).
+
+Lo stesso dubbio è stato verificato per \texttt{level}: la classe "noto" raggruppa
+\texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/\texttt{LOCK\_WRITE} (nessuna documentazione li distingue), testata
+con un solo rappresentante (\texttt{LOCK\_READ}). A differenza di "azione", qui non è stata fatta
+un'espansione permanente della suite: prima di deciderlo, un test esplorativo temporaneo (non incluso nella
+suite finale) ha chiamato \texttt{lock} con \texttt{LOCK\_NONE} e poi con \texttt{LOCK\_WRITE} sulla stessa
+tupla rappresentativa (\texttt{pc} gestito persistito, \texttt{timeout=-1}, \texttt{call=null}),
+osservando \texttt{getLockLevel(pc)} dopo ciascuna chiamata: il valore osservato è tornato coerente con il
+livello richiesto in entrambi i casi (\texttt{0} e \texttt{20} rispettivamente). Solo dopo questa conferma si
+è deciso di non espandere la suite, a differenza di quanto fatto per "azione" dove il test esplorativo aveva
+invece rivelato una divergenza.
+
+Lo stesso controllo è stato ripetuto per la classe \{gestito, presente nello store\} di \texttt{pc}, che il
+design raggruppa da tre stati distinti (\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, nessuna
+documentazione li distingue rispetto a \texttt{lock}), testata finora con un solo rappresentante generico
+(solo \texttt{isPersistent()=true}, senza fissare lo stato specifico). Un test esplorativo temporaneo ha
+costruito tre \texttt{pc} gestiti identici salvo \texttt{getPCState()} (rispettivamente \texttt{PCLEAN},
+\texttt{PDIRTY}, \texttt{HOLLOW}), chiamando \texttt{lock} con \texttt{level=LOCK\_READ},
+\texttt{timeout=-1}, \texttt{call=null} su ciascuno e osservando \texttt{getLockLevel(pc)}: tutti e tre hanno
+dato \texttt{10}, coerente col livello richiesto. Anche questa classe si conferma omogenea: nessuna
+correzione o espansione necessaria.
+
 \subsection{LoginDialog}
 % analisi da svolgere

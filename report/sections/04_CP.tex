@@ -79,7 +79,16 @@ combinazione ammissibile perché potrebbe rivelarsi un caso di test significativ
 valide: $84$ (204 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessuno dei sette parametri ha un range
-numerico o una soglia.
+numerico o una soglia. Per le classi con più valori possibili si documenta comunque il valore
+rappresentativo usato nell'implementazione: \texttt{oid} \{non valido\} e \{valido\} sono
+entrambi rappresentati da un'istanza \texttt{new Object()} (la validità è determinata dal
+contesto di mock circostante, non dal valore dell'oggetto in sé); l'id restituito da
+\texttt{processArgument} quando \{ritorna un id non-null\} è anch'esso un \texttt{new Object()}
+arbitrario; l'oggetto restituito da \texttt{processReturn} quando \{ritorna un oggetto non-null\}
+è un ulteriore \texttt{new Object()} arbitrario, usato come sentinella per verificarne l'identità
+nel valore di ritorno di \texttt{find}; l'eccezione lanciata da \texttt{processArgument} quando
+\{lancia \texttt{OpenJPAException}\} è rappresentata da un'istanza di \texttt{UserException},
+sottoclasse concreta di \texttt{OpenJPAException}.
 
 \subsubsection{\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}}
 
@@ -278,12 +287,24 @@ $4 \times 2 \times 4 \times (1+2) = 96$ (32 eliminate).
 sentinella singolo, non un range, quindi coincide col proprio stesso rappresentante. La classe
 \{altro negativo ($<-1$)\} ha un confine noto solo sul lato adiacente a \texttt{-1}
 (rappresentante BVA: \texttt{-2}) e nessun confine documentato verso $-\infty$. Le classi
-\{0\} e \{positivo\} condividono il confine $0$/$1$, già coperto scegliendo \texttt{0} e un
-valore positivo qualunque come rappresentanti delle rispettive classi. \texttt{level} non ha
+\{0\} e \{positivo\} condividono il confine $0$/$1$, già coperto scegliendo \texttt{0} e
+\texttt{1000} come rappresentanti delle rispettive classi. \texttt{level} non ha
 un confine numerico documentato con effetto diverso su \texttt{lock} (nessun limite superiore,
 nessuna soglia dichiarata) — la partizione \{noto\}/\{non noto\} è una classe di equivalenza
 Category Partition (da distinzione testuale), non un confine BVA: non si applica BVA su un
-dominio senza soglia documentata.
+dominio senza soglia documentata. Il valore rappresentativo usato per \{noto\} è
+\texttt{LockLevels.LOCK\_READ}; per \{non noto\} è \texttt{9999}, un intero arbitrario al di
+fuori delle tre costanti dichiarate. Per \texttt{pc} \{gestito, non ancora persistito\} e \{gestito, presente nello store\} (che
+unisce \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}), l'implementazione non fissa alcuno stato
+\texttt{PCState} specifico per nessuna delle due classi: entrambe stubbano solo
+\texttt{isPersistent()==true}, sufficiente perché \texttt{lock} non consulta mai
+\texttt{getPCState()} (si veda Sezione~\ref{sec:implementazione}).
+Per \texttt{call.processArgument} \{ritorna un codice azione\}, il valore rappresentativo usato
+per le 96 combinazioni base è \texttt{ACT\_NONE}; le altre due costanti (\texttt{ACT\_CASCADE},
+\texttt{ACT\_RUN}) sono state testate esplicitamente in una fase di approfondimento successiva
+(Sezione~\ref{sec:implementazione}). L'eccezione lanciata da \texttt{processArgument} quando
+\{lancia \texttt{OpenJPAException}\} è rappresentata, come per \texttt{find}, da un'istanza di
+\texttt{UserException}.
 
 \textit{Oracolo:} su 96 combinazioni valide, 3 hanno oracolo diretto (\texttt{pc}
 \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \texttt{call} null, \texttt{level} \emph{noto},
@@ -594,7 +615,14 @@ piuttosto che un'eccezione.
 quando \texttt{obj}=\{null\} (nessuna identità da cercare). Combinazioni valide:
 $2 \times 2 \times 2 + 1 \times 2 \times 1 = 10$ (2 eliminate).
 
-\textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
+\textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico. Per le classi con
+più valori possibili si documenta comunque il valore rappresentativo usato nell'implementazione:
+\texttt{obj} \{gestito\} è rappresentato da un \texttt{PersistenceCapable} il cui
+\texttt{pcGetStateManager()} ritorna uno \texttt{StateManager} mockato attivo; \texttt{obj}
+\{non gestito\} è rappresentato dallo stesso tipo di mock con \texttt{pcGetStateManager()} nullo.
+\texttt{store} \{presente\} è rappresentato restituendo un \texttt{new Object()} arbitrario dalla
+chiamata interna a \texttt{find} usata per verificare l'esistenza nel datastore (si veda
+Sezione~\ref{sec:implementazione}).
 
 \textit{Oracolo:} 5 dirette, 1 per inferenza, 4 per ipotesi. Materializzate per esteso in
 Appendice.

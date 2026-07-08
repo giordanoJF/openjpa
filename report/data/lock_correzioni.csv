@@ -1,0 +1,161 @@
+pc,level,timeout,call,processArgument,fonte_oracolo,oracolo,nota
+null,noto,altro negativo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,altro negativo,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,noto,-1,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,-1,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,noto,0,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,0,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,noto,positivo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,noto,positivo,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,non noto,altro negativo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,altro negativo,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,non noto,-1,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,-1,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,non noto,0,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,0,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+null,non noto,positivo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+null,non noto,positivo,non null,eccezione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: pc=null intercettato prima che processArgument venga invocato, l'eccezione non si propaga mai"
+non gestito,noto,altro negativo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,noto,-1,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,noto,0,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,noto,positivo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,non noto,altro negativo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,non noto,-1,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,non noto,0,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+non gestito,non noto,positivo,null,--,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+non gestito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,noto,altro negativo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito non persistito,noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito non persistito,noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,noto,-1,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),PNEW non ancora persistito: si assume che il lock funzioni comunque
+gestito non persistito,noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito non persistito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,noto,0,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),PNEW non ancora persistito: si assume che il lock funzioni comunque
+gestito non persistito,noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito non persistito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,noto,positivo,null,--,ipotesi,getLockLevel(pc) == level (postcondizione),PNEW non ancora persistito: si assume che il lock funzioni comunque
+gestito non persistito,noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito non persistito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,non noto,altro negativo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito non persistito,non noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito non persistito,non noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,non noto,-1,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito non persistito,non noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito non persistito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,non noto,0,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito non persistito,non noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito non persistito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito non persistito,non noto,positivo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito non persistito,non noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito non persistito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,noto,altro negativo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito persistito,noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito persistito,noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,noto,-1,null,--,diretto,getLockLevel(pc) == level (postcondizione),comportamento descritto direttamente in lock()
+gestito persistito,noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito persistito,noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,noto,0,null,--,diretto,getLockLevel(pc) == level (postcondizione),comportamento descritto direttamente in lock()
+gestito persistito,noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito persistito,noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,noto,positivo,null,--,diretto,getLockLevel(pc) == level (postcondizione),comportamento descritto direttamente in lock()
+gestito persistito,noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, lock non procede"
+gestito persistito,noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,non noto,altro negativo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito persistito,non noto,altro negativo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito persistito,non noto,altro negativo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,non noto,-1,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito persistito,non noto,-1,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito persistito,non noto,-1,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,non noto,0,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito persistito,non noto,0,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito persistito,non noto,0,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+gestito persistito,non noto,positivo,null,--,osservazione,getLockLevel(pc) == level (postcondizione),"corretto: senza OpCallbacks, lock procede comunque (livello/timeout non validati da LockManager mockato)"
+gestito persistito,non noto,positivo,non null,azione,osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)",corretto: lock ritorna senza lanciare eccezione ne' applicare il lock
+gestito persistito,non noto,positivo,non null,eccezione,inferenza,eccezione propagata da lock,l'eccezione di processArgument si propaga
+null,noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,noto,altro negativo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,noto,-1,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,noto,0,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,noto,positivo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,non noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,non noto,altro negativo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,non noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,non noto,-1,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,non noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,non noto,0,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+null,non noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+null,non noto,positivo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,noto,altro negativo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,noto,-1,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,noto,0,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,noto,positivo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,non noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,non noto,altro negativo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,non noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,non noto,-1,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,non noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,non noto,0,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+non gestito,non noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+non gestito,non noto,positivo,non null,azione (ACT_RUN),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_RUN fa passare il controllo, ma pc null/non gestito blocca comunque prima"
+gestito non persistito,noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,noto,altro negativo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito non persistito,noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,noto,-1,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito non persistito,noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,noto,0,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito non persistito,noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,noto,positivo,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito non persistito,non noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,non noto,altro negativo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito non persistito,non noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,non noto,-1,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito non persistito,non noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,non noto,0,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito non persistito,non noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito non persistito,non noto,positivo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito persistito,noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,noto,altro negativo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito persistito,noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,noto,-1,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito persistito,noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,noto,0,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito persistito,noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,noto,positivo,non null,azione (ACT_RUN),ipotesi,getLockLevel(pc) == level (postcondizione),"il codice azione non ha effetto noto: il lock funziona come con call null | espansione: rappresentante originale azione=ACT_NONE, qui si testa ACT_RUN"
+gestito persistito,non noto,altro negativo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,non noto,altro negativo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito persistito,non noto,-1,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,non noto,-1,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito persistito,non noto,0,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,non noto,0,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
+gestito persistito,non noto,positivo,non null,azione (ACT_CASCADE),osservazione,"nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK_NONE)","corretto: ACT_CASCADE si comporta come ACT_NONE, il lock non procede"
+gestito persistito,non noto,positivo,non null,azione (ACT_RUN),osservazione,getLockLevel(pc) == level (postcondizione),"corretto: con ACT_RUN il lock procede sempre se pc e' gestito, senza validare level/timeout"
