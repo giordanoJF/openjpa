@@ -383,7 +383,17 @@ supporto (a differenza di \texttt{lock}).
 2 a 1. Combinazioni valide: $5 \times (1+2) = 15$ (5 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
-documentata.
+documentata. Per le classi con più valori possibili si documenta comunque il valore
+rappresentativo usato nell'implementazione: per \texttt{call.processArgument} \{ritorna un
+codice azione\}, il valore rappresentativo usato per le 15 combinazioni base è
+\texttt{ACT\_NONE}; le altre due costanti (\texttt{ACT\_CASCADE}, \texttt{ACT\_RUN}) sono state
+testate esplicitamente in una fase di approfondimento successiva (Sezione~\ref{sec:implementazione}).
+L'eccezione lanciata da \texttt{processArgument} quando \{lancia \texttt{OpenJPAException}\} è
+rappresentata, come per \texttt{find}/\texttt{lock}, da un'istanza di \texttt{UserException}. Per
+\texttt{objs} \{un elemento gestito\} e per il sotto-elemento gestito di \{elementi misti\},
+l'implementazione non fissa alcuno stato \texttt{PCState} specifico (si stubba solo
+\texttt{isPersistent()==true} e uno \texttt{StateManager} attivo), stesso trattamento già
+giustificato per \texttt{pc} in \texttt{lock}.
 
 \textit{Oracolo:} su 15 combinazioni valide, 7 per inferenza (cardinalità/inspector,
 propagazione eccezione), 8 per ipotesi (\texttt{objs} inammissibile o mista, o \texttt{call}
@@ -479,7 +489,10 @@ descrizione dell'effetto su questo metodo, si assume che il comportamento di bas
 2 a 1. Combinazioni valide: $7 \times 2 \times (1+2) = 42$ (14 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
-documentata.
+documentata. Per \texttt{call.processArgument} \{ritorna un codice azione\}, il valore
+rappresentativo usato per le 42 combinazioni base è \texttt{ACT\_NONE}; le altre due costanti
+(\texttt{ACT\_CASCADE}, \texttt{ACT\_RUN}) sono state testate esplicitamente in una fase di
+approfondimento successiva (Sezione~\ref{sec:implementazione}).
 
 \textit{Oracolo:} su 42 combinazioni valide, 4 dirette (\{all new\}/\{all old\} con
 \texttt{call} null), 18 per inferenza (cardinalità vuota, \{misti: validi eterogenei\} con

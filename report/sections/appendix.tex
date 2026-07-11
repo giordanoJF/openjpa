@@ -113,6 +113,25 @@ Parametro & Classi di equivalenza \\
 
 \begin{table}[H]
 \centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza (corrette) \\
+\midrule
+\texttt{objs} & \{null\} -- \{vuota\} -- \{un elemento gestito\} -- \{un elemento non gestito\}
+-- \{elementi misti (un gestito e un non gestito)\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{ritorna \texttt{ACT\_RUN}\} -- \{ritorna \texttt{ACT\_NONE}/
+\texttt{ACT\_CASCADE}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza corrette per \texttt{detachAll(Collection objs, OpCallbacks
+call)} (confronto con Tabella~\ref{tab:detachall-classi}). * richiede \texttt{call} non null.}
+\label{tab:detachall-classi-corrette}
+\end{table}
+
+\begin{table}[H]
+\centering
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.42\textwidth} >{\raggedright\arraybackslash}X}
 \toprule
 Parametro & Classi di equivalenza \\
@@ -129,6 +148,32 @@ Parametro & Classi di equivalenza \\
 OpCallbacks call)}. * richiede \texttt{call} non null. Definizioni precise delle classi di
 \texttt{objs} in Sezione~\ref{sec:cp}.}
 \label{tab:attachall-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.42\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza (corrette) \\
+\midrule
+\texttt{objs} & \{null\} -- \{vuota\} -- \{all new\} -- \{all old\} -- \{all attached\}* --
+\{misti: validi eterogenei\} -- \{misti: almeno 1 invalido\} \\
+\texttt{copyNew} & \{true\} -- \{false\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}** & \{ritorna \texttt{ACT\_RUN}\} -- \{ritorna \texttt{ACT\_NONE}\} --
+\{ritorna \texttt{ACT\_CASCADE}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza corrette per \texttt{attachAll(Collection objs, boolean copyNew,
+OpCallbacks call)} (confronto con Tabella~\ref{tab:attachall-classi}). * \{all attached\} non è
+una classe di comportamento distinta da \{all new\}: nessun ramo del codice tratta un'istanza
+già gestita come caso a sé, viene elaborata dallo stesso percorso di \{all new\}. **
+\texttt{ACT\_CASCADE} si separa da \texttt{ACT\_NONE}: entrambi lasciano l'elemento invariato,
+ma solo \texttt{ACT\_CASCADE} tenta il cascade sui campi correlati, sollevando un'eccezione
+quando l'elemento non ha ancora uno StateManager (\{all new\}, \{all old\}). Richiede
+\texttt{call} non null.}
+\label{tab:attachall-classi-corrette}
 \end{table}
 
 \begin{table}[H]

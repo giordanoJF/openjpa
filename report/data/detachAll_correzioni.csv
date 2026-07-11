@@ -1,0 +1,26 @@
+objs,call,processArgument,fonte_oracolo,oracolo,nota
+null,null,--,osservazione,detachAll ritorna null,"corretto: objs==null ritorna null direttamente, nessuna eccezione lanciata"
+null,non null,azione,osservazione,detachAll ritorna null,"corretto: objs==null ritorna null prima di consultare call, indipendentemente dal codice azione"
+null,non null,eccezione,osservazione,detachAll ritorna null,"corretto: objs==null ritorna null prima di invocare processArgument, l'eccezione non viene mai lanciata"
+vuota,null,--,inferenza,array vuoto,@return al plurale: si assume un array vuoto
+vuota,non null,azione,ipotesi,array vuoto,il codice azione non ha effetto noto: resta un array vuoto
+vuota,non null,eccezione,osservazione,array vuoto,"corretto: la collezione vuota non viene mai iterata, processArgument non e' mai invocato, nessuna eccezione"
+un elemento gestito,null,--,inferenza,array con un elemento; isDetached(elemento) == true,isDetached deve risultare true sull'elemento restituito
+un elemento gestito,non null,azione,osservazione,array con un elemento; l'elemento e' invariato (stessa istanza, non staccato),"corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, l'elemento resta gestito e invariato"
+un elemento gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+un elemento non gestito,null,--,osservazione,array con un elemento; l'elemento e' invariato (stessa istanza),"corretto: nessuno StateManager, l'elemento e' restituito invariato senza eccezione"
+un elemento non gestito,non null,azione,osservazione,array con un elemento; l'elemento e' invariato (stessa istanza),"corretto: senza StateManager il controllo del codice azione non produce comunque un detach, nessuna eccezione"
+un elemento non gestito,non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+elementi misti (un gestito e un non gestito),null,--,osservazione,"array di due elementi: il gestito e' una copia scollegata, il non gestito e' invariato","corretto: nessuna atomicita' particolare, ciascun elemento e' processato indipendentemente senza eccezioni"
+elementi misti (un gestito e un non gestito),non null,azione,osservazione,"array di due elementi, entrambi invariati (nessun detach applicato)","corretto: il codice azione scelto come rappresentante (ACT_NONE) non include il bit ACT_RUN, nessun elemento viene staccato"
+elementi misti (un gestito e un non gestito),non null,eccezione,inferenza,eccezione propagata da detachAll,l'eccezione di processArgument si propaga
+null,non null,azione (ACT_CASCADE),osservazione,detachAll ritorna null,"corretto: objs==null ritorna null prima di consultare call, indipendentemente dal codice azione"
+null,non null,azione (ACT_RUN),osservazione,detachAll ritorna null,"corretto: objs==null ritorna null prima di consultare call, indipendentemente dal codice azione"
+vuota,non null,azione (ACT_CASCADE),osservazione,array vuoto,"la collezione vuota non viene mai iterata, processArgument non e' mai invocato"
+vuota,non null,azione (ACT_RUN),osservazione,array vuoto,"la collezione vuota non viene mai iterata, processArgument non e' mai invocato"
+un elemento gestito,non null,azione (ACT_CASCADE),osservazione,array con un elemento; l'elemento e' invariato (stessa istanza, non staccato),"ACT_CASCADE non include il bit ACT_RUN, stesso comportamento di ACT_NONE"
+un elemento gestito,non null,azione (ACT_RUN),osservazione,array con un elemento; copia scollegata dal broker,"ACT_RUN include il bit richiesto, il detach viene effettivamente applicato"
+un elemento non gestito,non null,azione (ACT_CASCADE),osservazione,array con un elemento; l'elemento e' invariato (stessa istanza),"nessuno StateManager, il controllo del codice azione non produce comunque un detach"
+un elemento non gestito,non null,azione (ACT_RUN),osservazione,array con un elemento; l'elemento e' invariato (stessa istanza),"ACT_RUN fa passare il controllo, ma l'assenza di StateManager blocca comunque il detach subito dopo"
+elementi misti (un gestito e un non gestito),non null,azione (ACT_CASCADE),osservazione,"array di due elementi, entrambi invariati (nessun detach applicato)","ACT_CASCADE non include il bit ACT_RUN, stesso comportamento di ACT_NONE"
+elementi misti (un gestito e un non gestito),non null,azione (ACT_RUN),osservazione,"array di due elementi: il gestito e' una copia scollegata, il non gestito e' invariato","ACT_RUN fa procedere il detach per l'elemento gestito, il non gestito resta comunque invariato"

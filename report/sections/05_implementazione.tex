@@ -23,20 +23,26 @@ non richiedendo una nuova progettazione dei test.
 
 \subsubsection{isDetached(Object obj, boolean find)}
 
-Per costruire \texttt{obj} è necessario modellare il concetto astratto di \texttt{gestito}, tuttavia la documentazione non
-fornisce alcuna informazione a riguardo. In questo caso è stato necessario leggere l'implementazione di \texttt{isDetached},
-scoprendo la delega a \texttt{ImplHelper.isManageable(obj)} e l'interfaccia \texttt{PersistenceCapable}.
+Per costruire \texttt{obj} è necessario modellare il concetto astratto di \texttt{gestito}, ma nessuna
+documentazione lo definisce: primo caso della campagna in cui il black-box non basta. Leggendo
+l'implementazione di \texttt{isDetached} emerge la delega a \texttt{ImplHelper.isManageable(obj)}
+sull'interfaccia \texttt{PersistenceCapable}: ``gestito'' equivale a \texttt{pcGetStateManager()} non nullo.
+Sullo stesso oggetto, \texttt{pcIsDetached()} decide da sola l'esito se non nulla (\texttt{isDetached}
+ritorna direttamente quel valore): per questo la classe \{gestito\} lo stubba a \texttt{Boolean.FALSE}
+(risposta immediata, nessun accesso al DB), mentre \{non gestito\} lo lascia \texttt{null} per forzare il
+ramo successivo -- un dettaglio anch'esso leggibile solo nel corpo del metodo, non nel Javadoc.
 
-Il Javadoc di \texttt{isDetached} documenta il comportamento generale della ricerca nel DB ("as a last resort this
-method will check whether or not the provided object exists in the DB"), ma non il meccanismo concreto con cui
-avviene. Per quello è stato necessario leggere l'implementazione, scoprendo che la ricerca comincia recuperando i
-metadata della classe dell'oggetto tramite \texttt{\_repo.getMetaData()}. Su quei metadata viene invocato un metodo
-statico di utilità.
+Il Javadoc di \texttt{isDetached} documenta a parole il comportamento generale della ricerca nel DB
+(``as a last resort this method will check whether or not the provided object exists in the DB''), ma non
+il meccanismo concreto: di nuovo white-box, quindi, per scoprire che la ricerca recupera prima i metadata
+della classe tramite \texttt{\_repo.getMetaData()}, poi costruisce un id con il metodo statico
+\texttt{ApplicationIds.create(pc, meta)} (da cui il mock statico nel test) e infine chiama
+\texttt{find(oid, null, EXCLUDE\_ALL, null, 0)}: overload e argomenti esatti riprodotti nello stub del test,
+deducibili solo da questa riga di \texttt{BrokerImpl}.
 
-La ricerca nel DB non è un meccanismo nuovo/separato, è una chiamata diretta a \texttt{this.find(...)}, già
-analizzato come metodo da testare. Siccome \texttt{find()} è chiamato internamente come \texttt{this.find(...)},
-l'unico modo di far funzionare tutta la vera logica di \texttt{BrokerImpl} tranne quell'ultima chiamata a
-\texttt{find()} che va mockata è uno spy.
+Quella chiamata a \texttt{find} non è un meccanismo separato: è \texttt{this.find(...)}, lo stesso metodo
+già analizzato come SUT a parte. Di conseguenza l'unico modo di eseguire la vera logica di
+\texttt{BrokerImpl} lasciando mockata solo quell'ultima chiamata è uno spy, non un mock puro.
 
 Le 10 tuple del CSV diventano 10 test di unità, tutte passate.
 
@@ -47,21 +53,34 @@ Le 84 tuple del CSV diventano 84 test di unità, tutte passate.
 Per essere eseguito senza lanciare eccezioni, \texttt{find} richiede che sul broker sia
 abilitato il flag \texttt{NontransactionalRead}: viene quindi attivato esplicitamente
 (\texttt{Broker.setNontransactionalRead}) e dichiarato tra le opzioni supportate dalla configurazione
-mockata (\texttt{OpenJPAConfiguration.supportedOptions()}). Questa parte della costruzione è stata risolta
-solo con Javadoc e firme dichiarate, senza leggere l'implementazione di \texttt{find}.
+mockata (\texttt{OpenJPAConfiguration.supportedOptions()}). Questa parte della costruzione è black-box, risolta
+solo con Javadoc e firme dichiarate, senza leggere l'implementazione di \texttt{find}. Lo stesso vale per il
+callback \texttt{FindCallbacks} usato per \texttt{call}: interfaccia pubblica dichiarata, stessa dimensione già
+presente nel design (Tabella~\ref{tab:find-classi}), stubbata senza bisogno di leggere codice.
 
 Per le tuple con \texttt{oid} valido o con \texttt{FindCallbacks}, \texttt{find} deve restituire un'istanza
-realmente gestita dal broker: il modo per farlo non è documentato, è stato quindi necessario leggere
-l'implementazione di
-\texttt{find}, \texttt{newStateManagerImpl} e \texttt{StateManagerImpl.initialize}. In OpenJPA questo richiede
-normalmente una classe passata dall'\textit{enhancer} (\texttt{PCEnhancer}, Javadoc dichiarato: "Bytecode
-enhancer used to enhance persistent classes from metadata"), un tool che a compile-time modifica il bytecode
-delle classi entità per farle implementare \texttt{PersistenceCapable}; le classi usate nei test non passano
-da questo tool. Si registra a runtime una classe fittizia in \texttt{PCRegistry} (il registro statico delle
-classi enhanced), tramite un suo metodo di registrazione, usando un'istanza mock come prototipo dell'oggetto
-da restituire. Store e cache sono simulati separatamente: lo store stubbando
-\texttt{StoreManager.initialize/exists}, la cache con una chiamata preliminare a \texttt{find}
-prima di quella effettivamente verificata dal test.
+realmente gestita dal broker: un primo tentativo black-box (solo mock di store e cache, nessuna classe
+registrata) fallisce con \texttt{IllegalStateException} (\texttt{PCRegistry}, messaggio \texttt{"no-meta"}).
+Passando a un approccio white-box, leggendo \texttt{find}, \texttt{newStateManagerImpl} e
+\texttt{StateManagerImpl.initialize}, emerge la causa: in OpenJPA le classi gestite passano normalmente
+dall'\textit{enhancer} (\texttt{PCEnhancer}, Javadoc dichiarato: "Bytecode enhancer used to enhance
+persistent classes from metadata"), che le registra in \texttt{PCRegistry}; le classi di test non passano
+da questo tool, quindi la registrazione va replicata a mano con una classe fittizia e un'istanza mock come
+prototipo (\texttt{pcNewInstance} stubbato per restituire un secondo \texttt{PersistenceCapable} tracciante,
+che memorizza lo state manager passato a \texttt{pcReplaceStateManager} -- stessa lettura, perché
+\texttt{StateManagerImpl.initialize} chiama esattamente queste due primitive per agganciare l'istanza al suo
+state manager). La registrazione richiede anche una \texttt{ClassMetaData} mockata (\texttt{getIdentityType},
+\texttt{getDescribedType}, \texttt{getFields}, \texttt{getPkAndNonPersistentManagedFmdIndexes},
+\texttt{getPCSubclasses}): sono i metodi che lo stesso percorso interno consulta per costruire lo state
+manager, e la \texttt{MetaDataRepository} mockata (\texttt{repo}) esiste solo per restituire quella
+\texttt{ClassMetaData} da \texttt{repo.getMetaData(oid,...)} -- nessuna delle due è nominata dal Javadoc di
+\texttt{find}. Store e cache sono simulati separatamente: lo store stubbando
+\texttt{StoreManager.initialize/exists} (white-box, stesso collaboratore emerso sopra), la cache con una
+chiamata preliminare a \texttt{find} prima di quella effettivamente verificata dal test (black-box, dedotta
+dal contratto stesso di \texttt{find}, che promette di restituire l'istanza già in cache). Per \texttt{oid}
+non valido, \texttt{repo.getMetaData} è stubbato per lanciare \texttt{MetaDataException}: rappresentante
+scelto perché è l'eccezione realmente sollevata da \texttt{MetaDataRepository} quando i metadata non sono
+risolvibili, non un tipo dedotto dal solo Javadoc di \texttt{find}.
 
 L'esecuzione ha rivelato tre casi in cui l'oracolo di design non corrisponde al comportamento osservato:
 (1) \texttt{oid=null}: con \texttt{validate=true} \texttt{find} lancia eccezione, con \texttt{validate=false}
@@ -84,13 +103,24 @@ Le 96 tuple del CSV diventano 96 test di unità, tutte passate; altre 64 si aggi
 approfondimento successiva (dettaglio più avanti), per 160 test di unità totali.
 
 \textit{Costruzione.} A differenza di \texttt{find}, \texttt{lock} richiede una transazione attiva
-(\texttt{Broker.begin()}, dichiarato). La verifica della postcondizione (\texttt{getLockLevel(pc) == level})
-passa per un collaboratore interno non documentato: letta, con autorizzazione, l'implementazione di
-\texttt{BrokerImpl.lock()}/\texttt{getLockLevel()}, si è scoperto che entrambe le operazioni delegano a un
-\texttt{LockManager} interno (creato da \texttt{conf.newLockManagerInstance()}, stesso meccanismo già visto
-per \texttt{\_fc} in \texttt{find}). Il mock di \texttt{LockManager} viene quindi reso "tracciante" (stesso
-pattern già usato per \texttt{pcReplaceStateManager}/\texttt{pcGetStateManager} in \texttt{find}): quando
-\texttt{lock} viene invocato memorizza il livello richiesto, e \texttt{getLockLevel} lo restituisce.
+(\texttt{Broker.begin()}). Questo requisito non è documentato da nessuna fonte pubblica: il Javadoc di
+\texttt{Broker.lock} non menziona alcun legame con lo stato transazionale; è emerso leggendo
+\texttt{BrokerImpl.lock()}, che apre con una chiamata interna a \texttt{assertActiveTransaction()} (WB,
+non ``dichiarato'' come riportato in una stesura precedente di questo paragrafo). La verifica della
+postcondizione (\texttt{getLockLevel(pc) == level}) passa per un collaboratore interno non documentato:
+letta, con autorizzazione, la stessa implementazione di \texttt{BrokerImpl.lock()}/\texttt{getLockLevel()},
+si è scoperto che entrambe le operazioni delegano a un \texttt{LockManager} interno (creato da
+\texttt{conf.newLockManagerInstance()}, stesso meccanismo già visto per \texttt{\_fc} in \texttt{find}).
+Il mock di \texttt{LockManager} viene quindi reso "tracciante" (stesso pattern già usato per
+\texttt{pcReplaceStateManager}/\texttt{pcGetStateManager} in \texttt{find}): quando \texttt{lock} viene
+invocato memorizza il livello richiesto, e \texttt{getLockLevel} lo restituisce. \texttt{OpCallbacks} e
+\texttt{getLockLevel} restano invece black-box (interfaccia e metodo pubblici dichiarati): solo il valore
+che \texttt{getLockLevel} restituisce a runtime dipende dal mock white-box appena descritto. Per \texttt{pc}
+gestito, oltre a \texttt{pcGetStateManager()}/\texttt{pcGetGenericContext()} (stesso meccanismo di
+\texttt{isDetached}, riusato senza nuova lettura), lo stub \texttt{isPersistent()=true} è qui necessario e
+non decorativo: \texttt{BrokerImpl.lock()} contiene \texttt{if (sm == null || !sm.isPersistent()) return;},
+quindi senza quello stub il lock non verrebbe mai applicato indipendentemente dalla tupla in esame -- lettura
+white-box della stessa riga di \texttt{lock()} già citata sopra per \texttt{assertActiveTransaction()}.
 
 \textit{Correzioni d'oracolo.} L'esecuzione ha rivelato che, nei 66 casi in cui il design assumeva
 un'eccezione (tier sempre \texttt{ipotesi}, mai \texttt{diretto}) o una postcondizione con codice azione
@@ -142,6 +172,161 @@ costruito tre \texttt{pc} gestiti identici salvo \texttt{getPCState()} (rispetti
 \texttt{timeout=-1}, \texttt{call=null} su ciascuno e osservando \texttt{getLockLevel(pc)}: tutti e tre hanno
 dato \texttt{10}, coerente col livello richiesto. Anche questa classe si conferma omogenea: nessuna
 correzione o espansione necessaria.
+
+\subsubsection{detachAll(Collection objs, OpCallbacks call)}
+
+Le 15 tuple del CSV diventano 15 test di unità dopo le correzioni d'oracolo (dettaglio più avanti);
+altre 10 si aggiungono in una fase di approfondimento successiva (dettaglio più avanti), per 25 test di
+unità totali.
+
+\textit{Costruzione.} Il primo tentativo di costruzione è black-box, basato solo su Javadoc e firme
+dichiarate (stesso approccio degli altri metodi, nessuna opzione di compatibilità impostata): ha
+esercitato \texttt{detachAll} su un singolo elemento gestito aspettandosi in uscita un array con
+l'elemento scollegato, per corrispondenza diretta con il \texttt{@return} dichiarato dal metodo
+(``the detached instances''). L'esecuzione fallisce: il valore osservato è \texttt{null}, non un
+array. Il Javadoc di \texttt{detachAll} e dell'interfaccia \texttt{Broker} non offre alcuna
+spiegazione per questo esito: nessuna clausola condizionale, nessun riferimento a un comportamento
+configurabile o a un collaboratore interno. Non trovando altra via nella documentazione pubblica, si
+passa a un approccio white-box come ultima risorsa: si legge l'implementazione, scoprendo che
+\texttt{detachAll(Collection, OpCallbacks)} delega
+interamente a un \texttt{DetachManager} interno, il cui costruttore legge
+\texttt{Compatibility.getCopyOnDetach()} e usa quel valore per decidere se costruire e restituire
+l'array (\texttt{DetachManager.detachAll(Collection)} ritorna \texttt{null} quando il flag è
+\texttt{false}, indipendentemente dal contenuto della collezione). Il Javadoc di
+\texttt{Compatibility.getCopyOnDetach()} dichiara che il default attuale è \texttt{false}
+(comportamento in-place), un cambiamento rispetto al comportamento storico (sempre una copia, salvo
+quando l'intero cache veniva staccato). Il Javadoc di \texttt{detachAll} stesso, promettendo
+esplicitamente ``the detached instances'' come valore di ritorno, è coerente solo con l'altra
+opzione: la lettura più plausibile è quindi che il flag vada abilitato esplicitamente perché il
+metodo si comporti come il proprio Javadoc dichiara. \texttt{copyOnDetach} viene quindi abilitato
+esplicitamente in costruzione (stesso principio già applicato al flag
+\texttt{NontransactionalRead} per \texttt{find}: un'opzione di compatibilità pubblica e
+documentata, non un dettaglio d'implementazione a cui si è arrivati per altra via). Un elemento
+gestito viene riconosciuto come tale tramite \texttt{pcGetStateManager()}/\texttt{pcGetGenericContext()}
+(stesso meccanismo scoperto per \texttt{isDetached}, riusato qui senza nuova lettura) e richiede uno
+\texttt{StateManagerImpl} con una \texttt{ClassMetaData} associata, ancora dedotta da cosa consuma
+\texttt{DetachManager}; per evitare complessità non
+pertinente alle classi sotto test, i campi dell'entità sono lasciati vuoti
+(\texttt{getFields()}/\texttt{getPrimaryKeyFields()} ritornano array vuoti,
+\texttt{usesDetachedState()} ritorna \texttt{false}), riducendo il detach al solo percorso
+strutturale: \texttt{DetachManager} recupera l'originale con \texttt{sm.getPersistenceCapable()} e, con
+\texttt{copyOnDetach} attivo, costruisce la copia chiamando \texttt{pc.pcNewInstance(...)} -- da cui i due
+stub omonimi nel test, letti dalla stessa riga del costruttore già citata sopra. La verifica della postcondizione
+``elemento staccato'' inizialmente tentava di riusare \texttt{isDetached(Object)} (già
+implementato e testato), ma si è rivelata inadeguata: \texttt{isDetached} ricade, in assenza di
+\texttt{pcIsDetached()} esplicito, su un controllo last-resort verso lo store che, con i mock
+usati, risulta vero indipendentemente da un vero detach, non discriminando quindi tra un elemento
+davvero scollegato e uno rimasto invariato. La verifica è stata sostituita con un controllo
+black-box, diretto sul significato dichiarato dal Javadoc di \texttt{detachAll} (``unmanaged copies''): un
+elemento è considerato staccato se l'oggetto restituito ha un'identità diversa dall'originale e
+nessuno \texttt{StateManager} attivo (lo stub \texttt{isPersistent()=true}, ereditato dal
+pattern usato per \texttt{pc} in \texttt{lock}, e i due stub \texttt{pcIsDetached()} residui del
+primo tentativo con \texttt{isDetached} sono stati rimossi in quanto non consumati da alcun
+percorso di codice realmente esercitato da \texttt{detachAll}).
+
+\textit{Correzioni d'oracolo.} L'esecuzione ha rivelato che tutte le ipotesi ``eccezione'' del
+design erano sbagliate: \texttt{objs=null} ritorna \texttt{null} direttamente (controllo esplicito
+in \texttt{BrokerImpl.detachAll}, prima di consultare \texttt{call}), mai un'eccezione;
+\texttt{objs} vuota ritorna sempre un array vuoto, anche con \texttt{processArgument} che lancia
+eccezione, perché una collezione vuota non viene mai iterata (\texttt{processArgument} non è mai
+invocato); un elemento non gestito viene restituito invariato senza eccezione (nessuno
+\texttt{StateManager}, nessun controllo che blocchi l'operazione); gli elementi misti vengono
+processati indipendentemente, senza atomicità: l'elemento gestito viene scollegato normalmente,
+quello non gestito passa invariato, nessuna eccezione lega i due esiti. Fa eccezione il caso in
+cui \texttt{processArgument} lancia: viene invocato comunque, anche su un elemento non gestito
+(l'ordine dei controlli in \texttt{DetachManager} verifica prima il callback, poi lo stato
+gestito), quindi la propagazione dell'eccezione, se presente, conferma l'assunzione di design.
+Tutte le correzioni sono in \texttt{detachAll\_correzioni.csv}.
+
+\textit{Approfondimento sulla classe "azione".} Il design tratta \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/
+\texttt{ACT\_RUN} come un'unica classe di equivalenza, testata con un solo rappresentante
+(\texttt{ACT\_NONE}), stesso schema già usato per \texttt{lock}. Un test esplorativo temporaneo ha
+chiamato \texttt{detachAll} con un solo elemento gestito, una volta per ciascuno dei tre valori,
+osservando se l'elemento restituito fosse la stessa istanza originale (nessun detach) o una copia
+scollegata: \texttt{ACT\_NONE} e \texttt{ACT\_CASCADE} hanno lasciato l'elemento invariato,
+\texttt{ACT\_RUN} ha prodotto una copia scollegata, stessa divergenza già osservata per
+\texttt{lock} (lo stesso bit \texttt{ACT\_RUN} governa in entrambi i metodi se l'operazione
+procede). La suite è stata quindi estesa con \texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} sulle 5
+combinazioni base con \texttt{processArgument}=azione (\texttt{objs} null, vuota, un elemento
+gestito, un elemento non gestito, elementi misti), per 10 tuple aggiuntive: per \texttt{objs}
+null/vuota/con solo elemento non gestito l'esito resta identico indipendentemente dal codice
+azione (rispettivamente perché \texttt{objs} è verificato prima di consultare \texttt{call}, la
+collezione vuota non viene mai iterata, e l'assenza di \texttt{StateManager} blocca comunque il
+detach subito dopo il controllo del bit); solo per l'elemento gestito (da solo o dentro gli
+elementi misti) la scelta del codice azione cambia l'esito. \texttt{detachAll\_correzioni.csv}
+contiene quindi le 15 righe di design (corrette dove necessario) più queste 10 righe aggiuntive,
+per 25 tuple totali. Le classi di equivalenza corrette sono in
+Tabella~\ref{tab:detachall-classi-corrette} (Appendice).
+
+\subsubsection{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}
+
+Le 42 tuple del CSV diventano 42 test di unità dopo le correzioni d'oracolo (dettaglio più
+avanti); altre 10 si aggiungono in una fase di approfondimento successiva (dettaglio più
+avanti), per 52 test di unità totali.
+
+\textit{Costruzione.} Come per \texttt{lock}, \texttt{attachAll} richiede una transazione
+attiva. Il Javadoc non lo dichiara: emerge leggendo \texttt{BrokerImpl.attachAll()}, che apre
+con \texttt{assertWriteOperation()} (white-box). La delega a un \texttt{AttachManager} interno è
+scoperta nello stesso modo. Il riconoscimento di un elemento ``gestito''
+(\texttt{pcGetStateManager()}/\texttt{pcGetGenericContext()}) riusa invece il meccanismo già
+stabilito per \texttt{isDetached}, senza bisogno di leggere altro codice. Costruire \{all
+new\}/\{all attached\} richiede che \texttt{BrokerImpl.persist(...)} vada a buon fine (lo stesso
+metodo interno già usato da \texttt{find} per istanziare un oggetto gestito), e riusa quindi
+l'infrastruttura white-box già nota da \texttt{find}: registrazione in \texttt{PCRegistry},
+\texttt{ClassMetaData} mockata. Un primo tentativo con questa sola infrastruttura fallisce però
+con \texttt{NullPointerException} dentro \texttt{ImplHelper.toPersistenceCapable}. Letta nel
+codice, la causa è che \texttt{AttachStrategy.attach} chiama \texttt{meta.getRepository()} per
+risolvere la configurazione: senza uno stub esplicito, il mock a stub profondi di
+\texttt{ClassMetaData} genera una catena di mock scollegata dal resto del test. Aggiungere
+\texttt{meta.getRepository()} (white-box) risolve il problema, un dettaglio non necessario per
+\texttt{find}. Costruire \{all old\} richiede in più che \texttt{pcGetDetachedState()} restituisca
+un \texttt{Object[]} nella forma attesa da \texttt{DetachedStateAttachStrategy}, e che
+\texttt{StoreManager.newDataStoreId(...)} sia stubbato: entrambi scoperti leggendo quella classe
+(white-box). L'elemento viene poi risolto tramite lo stesso \texttt{find} interno già discusso.
+
+\textit{Correzioni d'oracolo.} L'esecuzione ha rivelato che, come per \texttt{detachAll},
+\texttt{objs=null} ritorna \texttt{null} direttamente (controllo esplicito in
+\texttt{BrokerImpl.attachAll}, prima di consultare \texttt{call}), mai un'eccezione. La
+correzione più rilevante riguarda \{all attached\}: l'ipotesi di design assumeva un no-op,
+perché nessun ramo documentato copre questo caso, ma non regge. Osservando l'esecuzione,
+un'istanza già gestita dallo stesso broker viene trattata esattamente come \{all new\}
+(persistita di nuovo, copiata o meno secondo \texttt{copyNew}). Rileggendo
+\texttt{VersionAttachStrategy} si conferma la causa: la scelta ``nuovo vs esistente'' si basa
+solo su \texttt{isDetached()==false} e ``non gestito da un altro broker''. Un'istanza gestita
+dallo stesso broker soddisfa entrambe le condizioni, e non esiste un terzo ramo per lo stato
+``già gestito''. Per \{misti: validi eterogenei\} e \{misti: almeno 1 invalido\} con
+\texttt{processArgument} che lancia, l'eccezione osservata non è la stessa istanza
+dell'eccezione simulata: \texttt{AttachManager} accumula un'eccezione per ciascun elemento
+della collezione che fallisce (qui entrambi, dato che lo stesso mock di callback lancia per
+ogni invocazione), e le avvolge in un'unica \texttt{UserException} quando sono più di una,
+invece di propagare la singola eccezione così com'è. Questo comportamento resta confermato solo
+per collezioni con un solo elemento, come \{all new\}. Tutte le correzioni sono in
+\texttt{attachAll\_correzioni.csv}.
+
+\textit{Approfondimento sulla classe "azione".} Il design tratta \texttt{ACT\_NONE}/
+\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} come un'unica classe di equivalenza, testata con un solo
+rappresentante (\texttt{ACT\_NONE}), stesso schema già usato per \texttt{lock}/\texttt{detachAll}.
+Un test esplorativo temporaneo ha chiamato \texttt{attachAll} con un solo elemento nuovo, una
+volta per ciascuno dei tre valori. \texttt{ACT\_NONE} lascia l'elemento invariato (nessun bit
+\texttt{ACT\_RUN}), \texttt{ACT\_RUN} lo persiste come \{all new\}, ma \texttt{ACT\_CASCADE} da
+solo propaga una \texttt{NullPointerException} interna a \texttt{AttachManager.handleCascade}:
+il metodo invoca incondizionatamente lo \texttt{StateManager} dell'elemento per leggerne i campi
+caricati, anche quando quell'elemento non ne ha ancora uno (\{all new\}/\{all old\}). A
+differenza di \texttt{lock}/\texttt{detachAll}, qui \texttt{ACT\_CASCADE} non coincide con
+\texttt{ACT\_NONE}. Ripetendo il probe su un elemento \{all attached\}, che ha già uno
+\texttt{StateManager} reale, \texttt{ACT\_CASCADE} non solleva eccezione e lascia l'elemento
+invariato come \texttt{ACT\_NONE}: la divergenza dipende dalla presenza di uno
+\texttt{StateManager}, non dal tipo di elemento in senso lato. La suite è stata quindi estesa
+con \texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} sulle 5 combinazioni base con
+\texttt{processArgument}=azione (\{all new\}, \{all old\}, \{all attached\}, \{misti: validi
+eterogenei\}, \{misti: almeno 1 invalido\}), per 10 tuple aggiuntive. \texttt{ACT\_RUN} coincide
+sempre con l'esito già osservato per \texttt{call=null}; \texttt{ACT\_CASCADE} solleva eccezione
+ovunque compaia un elemento privo di \texttt{StateManager} (\{all new\}, \{all old\}, entrambe
+le classi miste, che contengono sempre un elemento nuovo), mentre lascia invariato \{all
+attached\} come \texttt{ACT\_NONE}. \texttt{attachAll\_correzioni.csv} contiene quindi le 42
+righe di design (24 corrette, 18 invariate) più queste 10 righe aggiuntive, per 52 tuple
+totali. Le classi di equivalenza corrette sono in Tabella~\ref{tab:attachall-classi-corrette}
+(Appendice).
 
 \subsection{LoginDialog}
 % analisi da svolgere
