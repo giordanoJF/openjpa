@@ -1,0 +1,66 @@
+% ============================================================
+\section{Test LLM}
+\label{sec:llm}
+% ============================================================
+
+\subsection{BrokerImpl}
+
+Il codice tra \texttt{\#\#\#Test START\#\#} e \texttt{\#\#\#Test END\#\#} viene estratto dalla
+risposta e copiato in
+\texttt{openjpa-kernel/src/test/java/.../kernel/}. Dove un test rivela un'assunzione errata dell'LLM, il metodo è marcato
+\texttt{@Ignore}. Dove invece un test documenta un fault reale,
+l'asserzione riflette il comportamento osservato (quello col fault), non quello atteso secondo
+la documentazione: il test resta attivo e passa.
+
+In quasi tutti i prompt il conteggio di test dichiarato dall'LLM nel testo non coincide con
+quello reale nel codice generato.
+
+\subsubsection{Z1 (\hyperref[prompt:z1]{Appendice}).}
+Sceglie 10 metodi evitando di propria iniziativa tutti quelli che richiedono
+\texttt{initialize()}, la stessa precondizione già nota (Capitolo~\ref{sec:implementazione}) e
+riscontrata da Randoop per errore a runtime, qui evitata a monte per lettura del codice. 21 test
+generati (uno oltre il tetto di 20). 20 passano, 1 escluso con \texttt{@Ignore}:
+\texttt{testSetRollbackOnlyWithoutActiveTransactionThrows} si aspettava
+\texttt{NoTransactionException}, il comportamento reale lancia \texttt{InvalidStateException}.
+
+\subsubsection{Z2 (\hyperref[prompt:z2]{Appendice}).}
+Sottoinsieme di metodi diverso da Z1. Usa la reflection una sola volta per forzare
+\texttt{\_initializeWasInvoked} e testare \texttt{clone()}, giustificandolo come
+``arrangiare la precondizione'' e non ``asserire su stato interno''. È una distinzione discutibile
+rispetto al vincolo black-box del prompt, dato che manipolare un campo privato resta comunque una
+tecnica white-box. 20 test, entro il tetto. 18 passano, 2 esclusi con \texttt{@Ignore}: si
+aspettava \texttt{null} da \texttt{getConnectionFactoryName()}/\texttt{getConnectionFactory2Name()}
+su un broker nuovo; il default reale è una stringa vuota (\texttt{\_connectionFactoryName = ""}
+nel sorgente).
+
+\subsubsection{F1 (\hyperref[prompt:f1]{Appendice}).}
+Terzo insieme di metodi, incluso l'overload senza argomenti \texttt{lock()}/\texttt{unlock()}. 20 test, entro
+il tetto. Compila senza errori, tutti passano. A differenza di Z2, modella
+correttamente sia \texttt{getConnectionFactoryName()} sia \texttt{getConnectionFactory()}.
+
+\subsubsection{F2 (\hyperref[prompt:f2]{Appendice}).}
+Copre 10 metodi diversi dai precedenti, incluso \texttt{getCacheFinderQuery}/
+\texttt{setCacheFinderQuery}. 20 test, entro il tetto. Compila senza errori e tutti
+passano, incluso un test che documenta un \textbf{fault reale} verificato sul sorgente:
+\texttt{setCacheFinderQuery(boolean)} scrive per errore sul campo \texttt{\_cachePreparedQuery}
+invece che su \texttt{\_cacheFinderQuery}, che risulta quindi mai modificabile dal proprio setter
+pubblico.
+
+\subsubsection{C1 (\hyperref[prompt:c1]{Appendice}).}
+Il ragionamento richiesto dal prompt è visibile nel testo: per ciascun metodo scelto l'LLM motiva
+la selezione prima di scrivere codice. 19 test, entro il tetto. Compila senza errori e
+tutti passano. Ritrova indipendentemente lo stesso fault di F2 su \texttt{setCacheFinderQuery}, e
+ne trova un secondo, non emerso altrove: la Javadoc di \texttt{getSuppressBatchOLELogging()}
+dichiara ``Defaults to true'', ma il campo \texttt{\_suppressBatchOLELogging} è dichiarato
+\texttt{false}.
+
+\subsubsection{C2 (\hyperref[prompt:c2]{Appendice}).}
+Stesso schema di C1, con l'esempio few-shot come riferimento di stile; insieme di metodi quasi
+identico. 19 test, entro il tetto. Compila senza errori e tutti passano. Ritrova lo
+stesso fault su \texttt{setCacheFinderQuery} per la terza volta, qui
+verificato nel modo più rigoroso: legge con la reflection entrambi i campi privati dopo la
+chiamata, confermando che \texttt{\_cacheFinderQuery} resta \texttt{true} mentre
+\texttt{\_cachePreparedQuery} diventa \texttt{false}.
+
+\subsection{LoginDialog}
+% non affrontato in questo giro, per decisione presa in Sezione~\ref{sec:randoop}
