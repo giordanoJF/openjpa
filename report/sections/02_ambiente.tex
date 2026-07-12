@@ -25,34 +25,6 @@ sottomoduli.
 Tali execution erano legate all'enhancement bytecode delle entità JPA di
 test e referenziavano file presenti in \texttt{src/test}.
 
-\begin{itemize}
-    \item \textbf{Enhancement tramite Ant} (\texttt{maven-antrun-plugin}):
-          diversi moduli eseguivano script Ant,
-          i quali cercavano il file \texttt{persistence.xml} in
-          \texttt{src/test/resources}; la sua assenza causava un errore.
-          Commentando le execution corrispondenti si rimuove l'enhancement
-          delle classi di test originali.
-
-    \item \textbf{Enhancement tramite plugin nativo}
-          (\texttt{openjpa-maven-plugin}, goal \texttt{test-enhance}):
-          alcuni moduli utilizzavano il plugin Maven nativo di OpenJPA
-          in sostituzione di Ant per lo stesso scopo.
-          Il comportamento e l'errore prodotto sono identici a quelli del
-          caso precedente; la soluzione adottata è analoga.
-
-    \item \textbf{Spacchettamento di classi di supporto ai test}
-          (\texttt{maven-dependency-plugin}, goal \texttt{unpack}):
-          alcuni moduli estraevano classi di utilità per i test originali
-          da artifact esterni; con la rimozione di tali test, queste
-          execution non sono più necessarie e sono state disabilitate.
-
-    \item \textbf{Build di sotto-progetti di integrazione}
-          (\texttt{maven-invoker-plugin}):
-          alcuni moduli avviavano build Maven aggiuntivi su sotto-progetti
-          dipendenti da risorse di test ora assenti; anche queste execution
-          sono state disabilitate.
-\end{itemize}
-
 In tutti i casi, l'intervento è limitato al blocco \texttt{<execution>}
 del \texttt{pom.xml} del modulo interessato, lasciando invariata la
 restante configurazione dei plugin responsabili dell'esecuzione

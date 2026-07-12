@@ -7,498 +7,219 @@
 black-box: le classi di equivalenza derivano da documentazione pubblica
 e conoscenza di dominio.
 
+Per ogni classe di equivalenza, l'oracolo è \textit{documentazione esplicita} quando il
+comportamento è dichiarato testualmente nel Javadoc; è \textit{dedotto} quando deriva dalla
+combinazione di più fonti documentate o da un fatto strutturale non specifico al metodo (ad
+esempio la propagazione di un'eccezione); è \textit{ipotizzato} quando nessuna fonte documenta
+l'esito e si assume un comportamento plausibile.
+
 \subsection{BrokerImpl}
 
 \subsubsection{\texttt{find(Object oid, boolean validate, FindCallbacks call)}}
 
 \textit{Categorie e partizioni:} oltre a \texttt{oid}, \texttt{validate}, \texttt{call}, sono
-modellati come parametri aggiuntivi la presenza dell'entità in cache e nello store — riferite
-all'identità effettivamente usata da \texttt{find} in quel momento (l'\texttt{oid} originale, o
-quello restituito da \texttt{processArgument} se sostituito) — e i valori restituiti da
+modellati come parametri aggiuntivi la presenza dell'entità in cache e nello store, riferite
+all'identità effettivamente usata da \texttt{find} in quel momento, e i valori restituiti da
 \texttt{call.processArgument}/\texttt{call.processReturn}, che pur essendo dichiarati
 sull'interfaccia \texttt{FindCallbacks} sembrano modificare il comportamento di \texttt{find}.
 Con \texttt{oid} valido si intende un oggetto conforme al tipo usato come identificatore della
 classe persistente a cui si riferisce. Classi in Tabella~\ref{tab:find-classi} (Appendice).
 
-\textit{Note di modellazione:} \{istanza non valida\} di \texttt{call} è stata scartata per
-assenza di una chiara definizione.
-Cache e store sono modellati come due parametri indipendenti, entrambi dipendenti
-dall'esistenza di un'identità effettiva: l'\texttt{oid} originale quando \texttt{call} è null,
-oppure l'id restituito da \texttt{processArgument} quando \texttt{call} non è null e lo
-sostituisce con successo — indipendentemente da quale fosse l'\texttt{oid} di partenza. La
-doppia cache \texttt{\_cache}/\texttt{\_transCache} è trattata come un'unica classe, nessuna
-fonte ne documenta un effetto diverso su \texttt{find}.
-L'id restituito da \texttt{processArgument} (\texttt{@return}: ``the id to look up'') è
-dichiarato come l'id da cercare, ma nessuna fonte descrive il meccanismo con cui \texttt{find}
-lo utilizza: si assume (ipotesi) che sostituisca l'\texttt{oid} originale come identità su cui
-\texttt{find} opera — cache/store si applicano quindi alla nuova identità, non più a quella di
-partenza, indipendentemente da come fosse classificato l'\texttt{oid} originale (null, non
-valido o valido). Quando invece \texttt{processArgument} ignora l'argomento (ritorna
-\texttt{null}, un'istruzione dichiarata distinta da ``il nuovo id è null'') o lancia eccezione,
-non esiste alcuna identità effettiva: cache/store collassano anche se l'\texttt{oid} originale
-era valido.
+\textit{Note di modellazione:} \{istanza non valida\} di \texttt{call} è scartata per assenza di
+una definizione chiara. Cache e store dipendono dall'identità effettiva: l'\texttt{oid}
+originale se \texttt{call} è null, altrimenti l'id restituito da \texttt{processArgument} se lo
+sostituisce con successo, ipotesi non confermata da alcuna fonte sul meccanismo. Se
+\texttt{processArgument} ignora l'argomento o lancia eccezione, non esiste identità effettiva e
+cache/store collassano.
 
-\textit{Oracolo:} il coordinamento tra \texttt{processArgument} e \texttt{processReturn} non è
-documentato, ma si distinguono due casi. Quando \texttt{processArgument} lancia eccezione,
-l'esecuzione si interrompe per semantica standard di Java (eccezione non gestita): si assume che
-\texttt{processReturn} non venga raggiunto — le combinazioni restano comunque distinte per
-\texttt{processReturn} variabile, per osservare con i test se l'assunzione regge. Quando invece
-\texttt{processArgument} ritorna normalmente — sostituendo l'id, o ignorando l'argomento con un
-ritorno \texttt{null} — non c'è alcuna interruzione di flusso: si assume che
-\texttt{processReturn} venga comunque invocato e che il suo valore determini l'esito di
-\texttt{find} (ipotesi basata sul solo \texttt{@return} ``the object to return''), anche quando
-l'argomento è stato ignorato. Un ritorno \texttt{null} di \texttt{processReturn} con
-\texttt{validate=false} confligge con la garanzia ``mai null'': si assume che quest'ultima
-prevalga, essendo dichiarata come proprietà centrale del metodo. Per \texttt{validate=false}
-l'ordine cache/hollow/eccezione non è dichiarato esplicitamente: si legge come sequenza di
-fallback (cache ha priorità); il successo della creazione hollow non ha alcun appiglio testuale
-ed è assunto come esito di default (``hollow'' è comunque terminologia reale del progetto, non
-solo prosa del Javadoc: \texttt{PCState.HOLLOW}, ``Hollow; exists in data store''). Quando vale
-l'ipotesi che \texttt{processReturn} governi
-l'esito (id sostituito con successo, o argomento ignorato), l'oracolo dipende solo da
-\texttt{validate} e \texttt{processReturn}, non più da cache/store/hollow — anche quando
-l'\texttt{oid} originale era null o non valido.
-Le tuple prive di oracolo diretto sono classificate
-\emph{inferenza} (esito ricavabile da un testo) o \emph{ipotesi} (nessun appiglio). Su 84 combinazioni valide: 6
-dirette, 61 per inferenza, 17 per ipotesi.
+\textit{Ipotesi sull'oracolo:} il Javadoc dichiara, per \texttt{validate=false}: ``this method
+never returns null. The broker will either return its cached instance, attempt to create a
+hollow instance, or throw an \texttt{ObjectNotFoundException} if unable to return a hollow
+instance.'' Il coordinamento tra \texttt{processArgument} e \texttt{processReturn} non è
+documentato. Se \texttt{processArgument} lancia eccezione, si assume che \texttt{processReturn}
+non venga raggiunto (propagazione, semantica Java). Se ritorna normalmente, si assume che
+\texttt{processReturn} determini comunque l'esito: un suo ritorno \texttt{null} con
+\texttt{validate=false} confligge con la garanzia ``mai null'' appena citata, per cui si assume
+che quest'ultima prevalga. L'ordine cache/hollow/eccezione non è dichiarato dentro quella stessa
+frase: si legge come sequenza di fallback, con la creazione hollow assunta come esito di default
+(\texttt{PCState.HOLLOW}, ``Hollow; exists in data store'').
 
 \textit{Combinazioni:} $3 (\texttt{oid}) \times 2 \times 2 \mbox{ (cache/store)} \times 2
 (\texttt{validate}) \times 2 (\texttt{call}) \times 3 \times 2
 (\texttt{processArgument}/\texttt{processReturn}) = 288$.
 
 \textit{Eliminazioni:} solo strutturali (nessuna identità effettiva su cui verificare
-cache/store). Quando \texttt{call} è null, l'identità effettiva è l'\texttt{oid} originale:
-cache/store collassano ($4 \to 1$) se \texttt{oid} è null o non valido. Quando \texttt{call} non
-è null, l'identità effettiva dipende invece solo da \texttt{processArgument}, indipendentemente
-da quale fosse l'\texttt{oid} di partenza: se sostituisce con successo, cache/store si applicano
-alla nuova identità su tutti e tre i valori di \texttt{oid} (non solo quello valido); se ignora
-l'argomento o lancia eccezione, non c'è alcuna identità effettiva e cache/store collassano anche
-per \texttt{oid} originariamente valido. Nessun'altra combinazione viene eliminata: le ipotesi
-sull'oracolo non giustificano un'esclusione, non c'è motivo a priori di escludere una
-combinazione ammissibile perché potrebbe rivelarsi un caso di test significativo. Combinazioni
-valide: $84$ (204 eliminate).
+cache/store): quando \texttt{call} è null, cache/store collassano ($4 \to 1$) se \texttt{oid} è
+null o non valido; quando \texttt{call} non è null, l'identità effettiva dipende solo da
+\texttt{processArgument}. Combinazioni valide: $84$ (204 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessuno dei sette parametri ha un range
-numerico o una soglia. Per le classi con più valori possibili si documenta comunque il valore
-rappresentativo usato nell'implementazione: \texttt{oid} \{non valido\} e \{valido\} sono
-entrambi rappresentati da un'istanza \texttt{new Object()} (la validità è determinata dal
-contesto di mock circostante, non dal valore dell'oggetto in sé); l'id restituito da
-\texttt{processArgument} quando \{ritorna un id non-null\} è anch'esso un \texttt{new Object()}
-arbitrario; l'oggetto restituito da \texttt{processReturn} quando \{ritorna un oggetto non-null\}
-è un ulteriore \texttt{new Object()} arbitrario, usato come sentinella per verificarne l'identità
-nel valore di ritorno di \texttt{find}; l'eccezione lanciata da \texttt{processArgument} quando
-\{lancia \texttt{OpenJPAException}\} è rappresentata da un'istanza di \texttt{UserException},
+numerico o una soglia. \texttt{oid} \{non valido\} e \{valido\}, l'id restituito da
+\texttt{processArgument} e l'oggetto restituito da \texttt{processReturn} sono rappresentati da
+istanze arbitrarie di \texttt{Object}, conformi al tipo dichiarato dalla firma; l'eccezione
+lanciata da \texttt{processArgument} è rappresentata da un'istanza di \texttt{UserException},
 sottoclasse concreta di \texttt{OpenJPAException}.
+
+\textit{Oracolo:} su 84 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 6, dedotto dalla documentazione per 61, e ipotizzato in assenza di
+documentazione per 17.
 
 \subsubsection{\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}}
 
 \textit{Categorie e partizioni:} \texttt{pc}: \{null\}, \{non gestito\}, \{gestito, non ancora
-persistito\}, \{gestito, presente nello store\} — definite tramite \texttt{PCState}
-(\texttt{TRANSIENT}, \texttt{PNEW}, \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}
-rispettivamente), esposto da \texttt{getPCState()} su \texttt{OpenJPAStateManager} (collegato
-strutturalmente a \texttt{call}, terzo parametro di \texttt{OpCallbacks.processArgument}).
-\texttt{level}: \{valore noto\}, \{valore non noto\} — \texttt{Broker} estende direttamente
-\texttt{LockLevels}, che dichiara tre costanti con Javadoc proprio (\texttt{LOCK\_NONE}=0, ``No
+persistito\}, \{gestito, presente nello store\}, definite tramite \texttt{PCState}
+(\texttt{TRANSIENT}, \texttt{PNEW}, \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}), esposto da
+\texttt{getPCState()} su \texttt{OpenJPAStateManager}. \texttt{level}: \{valore noto\}, \{valore
+non noto\}, dove noto copre le tre costanti di \texttt{LockLevels} (\texttt{LOCK\_NONE}=0, ``No
 lock''; \texttt{LOCK\_READ}=10, ``Generic read lock level''; \texttt{LOCK\_WRITE}=20, ``Generic
-write lock level''). Il primo gruppo copre queste 3 costanti, il secondo qualunque altro valore
-\texttt{int}.
-\texttt{timeout}: \{altro negativo ($<-1$)\}, \{\texttt{-1}\}, \{0\},
-\{positivo\}. \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}* (richiede
-\texttt{call} non null): \{ritorna un codice azione (\texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/
-\texttt{ACT\_RUN}, tutte equivalenti)\}, \{lancia \texttt{OpenJPAException}\}. \texttt{OpCallbacks}
-ha un solo metodo di callback (nessun equivalente di \texttt{processReturn}). Classi in
-Tabella~\ref{tab:lock-classi} (Appendice).
+write lock level''). \texttt{timeout}: \{altro negativo
+($<-1$)\}, \{\texttt{-1}\}, \{0\}, \{positivo\}. \texttt{call}: \{null\}, \{non null\}.
+\texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice azione\},
+\{lancia \texttt{OpenJPAException}\} (\texttt{OpCallbacks.java} non ha Javadoc per nessuna delle
+tre costanti \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN}, quindi si uniscono in
+un'unica classe). Classi in Tabella~\ref{tab:lock-classi} (Appendice).
 
-\textit{Note di modellazione:} \texttt{level} è passato per più revisioni. La prima proposta,
-\{\texttt{LOCK\_NONE}\}/\{positivo\}, univa in una sola classe ``positivo'' qualunque valore
-positivo (costante dichiarata o arbitrario) — stesso problema di equivalenza indebita già
-corretto per \texttt{pc}. Una seconda proposta correggeva questo separando \{\texttt{LOCK\_NONE}\},
-\{positivo noto\}, \{positivo non noto\}, motivando la separazione di \texttt{LOCK\_NONE} dal
-resto solo con la sua diversità semantica (``nessun lock''), lo stesso tipo di criterio già
-scartato per \texttt{LOCK\_READ} vs \texttt{LOCK\_WRITE} (semanticamente distinti — lettura vs
-scrittura — ma uniti perché nessuna fonte ne documenta un effetto diverso su \texttt{lock}).
-Applicando lo stesso criterio in modo coerente, \texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/
-\texttt{LOCK\_WRITE} uniscono in un'unica classe \{valore noto\}: \texttt{LockLevels} le dichiara
-come tre costanti sorelle, nessuna delle tre documentata con un effetto diverso sull'esito di
-\texttt{lock} — la partizione corretta è quindi a due classi (\{valore noto\}/\{valore non
-noto\}), non a tre.
+\textit{Note di modellazione:} \texttt{pc} distingue \{gestito, non ancora persistito\}
+(\texttt{PNEW}) da \{gestito, presente nello store\} (\texttt{PCLEAN}/\texttt{PDIRTY}/
+\texttt{HOLLOW}): la distinzione riflette se l'istanza ha già una riga fisica nello store,
+ipotesi di modellazione non confermata da alcuna fonte specifica su \texttt{lock}.
+\texttt{level} unisce \texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/
+\texttt{LOCK\_WRITE} in un'unica classe \{valore noto\}: nessuna delle tre costanti è
+documentata con un effetto diverso sull'esito di \texttt{lock}, quindi separare
+\texttt{LOCK\_NONE} per la sua sola diversità semantica (``nessun lock'') non è giustificato.
+Un valore ``non noto'' è trattato a scatola nera come ``qualunque intero non tra le costanti
+dichiarate'': in assenza di fonte, si assume un comportamento diverso, verosimilmente
+un'eccezione. \texttt{PCState} dichiara in totale 23 costanti; oltre alle 4 già usate, solo
+\texttt{HOLLOW} ha un appiglio testuale rilevante, incluso nella classe \{gestito, presente
+nello store\}. Le restanti 18 non sono modellate come classi separate, nessun appiglio testuale
+diverso da quello già usato.
 
-Una revisione successiva ha inoltre rimosso un riferimento, presente in una versione precedente
-di questa analisi, a \texttt{LockManager.lock} e a \texttt{MixedLockLevels} come fonti per il
-dominio di \texttt{level}. \texttt{LockManager} è raggiungibile da \texttt{Broker} (tramite
-\texttt{StoreContext.getLockManager()}, la stessa distanza strutturale già usata per
-\texttt{StoreManager}), ma il suo metodo \texttt{lock(OpenJPAStateManager, int, int, Object)} è
-un metodo diverso, su un'interfaccia diversa, senza alcuna relazione di delega dichiarata con
-\texttt{Broker.lock(Object, int, int, OpCallbacks)}: usare il suo Javadoc (``one of the lock
-constants defined in \texttt{LockLevels}, or a custom level'') per definire il dominio di
-\texttt{Broker.lock} avrebbe richiesto assumere che quest'ultimo deleghi internamente al primo,
-cosa verificabile solo leggendo l'implementazione (violazione BB). \texttt{MixedLockLevels} era
-una fonte ancora più debole: non è estesa né da \texttt{Broker} né da \texttt{LockManager} (che
-estende solo \texttt{LockLevels}), e le sue costanti compaiono nel codice sorgente solo dentro
-\texttt{FetchConfigurationImpl}, una classe di implementazione concreta priva di qualunque
-connessione strutturale con \texttt{BrokerImpl} — una citazione non ammissibile, rimossa.
-L'unica fonte strutturalmente diretta per i valori noti di \texttt{level} resta quindi
-\texttt{LockLevels}, estesa direttamente da \texttt{Broker}: 3 costanti, non 8.
-
-Va inoltre precisato che un valore non noto (es. \texttt{level=10000}) non ha un significato di
-dominio interpretabile da chi progetta i test: \texttt{level} è dichiarato semplicemente
-\texttt{int}, senza altra restrizione nel Javadoc di \texttt{Broker.lock}, e nessuna fonte
-strutturalmente connessa a \texttt{BrokerImpl} descrive un significato per valori diversi dalle 3
-costanti di \texttt{LockLevels} (non esiste, ad esempio, una scala documentata di livelli
-intermedi). La classe \{valore non noto\} è quindi trattata a scatola nera come ``qualunque
-intero non tra le costanti dichiarate''. In assenza di qualunque fonte, si assume (\emph{ipotesi})
-un comportamento diverso da quello dei livelli noti, verosimilmente un'eccezione, anziché
-identico. Le
-classi di \texttt{pc} sostituiscono un'iniziale coppia \{non valido\}/\{valido\} basata su
-conoscenza di dominio generica, poco verificabile in pratica.
-\texttt{PCState} documenta esplicitamente il significato di ciascuno stato (\texttt{TRANSIENT}:
-``Transient; unmanaged instance''; \texttt{PNEW}: ``Persistent-New''; \texttt{PCLEAN}/
-\texttt{PDIRTY}: ``Persistent-Clean''/``Persistent-Dirty''), verificabile in un test mockando
-\texttt{getPCState()}. Il livello di lock corrente di \texttt{pc} non è tracciato come parametro
-a sé: la postcondizione dichiarata (``ensure locked at the given level'') non dipende dallo
-stato di partenza. \texttt{PCState} dichiara in totale 23
-costanti; oltre alle 4 già usate, solo \texttt{HOLLOW} (``Hollow; exists in data store'') ha un
-appiglio testuale diretto rilevante qui, e viene incluso nella classe \{gestito, presente nello
-store\} per lo stesso criterio già usato per \texttt{PCLEAN}/\texttt{PDIRTY} — confermato anche
-da \texttt{StoreManager.load} (\texttt{StoreManager} raggiungibile via
-\texttt{StoreContext.getStoreManager()}), che distingue ``a hollow state manager''
-(``fields must be loaded'') da ``a non-hollow state manager''. Le restanti 18
-(varianti non-transazionali, \texttt{TCLEAN}/\texttt{TDIRTY}/\texttt{TLOADED}, stati
-\texttt{Embedded}, combinazioni fini di flush/delete) non sono modellate come classi separate:
-le non-transazionali richiederebbero una dimensione SUT aggiuntiva non giustificata da alcuna
-fonte specifica su \texttt{lock}; le transient-qualificate (\texttt{TCLEAN}/\texttt{TDIRTY}/
-\texttt{TLOADED}) condividono il nome con \texttt{TRANSIENT} ma non il suo Javadoc: solo
-\texttt{TRANSIENT} dichiara esplicitamente ``unmanaged instance'', le altre tre hanno un
-Javadoc di una riga (``Transient-Clean/-Dirty/-Loaded'') privo di quella dicitura — condividere
-una parola nel nome non basta ad assumere lo stesso significato; per confermarlo servirebbe
-leggere le classi di transizione di stato (WB), quindi restano fuori, non incluse in
-\{non gestito\}; gli stati \texttt{Embedded} riguardano value object, non risulta
-che \texttt{lock} li accetti come \texttt{pc}; le combinazioni di flush/delete sono casi limite
-della pipeline di cancellazione, senza alcuna fonte che li distingua per \texttt{lock}. Un
-eventuale esito di timeout scaduto sotto contesa concorrente non è documentato da
-\texttt{Broker.lock} stesso e non è incluso nella combinatoria: richiede comunque una contesa
-concorrente reale (un secondo thread/broker che mantiene il lock su \texttt{pc} oltre il
-\texttt{timeout}), quindi un test di integrazione con più componenti reali, non un unit test con
-collaboratori mockati — candidato per una fase di test di integrazione separata (dimensione
-Level: Unit/Integration).
-
-\textit{Ipotesi sull'oracolo:} per \texttt{pc} null o \texttt{TRANSIENT} (non gestito), quando
-\texttt{processArgument} non lancia essa stessa un'eccezione, nessuna fonte documenta l'esito: si
-assume un'eccezione (tipo non specificato), \emph{ipotesi} senza appiglio testuale. Per
-\texttt{pc} gestito (\texttt{PNEW}, oppure \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}) con
-\texttt{level} \emph{non noto}, si assume anch'esso un'eccezione (tipo non specificato),
-\emph{ipotesi} (stesso giudizio di progettazione motivato sopra). Resta invece \texttt{pc}
-gestito con \texttt{level}
-\emph{noto}: per \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW} (gestito, presente nello store)
-la postcondizione (\texttt{getLockLevel(pc) == level}, verificata con l'inspector
-\texttt{StoreContext.getLockLevel}) è \emph{diretta}. Per \texttt{PNEW} (gestito, non ancora
-persistito) non è documentato se ``ensure'' valga anche prima del flush verso lo store: si
-assume, per analogia, che la stessa postcondizione valga comunque — \emph{ipotesi}, non
-\emph{diretta}, perché estende un caso documentato a uno strutturalmente diverso. La premessa
-``non ancora persistito'' non è solo dedotta dal nome \texttt{PNEW}: \texttt{StoreManager.flush}
-(\texttt{Collection<OpenJPAStateManager> sms}) distingue esplicitamente stati che ``do not
-require data store action, such as persistent-clean instances'' da ``New instances without an
-assigned object id'', che lo ricevono proprio durante il flush — quindi nessuna riga reale da
-bloccare finché l'istanza non è persistita. Non si modella un'ulteriore sotto-classe ``\texttt{PNEW}
-già flushato'': il metodo \texttt{PCState.flush(StateManagerImpl context)} (dichiarato sulla
-classe base, Javadoc ``return the proper lifecycle state on flush. Returns the \texttt{this}
-pointer by default'') conferma che il flush può cambiare lo stato restituito da
-\texttt{getPCState()} — quale sia lo stato risultante specifico per \texttt{PNEW} richiederebbe
-leggere l'override in \texttt{PNewState} (WB, stessa esclusione già applicata a
-\texttt{TCLEAN}/\texttt{TDIRTY}/\texttt{TLOADED}). Non serve saperlo: un'istanza osservata come
-\texttt{PNEW} è per costruzione ``non ancora flushata'' in quel momento, altrimenti
-\texttt{getPCState()} restituirebbe già un altro valore — verosimilmente uno già coperto dalla
-classe \{gestito, presente nello store\}. Quando \texttt{call.processArgument} lancia
-eccezione, si assume la propagazione da \texttt{lock} (\emph{inferenza}: propagazione delle
-eccezioni non gestite, stessa proprietà usata per \texttt{find}) — indipendentemente dalla
-classe di \texttt{pc} o di \texttt{level}: è un fatto di semantica Java, non legato allo stato
-dell'istanza, stesso trattamento già usato per \texttt{detachAll}/\texttt{attachAll}/
-\texttt{persist}. Quando \texttt{pc} è gestito con \texttt{level} \emph{non noto} e
-\texttt{processArgument} ritorna un codice azione (senza lanciare eccezione), il valore atteso
-resta lo stesso dell'intera riga (eccezione, per il giudizio di progettazione appena descritto):
-il codice azione non cambia l'ipotesi, dato che a monte non ci si aspetta comunque che il
-livello venga applicato. Quando invece \texttt{level} è \emph{noto} e \texttt{processArgument}
-ritorna un codice azione, l'effetto su \texttt{lock} non è
-documentato da \texttt{OpCallbacks} (interfaccia generica, condivisa da tutte le operazioni,
-senza semantica specifica per \texttt{lock}): il valore atteso resta identico a quello della
-riga gemella con \texttt{call} null (stesso \texttt{pc}/\texttt{level}/\texttt{timeout}) — si
-assume che ``ensure locked at the given level'' resti comunque garantito, senza essere alterato
-dal codice azione — ma il tier scende comunque a \emph{ipotesi} (o resta \emph{ipotesi}, se la
-gemella già lo era) perché quel codice azione introduce un'interazione non documentata che
-potrebbe, in teoria, cambiare l'esito. Il \texttt{timeout=-1} è documentato esattamente da
-\texttt{Broker.lock} (``-1 for no limit''); nessuna fonte strutturalmente connessa a
-\texttt{Broker.lock} — ci si affida solo alla documentazione di \texttt{lock()} stesso, non a
-\texttt{LockManager} — documenta il comportamento per un negativo diverso da \texttt{-1}. Per
-\texttt{pc} gestito con \texttt{level} \emph{noto}, la riga con \texttt{timeout} esattamente
-\texttt{-1} resta \emph{diretta} (o \emph{ipotesi} se già scesa per altri motivi, es.
-\texttt{PNEW} o azione non eccezionale); per la classe \{altro negativo ($<-1$)\} si assume
-invece un'eccezione (tipo non specificato), \emph{ipotesi}: dato che solo il valore esatto
-\texttt{-1} è documentato, un negativo diverso è più plausibilmente respinto che trattato allo
-stesso modo. Per le righe dove il tier era già
-\emph{ipotesi} per un motivo indipendente da \texttt{timeout} (\texttt{pc} non
-gestito/\texttt{null}, o \texttt{level} non noto) la classe \{altro negativo\} non cambia
-nulla — l'oracolo era già ``eccezione''; per le righe con propagazione di eccezione da
-\texttt{processArgument} resta \emph{inferenza} indipendentemente da \texttt{timeout} (fatto di
-semantica Java, non legato al valore numerico).
-
-\textit{Correzione di una partizione non esaustiva su \texttt{timeout}:} una revisione
-successiva del parametro \texttt{timeout} ha rilevato che la partizione iniziale
-$\{\texttt{-1}\}, \{0\}, \{\texttt{positivo}\}$ non copriva l'intero dominio dei valori
-ammissibili per un \texttt{int}: ogni valore negativo diverso da \texttt{-1} (es. \texttt{-2},
-\texttt{-100}) non apparteneva a nessuna delle tre classi. L'errore nasceva dal confondere due
-fasi distinte del metodo Category Partition: la definizione delle classi di equivalenza
-(partizionare il dominio di un parametro, verificando che l'unione delle classi copra l'intero
-dominio) e il Boundary Value Analysis (scegliere, \emph{dentro} una classe già definita, un
-valore rappresentativo al confine). Trattare \texttt{-1} come l'unico rappresentante scelto per
-un'ipotetica classe ``negativo'' avrebbe fatto collassare silenziosamente queste due fasi: la
-classe ``negativo'' non era mai stata definita esplicitamente al di là del singolo valore
-\texttt{-1}, quindi tutti gli altri negativi restavano semplicemente non testati, senza che una
-decisione di eliminazione lo giustificasse esplicitamente. La correzione consiste
-nell'aggiungere la classe mancante \{altro negativo ($<-1$)\}, completando la partizione (ora
-esaustiva su tutto il dominio \texttt{int}); il valore rappresentativo scelto per questa classe
-via BVA è \texttt{-2}, il confine adiacente a \texttt{-1} (l'altro estremo della classe è
-illimitato verso $-\infty$ e non ha un confine documentato da esplorare). La lezione generale,
-applicata poi a ritroso su tutti gli altri parametri numerici già modellati per gli altri 6
-metodi (nessun altro caso analogo trovato): per ogni parametro, prima verificare che le classi
-di equivalenza già definite coprano esaustivamente l'intero dominio dichiarato, e solo dopo, per
-ciascuna classe, applicare il BVA per scegliere un valore di confine — mai lasciare che un
-singolo valore scelto per comodità (perché documentato, o perché ``ovvio'') faccia da
-sostituto implicito per un'intera classe più ampia mai definita esplicitamente.
-
-\textit{Correzione di una classe di equivalenza non giustificata su
-\texttt{call.processArgument}:} una revisione ha rilevato che \{\texttt{ACT\_NONE}\} e
-\{azione: \texttt{ACT\_CASCADE}/\texttt{ACT\_RUN}\} erano tenute come due classi separate senza
-alcuna fonte che le distinguesse: \texttt{OpCallbacks.java} non ha Javadoc per nessuna delle tre
-costanti (verificato leggendo il file), esattamente come nessuna fonte distingueva
-\texttt{LOCK\_NONE} da \texttt{LOCK\_READ}/\texttt{LOCK\_WRITE} per \texttt{level} — stesso
-errore, stessa correzione: le tre costanti uniscono in un'unica classe \{ritorna un codice
-azione\}. La partizione di \texttt{call.processArgument} passa quindi da tre classi a due:
-\{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\}.
+\textit{Ipotesi sull'oracolo:} per \texttt{pc} null o \texttt{TRANSIENT}, o per \texttt{pc}
+gestito con \texttt{level} non noto, nessuna fonte documenta l'esito: si assume un'eccezione.
+Il Javadoc dichiara: ``Ensure that the given instance is locked at the given lock level.'' Per
+\texttt{pc} gestito con \texttt{level} noto questa postcondizione è verificabile con
+\texttt{getLockLevel(pc) == level}, estesa per analogia anche a \texttt{PNEW} (non documentato
+se valga prima del flush). Un'eccezione di \texttt{processArgument} si propaga sempre
+(deduzione, fatto strutturale di Java). Il codice azione non ha un effetto documentato per
+\texttt{lock}. Il \texttt{timeout=-1} è l'unico valore documentato (``-1 for no limit''); per
+\{altro negativo ($<-1$)\} si assume un'eccezione.
 
 \textit{Combinazioni:} $4 (\texttt{pc}) \times 2 (\texttt{level}) \times 4 (\texttt{timeout})
 \times 2 (\texttt{call}) \times 2 (\texttt{processArgument}) = 128$.
 
 \textit{Eliminazioni:} solo strutturale, quando \texttt{call} è null non esiste
-\texttt{processArgument} da invocare (collassa da 2 a 1). Combinazioni valide:
+\texttt{processArgument} da invocare. Combinazioni valide:
 $4 \times 2 \times 4 \times (1+2) = 96$ (32 eliminate).
 
 \textit{Boundary Value Analysis:} \texttt{timeout} ha un confine documentato esplicitamente a
-\texttt{-1} (fonte primaria \texttt{Broker.lock}): la classe \{\texttt{-1}\} è un valore
-sentinella singolo, non un range, quindi coincide col proprio stesso rappresentante. La classe
-\{altro negativo ($<-1$)\} ha un confine noto solo sul lato adiacente a \texttt{-1}
-(rappresentante BVA: \texttt{-2}) e nessun confine documentato verso $-\infty$. Le classi
-\{0\} e \{positivo\} condividono il confine $0$/$1$, già coperto scegliendo \texttt{0} e
-\texttt{1000} come rappresentanti delle rispettive classi. \texttt{level} non ha
-un confine numerico documentato con effetto diverso su \texttt{lock} (nessun limite superiore,
-nessuna soglia dichiarata) — la partizione \{noto\}/\{non noto\} è una classe di equivalenza
-Category Partition (da distinzione testuale), non un confine BVA: non si applica BVA su un
-dominio senza soglia documentata. Il valore rappresentativo usato per \{noto\} è
-\texttt{LockLevels.LOCK\_READ}; per \{non noto\} è \texttt{9999}, un intero arbitrario al di
-fuori delle tre costanti dichiarate. Per \texttt{pc} \{gestito, non ancora persistito\} e \{gestito, presente nello store\} (che
-unisce \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}), l'implementazione non fissa alcuno stato
-\texttt{PCState} specifico per nessuna delle due classi: entrambe stubbano solo
-\texttt{isPersistent()==true}, sufficiente perché \texttt{lock} non consulta mai
-\texttt{getPCState()} (si veda Sezione~\ref{sec:implementazione}).
-Per \texttt{call.processArgument} \{ritorna un codice azione\}, il valore rappresentativo usato
-per le 96 combinazioni base è \texttt{ACT\_NONE}; le altre due costanti (\texttt{ACT\_CASCADE},
-\texttt{ACT\_RUN}) sono state testate esplicitamente in una fase di approfondimento successiva
-(Sezione~\ref{sec:implementazione}). L'eccezione lanciata da \texttt{processArgument} quando
-\{lancia \texttt{OpenJPAException}\} è rappresentata, come per \texttt{find}, da un'istanza di
+\texttt{-1}; la classe \{altro negativo\} ha un confine noto solo verso \texttt{-1}
+(rappresentante \texttt{-2}), nessuno verso $-\infty$; \{0\} e \{positivo\} condividono il
+confine $0$/$1$ (rappresentanti \texttt{0} e \texttt{1}). \texttt{level} non ha un confine
+numerico documentato: il valore rappresentativo per \{noto\} è \texttt{LockLevels.LOCK\_READ},
+per \{non noto\} è \texttt{9999}. Per \texttt{pc} \{gestito, non ancora persistito\} e
+\{gestito, presente nello store\}, nessuno stato \texttt{PCState} specifico è fissato come
+rappresentante: la distinzione tra i due riguarda solo la presenza nello store, non lo stato
+puntuale. Per le 32 combinazioni base (su 96) in cui \texttt{call.processArgument} ritorna un
+codice azione, il valore rappresentativo è \texttt{ACT\_NONE}. L'eccezione lanciata da
+\texttt{processArgument} è rappresentata, come per \texttt{find}, da un'istanza di
 \texttt{UserException}.
 
-\textit{Oracolo:} su 96 combinazioni valide, 3 hanno oracolo diretto (\texttt{pc}
-\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \texttt{call} null, \texttt{level} \emph{noto},
-\texttt{timeout} esattamente \{\texttt{-1}\}, \{0\} o \{positivo\} — non \{altro negativo\}), 32
-per inferenza (propagazione eccezione di \texttt{processArgument} su tutte le combinazioni di
-\texttt{pc}/\texttt{level}/\texttt{timeout}: la propagazione è un fatto strutturale di Java,
-indipendente da entrambi), 61 per ipotesi: 52 con oracolo ``eccezione'' (\texttt{pc} non gestito
-o \texttt{null}; \texttt{pc} gestito con \texttt{level} \emph{non noto}; oppure \texttt{pc}
-gestito con \texttt{level} \emph{noto} e \texttt{timeout} \{altro negativo\} — nei due casi
-``non noto''/``altro negativo'' un giudizio di progettazione, non un fatto documentato) e 9 con
-oracolo ``postcondizione'' (\texttt{pc} \texttt{PNEW} con \texttt{level} \emph{noto} e
-\texttt{timeout} $\neq$ \{altro negativo\}, o \texttt{call} con azione non eccezionale su
-\texttt{pc} gestito con \texttt{level} \emph{noto} e \texttt{timeout} $\neq$ \{altro negativo\}).
-Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 96 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 3, dedotto dalla documentazione per 32 (per propagazione dell'eccezione), e
+ipotizzato in assenza di documentazione per 61 (52 con oracolo ``eccezione'', 9 con oracolo
+``postcondizione'').
 
 \subsubsection{\texttt{detachAll(Collection objs, OpCallbacks call)}}
 
 \textit{Categorie e partizioni:} \texttt{objs}: \{null\}, \{vuota\}, \{un elemento gestito\},
-\{un elemento non gestito\}, \{elementi misti (un gestito e un non gestito insieme)\} —
-definite tramite \texttt{PCState} (stesso costrutto usato per \texttt{lock}/\texttt{persist}):
-\{non gestito\} è \texttt{TRANSIENT} (``unmanaged instance''), \{gestito\} è un rappresentante
-per qualunque altro stato, non distinto ulteriormente perché \texttt{detachAll} non documenta un
-effetto diverso tra sotto-stati gestiti (rappresentante per la cardinalità ``non vuota'', per
-coerenza con la logica CP di classi di equivalenza piuttosto che dimensioni esaustive). La
-classe ``elementi misti'' testa l'atomicità non documentata dell'operazione su collezione:
-nessuna fonte dice se un elemento non gestito faccia fallire l'intera chiamata o solo il proprio
-elemento, lasciando intatti gli altri. \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}*
-(richiede \texttt{call} non null): \{ritorna un codice azione\}, \{lancia
-\texttt{OpenJPAException}\} (stesso tipo \texttt{OpCallbacks} di \texttt{lock}, stessa unione
-di \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} in un'unica classe: nessuna delle
-tre ha Javadoc, nessuna fonte le distingue). Classi in Tabella~\ref{tab:detachall-classi}
-(Appendice).
+\{un elemento non gestito\}, \{elementi misti (un gestito e un non gestito insieme)\}, definite
+tramite \texttt{PCState}: \{non gestito\} è \texttt{TRANSIENT}, \{gestito\} è un rappresentante
+per qualunque altro stato, non ulteriormente distinto perché \texttt{detachAll} non documenta un
+effetto diverso tra sotto-stati gestiti. La classe ``elementi misti'' testa l'atomicità non
+documentata dell'operazione. \texttt{call}: \{null\}, \{non null\}.
+\texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice azione\},
+\{lancia \texttt{OpenJPAException}\} (stessa unione già vista per \texttt{lock}: nessuna delle
+tre costanti ha Javadoc). Classi in Tabella~\ref{tab:detachall-classi} (Appendice).
 
-\textit{Note di modellazione:} le classi di \texttt{objs} sostituiscono un'iniziale coppia
-\{un elemento non valido\}/\{un elemento valido\}, la cui etichetta non coincideva col criterio
-usato per l'oracolo (``gestito''/``non gestito''): stesso problema di deriva terminologica già
-corretto per \texttt{pc} in \texttt{lock}/\texttt{persist}, qui risolto allineando l'etichetta al
-criterio, senza bisogno di un nuovo costrutto (già disponibile tramite \texttt{PCState}). Un
-elemento già precedentemente \texttt{detached} (rilevabile solo tramite
-\texttt{Broker.isDetached(Object)}, non tramite \texttt{PCState}: ``detached'' non è uno dei 23
-stati, si veda \texttt{isDetached}) resta incluso nella classe \{non gestito\}, non separato in
-una classe a sé: a differenza di \texttt{lock} (dove ``presente nello store'' vs ``non ancora
-persistito'' aveva un meccanismo concreto a supporto, confermato da \texttt{StoreManager.flush})
-o di \texttt{isDetached} stesso (il cui scopo è proprio distinguere ``mai gestito'' da
-``detached''), qui non c'è alcun meccanismo noto per cui \texttt{detachAll} tratterebbe
-diversamente un elemento mai gestito da uno già rilasciato: l'operazione dipende solo dallo
-stato attuale (gestito o no), non dalla storia dell'istanza. Il
+\textit{Note di modellazione:} un elemento già precedentemente \texttt{detached} resta incluso
+nella classe \{non gestito\}, non separato a sé: nessun meccanismo noto per cui
+\texttt{detachAll} tratterebbe diversamente un elemento mai gestito da uno già rilasciato. Il
 \texttt{@return} di \texttt{detachAll} (``the detached instances'') non definisce da solo cosa
-significhi ``detached'': la definizione è nel Javadoc di \texttt{isDetached} (``an object that
-can be reattached... via \texttt{Broker\#attach}''), un metodo diverso. L'oracolo per l'elemento
-gestito combina le due fonti (oracolo per \emph{inspector}, già usato per \texttt{find}/
-\texttt{cache}): per ogni elemento \texttt{e} del risultato si verifica
-\texttt{isDetached(e) == true}. Per questo nessuna riga di questo metodo è classificata come
-\emph{diretta}: ogni oracolo utile richiede di collegare almeno due fonti. Il flush automatico
-descritto per l'overload \texttt{detachAll(OpCallbacks)} non si applica qui: l'overload a 2
-parametri scelto per il test non lo menziona nel proprio Javadoc.
+significhi ``detached'': la definizione è nel Javadoc di \texttt{isDetached} (``one that can be
+reattached to a \texttt{Broker} via a call to \texttt{Broker\#attach}''). L'oracolo per l'elemento
+gestito combina
+quindi le due fonti: per ogni elemento \texttt{e} del risultato si verifica
+\texttt{isDetached(e) == true}. Per questo nessuna tupla di progettazione ha oracolo dichiarato
+esplicitamente dalla documentazione.
 
-\textit{Ipotesi sull'oracolo:} \texttt{objs} null o con un elemento non gestito
-(\texttt{TRANSIENT}): nessun appiglio testuale, si assume un'eccezione (tipo non specificato),
-\emph{ipotesi}. \texttt{objs} con elementi misti (un gestito e un non gestito insieme): nessuna
-fonte documenta l'atomicità dell'operazione; si assume, per analogia col caso di solo elemento
-non gestito, che l'intera chiamata fallisca con eccezione — \emph{ipotesi}, estende un caso già
-ipotetico a uno strutturalmente diverso (non un'estensione di un caso diretto). \texttt{objs}
-vuota: un array vuoto, dedotto per corrispondenza di cardinalità col \texttt{@return} plurale,
-\emph{inferenza}. \texttt{processArgument} che lancia eccezione: propagazione da
-\texttt{detachAll} (\emph{inferenza}, stessa proprietà generale usata per \texttt{find}/
-\texttt{lock}). Per il codice azione: nessuna descrizione dell'effetto su
-\texttt{detachAll} in \texttt{OpCallbacks} (interfaccia generica, non specifica); si assume che
-il comportamento di base non cambi, \emph{ipotesi} senza un verbo di garanzia assoluto a
-supporto (a differenza di \texttt{lock}).
+\textit{Ipotesi sull'oracolo:} \texttt{objs} null o con un elemento non gestito: nessun appiglio
+testuale, si assume un'eccezione. \texttt{objs} con elementi misti: per analogia, si assume che
+l'intera chiamata fallisca con eccezione (atomicità non documentata). \texttt{objs} vuota: un
+array vuoto, per corrispondenza di cardinalità col \texttt{@return} plurale (deduzione).
+\texttt{processArgument} che lancia eccezione: propagazione (deduzione). Il codice azione non ha
+un effetto documentato per \texttt{detachAll} (ipotesi).
 
 \textit{Combinazioni:} $5 (\texttt{objs}) \times 2 (\texttt{call}) \times 2
 (\texttt{processArgument}) = 20$.
 
-\textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-2 a 1. Combinazioni valide: $5 \times (1+2) = 15$ (5 eliminate).
+\textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument}.
+Combinazioni valide: $5 \times (1+2) = 15$ (5 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
-documentata. Per le classi con più valori possibili si documenta comunque il valore
-rappresentativo usato nell'implementazione: per \texttt{call.processArgument} \{ritorna un
-codice azione\}, il valore rappresentativo usato per le 15 combinazioni base è
-\texttt{ACT\_NONE}; le altre due costanti (\texttt{ACT\_CASCADE}, \texttt{ACT\_RUN}) sono state
-testate esplicitamente in una fase di approfondimento successiva (Sezione~\ref{sec:implementazione}).
-L'eccezione lanciata da \texttt{processArgument} quando \{lancia \texttt{OpenJPAException}\} è
-rappresentata, come per \texttt{find}/\texttt{lock}, da un'istanza di \texttt{UserException}. Per
-\texttt{objs} \{un elemento gestito\} e per il sotto-elemento gestito di \{elementi misti\},
-l'implementazione non fissa alcuno stato \texttt{PCState} specifico (si stubba solo
-\texttt{isPersistent()==true} e uno \texttt{StateManager} attivo), stesso trattamento già
-giustificato per \texttt{pc} in \texttt{lock}.
+documentata. Per le 5 combinazioni base (su 15) in cui \texttt{call.processArgument} ritorna un
+codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
-\textit{Oracolo:} su 15 combinazioni valide, 7 per inferenza (cardinalità/inspector,
-propagazione eccezione), 8 per ipotesi (\texttt{objs} inammissibile o mista, o \texttt{call}
-con codice azione). Nessuna riga diretta. Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 15 combinazioni valide, nessuna ha oracolo dichiarato esplicitamente dalla
+documentazione: 7 sono dedotte dalla documentazione, 8 sono ipotizzate in assenza di
+documentazione.
 
 \subsubsection{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}
 
-\textit{Categorie e partizioni:} \texttt{objs}: \{null\}; \{vuota\}; \{all new\} — collezione
-non vuota i cui elementi sono tutti \texttt{TRANSIENT} (mai gestiti); \{all old\} — collezione
-non vuota i cui elementi sono tutti precedentemente \texttt{detached}; \{all attached\} —
-collezione non vuota i cui elementi sono tutti già gestiti da questo broker (né distaccati né
-nuovi, caso non coperto dai due rami documentati, si veda sotto); \{misti: validi eterogenei\}
-— collezione con almeno due elementi di tipo diverso tra \texttt{new}/\texttt{old}/
-\texttt{attached}, nessun elemento non valido; \{misti: almeno 1 invalido\} — collezione con
-zero o più elementi validi di uno qualunque dei tre tipi precedenti (nessun limite inferiore:
-include anche il caso di soli elementi non validi, senza validi) e almeno un elemento
-\texttt{PCState.PDELETED} (``Persistent-Deleted'' — marcato per cancellazione, stato non
-considerato da nessuno dei rami documentati). \texttt{copyNew}: \{true\}, \{false\}.
-\texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}* (richiede \texttt{call}
-non null): \{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\} (stessa unione già
-applicata a \texttt{lock}/\texttt{detachAll}: nessuna delle tre costanti ha Javadoc). Classi in
-Tabella~\ref{tab:attachall-classi} (Appendice) — i nomi brevi in tabella rimandano a queste
-definizioni precise, necessarie per l'implementazione dei test.
+\textit{Categorie e partizioni:} \texttt{objs}: \{null\}; \{vuota\}; \{all new\}, collezione non
+vuota di elementi \texttt{TRANSIENT}; \{all old\}, collezione non vuota di elementi
+precedentemente \texttt{detached}; \{all attached\}, collezione non vuota di elementi già
+gestiti da questo broker (caso non coperto dai due rami documentati); \{misti: validi
+eterogenei\}, almeno due elementi di tipo diverso tra \texttt{new}/\texttt{old}/
+\texttt{attached}; \{misti: almeno 1 invalido\}, almeno un elemento \texttt{PCState.PDELETED}
+(``Persistent-Deleted'').
+\texttt{copyNew}: \{true\}, \{false\}. \texttt{call}: \{null\}, \{non null\}.
+\texttt{call.processArgument}* (richiede \texttt{call} non null): \{ritorna un codice azione\},
+\{lancia \texttt{OpenJPAException}\}. Classi in Tabella~\ref{tab:attachall-classi} (Appendice).
 
-\textit{Note di modellazione:} il Javadoc descrive esattamente due rami per lo stato di un
-elemento di \texttt{objs}: precedentemente distaccato (merge, esplicitamente ``from this or
-another broker'' — nessuna distinzione per broker di origine, quindi un'unica classe \{all
-old\} indipendentemente da quale broker abbia distaccato l'istanza) o nuovo (persistito). Un
-elemento già gestito dallo stesso broker (né distaccato né nuovo) non rientra in nessuno dei
-due — gap già individuato in fase di analisi documentale, mantenuto come classe a sé perché
-descrive uno stato realmente costruibile e distinto, non una sotto-classificazione inventata:
-un'istanza mai distaccata non ha una copia separata da mergiare nell'istanza persistente, quindi
-il ramo ``merge'' non si applica bene a questo caso. Rispetto a una prima ipotesi (comportamento
-analogo al merge), una revisione successiva ha preferito l'ipotesi di un no-op: a differenza di
-\texttt{PDELETED} (concettualmente incompatibile con attach/merge, marcato per cancellazione),
-un'istanza già gestita non ha nulla di concettualmente sbagliato — semplicemente non necessita di
-alcuna transizione, essendo già nello stato finale desiderato; per questo non è stata unita alla
-classe degli invalidi, nonostante entrambe non siano coperte da alcun ramo documentato: unirle
-avrebbe significato scegliere una sola delle ipotesi plausibili, precludendo ai test la
-possibilità di rivelare quale sia quella corretta. Il flag
-\texttt{getPostLoadOnMerge}/\texttt{setPostLoadOnMerge} (default \texttt{false}) condiziona un
-evento di lifecycle durante il merge, non il valore di ritorno: non tracciato come dimensione,
-irrilevante per l'oracolo scelto (il valore restituito, non gli effetti collaterali). A
-differenza di \texttt{detachAll}/\texttt{lock}/\texttt{persist}, qui \texttt{TRANSIENT} non
-rappresenta il caso non valido: coincide semanticamente col ramo documentato ``nuovo'' (un'
-istanza mai gestita, introdotta per la prima volta tramite \texttt{attachAll}).
+\textit{Note di modellazione:} il Javadoc dichiara: ``Instances that were previously detached
+from this or another broker will have their changed [sic] merged into the persistent instances.
+Instances that are new will be persisted as new instances.'' Un elemento già gestito dallo
+stesso broker non rientra in nessuno dei due rami: per coerenza con \texttt{PDELETED}
+(concettualmente incompatibile, marcato per cancellazione) si assume un no-op piuttosto che un
+comportamento analogo al merge. La classe \{misti: validi eterogenei\} copre una collezione con
+tipi validi diversi mescolati, combinazione non riconducibile a nessuna delle altre classi: testa
+l'ipotesi che ogni elemento sia elaborato secondo il proprio ramo/tipo indipendentemente dagli
+altri. \{misti: almeno 1 invalido\} testa invece l'atomicità non
+documentata: un solo rappresentante basta, la composizione esatta è una scelta implementativa.
 
-\texttt{\{all new\}}/\texttt{\{all old\}}/\texttt{\{all attached\}} sono rappresentanti di
-cardinalità ``non vuota, un solo tipo di elemento'' (più elementi dello stesso tipo non
-aggiungono classi, stessa convenzione già usata per \texttt{detachAll}): il numero esatto di
-elementi identici non ha alcun effetto documentato o ipotizzabile. Una revisione ha invece
-individuato un buco reale: una collezione con \emph{tipi validi diversi} mescolati (es. un
-elemento nuovo e uno precedentemente \texttt{detached}) non era coperta da nessuna classe
-esistente, ed era stata inizialmente scartata assumendo (senza verificarlo) che si riducesse a
-una composizione di comportamenti già noti — lo stesso tipo di eliminazione basata su un
-oracolo previsto, mai ammessa altrove in questo documento. La classe \{misti: validi
-eterogenei\} colma il buco: testa l'ipotesi che ogni elemento sia elaborato secondo il proprio
-ramo/tipo, indipendentemente dagli altri elementi della collezione — ipotesi con un appiglio
-testuale diretto (il Javadoc descrive i due rami noti per istanza, non per chiamata), ma pur
-sempre un'estensione, non un fatto dichiarato esplicitamente per le collezioni miste. La classe
-\{misti: almeno 1 invalido\} testa invece l'atomicità non documentata dell'operazione: sotto
-l'ipotesi che un elemento non valido faccia fallire l'intera chiamata a prescindere da quanti
-validi, di quale tipo, lo accompagnino (anche zero), un solo rappresentante basta — se
-l'ipotesi è falsa, anche un solo test già lo rivela; la composizione esatta del rappresentante
-(quali tipi, quanti elementi) è una scelta implementativa rimandata alla scrittura dei test, non
-un confine numerico da trattare in fase di Boundary Value Analysis: non c'è qui nessuna soglia
-da esplorare, solo un rappresentante da scegliere dentro una classe già definita. Questa classe
-assorbe anche quello che in una versione precedente era \{all
-invalido\} (solo elementi non validi, senza validi): sotto la stessa ipotesi di atomicità
-produce lo stesso oracolo, quindi non serve più come classe separata.
-
-\textit{Ipotesi sull'oracolo:} \{all old\} (\emph{diretta}): l'istanza persistente viene
-aggiornata con le modifiche, indipendente da \texttt{copyNew} (il cui \texttt{@param} lo scopa
-esplicitamente alle sole istanze nuove). \{all new\} (\emph{diretta}): istanza persistita come
-nuova; \texttt{copyNew=true} implica una copia dell'originale, \texttt{copyNew=false} no, per
-dichiarazione esplicita del parametro. \{all attached\} (\emph{ipotesi}, nessun appiglio): si
-assume un no-op, nessuna modifica, l'istanza resta quella già gestita. \{misti: validi
-eterogenei\} (\emph{inferenza}): ogni elemento segue il proprio ramo secondo il tipo (\texttt{new}
-persistito come nuovo, \texttt{old} aggiornato con merge, \texttt{attached} invariato),
-indipendentemente da quanti elementi di ciascun tipo compongano la collezione — \texttt{copyNew}
-si applica a tutti gli elementi \texttt{new} presenti, non a un singolo elemento. \{misti:
-almeno 1 invalido\} (\emph{ipotesi}): si assume che l'intera chiamata fallisca con eccezione,
-indipendentemente da quali validi (anche nessuno) siano coinvolti. \texttt{objs} null
-(\emph{ipotesi}) ed eccezione di \texttt{processArgument} (\emph{inferenza}, propagazione)
-seguono lo stesso trattamento già usato per gli altri metodi. Il codice azione: nessuna
-descrizione dell'effetto su questo metodo, si assume che il comportamento di base non cambi
-(\emph{ipotesi}).
+\textit{Ipotesi sull'oracolo:} \{all old\} (documentazione esplicita): l'istanza persistente
+viene aggiornata, indipendente da \texttt{copyNew} (che si applica esplicitamente alle sole
+istanze nuove). \{all new\} (documentazione esplicita): istanza persistita come nuova, copiata o
+meno secondo \texttt{copyNew}. \{all
+attached\} (ipotesi, nessun appiglio): si assume un no-op. \{misti: validi eterogenei\}
+(deduzione): ogni elemento segue il proprio ramo secondo il tipo. \{misti: almeno 1 invalido\}
+(ipotesi): si assume che l'intera chiamata fallisca con eccezione. \texttt{objs} null (ipotesi)
+ed eccezione di \texttt{processArgument} (deduzione) seguono lo stesso trattamento degli altri
+metodi. Il codice azione non ha un effetto documentato (ipotesi).
 
 \textit{Combinazioni:} $7 (\texttt{objs}) \times 2 (\texttt{copyNew}) \times 2 (\texttt{call})
 \times 2 (\texttt{processArgument}) = 56$.
 
-\textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument} da
-2 a 1. Combinazioni valide: $7 \times 2 \times (1+2) = 42$ (14 eliminate).
+\textit{Eliminazioni:} solo strutturale, \texttt{call} null collassa \texttt{processArgument}.
+Combinazioni valide: $7 \times 2 \times (1+2) = 42$ (14 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
-documentata. Per \texttt{call.processArgument} \{ritorna un codice azione\}, il valore
-rappresentativo usato per le 42 combinazioni base è \texttt{ACT\_NONE}; le altre due costanti
-(\texttt{ACT\_CASCADE}, \texttt{ACT\_RUN}) sono state testate esplicitamente in una fase di
-approfondimento successiva (Sezione~\ref{sec:implementazione}).
+documentata. Per le 14 combinazioni base (su 42) in cui \texttt{call.processArgument} ritorna un
+codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
-\textit{Oracolo:} su 42 combinazioni valide, 4 dirette (\{all new\}/\{all old\} con
-\texttt{call} null), 18 per inferenza (cardinalità vuota, \{misti: validi eterogenei\} con
-\texttt{call} null, propagazione eccezione), 20 per ipotesi (\texttt{objs} inammissibile,
-\{all attached\}, \{misti: almeno 1 invalido\}, o \texttt{call} con codice azione).
-Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 42 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 4, dedotto dalla documentazione per 18, e ipotizzato in assenza di
+documentazione per 20.
 
 \subsubsection{\texttt{newInstance(Class cls)}}
 
@@ -508,240 +229,127 @@ metodi JavaBeans\}, \{classe astratta con metodi JavaBeans\}, \{classe astratta 
 JavaBeans\}, \{tipo managed concreto\}, \{tipo non managed concreto\}. Classi in
 Tabella~\ref{tab:newinstance-classi} (Appendice).
 
-\textit{Note di modellazione:} ``managed'' nel senso del secondo ramo del Javadoc (``if cls is
-a managed type, this will return an instance of the specified class'') si applica solo a tipi
-concreti: restituire ``un'istanza della classe specificata'' è realizzabile solo se \texttt{cls}
-è direttamente istanziabile, cosa che un'interfaccia o una classe astratta non sono mai in Java.
-Un'interfaccia o una classe astratta gestita passa quindi, se possibile, dal primo ramo
-(generazione di un'implementazione concreta, se segue la convenzione JavaBeans) — il
-managed-status non introduce un terzo meccanismo. Per questo \{tipo non managed concreto\}
-è definita esplicitamente su tipi concreti, e non serve distinguere per managed-status le classi
-astratte senza JavaBeans (si veda sotto).
+\textit{Note di modellazione:} il secondo ramo del Javadoc (``if cls is a managed type, this
+will return an instance of the specified class'') si applica solo a tipi concreti: un'interfaccia
+o una classe astratta gestita passa quindi, se possibile, dal primo ramo (implementazione
+concreta, se segue JavaBeans). Il managed-status non introduce un terzo meccanismo.
 
 \textit{Ipotesi sull'oracolo:} \{interfaccia con JavaBeans\} e \{classe astratta con JavaBeans\}
-(\emph{dirette}): il primo ramo del Javadoc descrive esplicitamente la creazione di
-un'implementazione concreta per entrambe, senza distinguerle. \{tipo managed concreto\}
-(\emph{diretta}): secondo ramo, istanza diretta. \{tipo non managed concreto\} (\emph{diretta}):
-\texttt{@throws IllegalArgumentException if cls is not a managed type or interface} si applica
-senza ambiguità. \{interfaccia senza JavaBeans\} (\emph{ipotesi}): il primo ramo richiede
-esplicitamente la convenzione JavaBeans per creare l'implementazione, ma la clausola
-\texttt{@throws} esenta genericamente ``interface'' dall'eccezione senza ripetere quel vincolo —
-un conflitto testuale diretto tra le due frasi; nessun meccanismo di creazione si applicherebbe
-comunque, si assume un'eccezione. \{classe astratta senza JavaBeans\} (\emph{ipotesi}): stessa
-ambiguità, versione simmetrica sul secondo ramo invece che sulla clausola \texttt{@throws} — il
-secondo ramo non esclude esplicitamente le classi astratte dal ``managed type'', ma restituire
-un'istanza diretta di una classe astratta non è possibile in Java; per coerenza con il
-trattamento già scelto per \{interfaccia senza JavaBeans\} (un'unica classe, non divisa per
-managed-status), si assume la stessa eccezione, senza introdurre una classe aggiuntiva per il
-sotto-caso managed. \texttt{cls} null non è documentato: si assume un'eccezione, stesso
-trattamento degli altri parametri obbligatori (\emph{ipotesi}).
+(documentazione esplicita): il primo ramo descrive esplicitamente la creazione di
+un'implementazione concreta. \{tipo managed concreto\} (documentazione esplicita): il secondo
+ramo restituisce l'istanza. \{tipo non managed concreto\} (documentazione esplicita):
+\texttt{@throws IllegalArgumentException if cls is not a managed type or
+interface} si applica senza ambiguità. \{interfaccia senza JavaBeans\} e \{classe astratta senza
+JavaBeans\} (ipotesi): il primo ramo crea un'implementazione concreta solo se è rispettata la
+convenzione JavaBeans, quindi non copre questi due casi; la clausola \texttt{@throws}, letta alla
+lettera, esenterebbe invece qualunque interfaccia dall'eccezione senza richiedere JavaBeans, in
+conflitto con questo. Poiché nessun ramo descrive comunque un modo per creare l'istanza, si
+assume che il risultato sia un'eccezione per entrambe. \texttt{cls} null non è
+documentato: si assume un'eccezione (ipotesi).
 
-\textit{Combinazioni:} un solo parametro, 7 classi $=$ 7 combinazioni, nessuna eliminazione.
+\textit{Combinazioni:} un solo parametro, 7 classi $=$ 7 combinazioni.
+
+\textit{Eliminazioni:} nessuna, tutte le 7 classi sono ammissibili. Combinazioni valide: $7$
+(0 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
-\textit{Oracolo:} 4 dirette, 3 per ipotesi. Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 7 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 4, e ipotizzato in assenza di documentazione per 3.
 
 \subsubsection{\texttt{isDetached(Object obj, boolean find)}}
 
-\textit{Categorie e partizioni:} \texttt{obj}: \{null\}, \{gestito\}, \{non gestito\} — a
-differenza di \texttt{lock}/\texttt{persist}/\texttt{detachAll}/\texttt{attachAll} (che
-espongono \texttt{OpenJPAStateManager} tramite il parametro terzo di
-\texttt{OpCallbacks.processArgument}), \texttt{isDetached} non ha alcun parametro
-\texttt{OpCallbacks}: quel collegamento strutturale non esiste qui. La distinzione
-gestito/non gestito è invece fondata su \texttt{StoreContext.getStateManager(Object obj)}
-(estesa direttamente da \texttt{Broker}, stesso tipo di parametro \texttt{Object} di
-\texttt{isDetached} stesso): ``Return the state manager for the given instance... If \texttt{obj}
-is not a managed type or is managed by another context, throw an exception.'' \texttt{find}:
-\{true\}, \{false\}. \texttt{store}* (presenza dell'identità di \texttt{obj} nel datastore,
-dedotta dal testo di \texttt{find}: ``as a last resort this method will check whether or not
-the provided object exists in the DB''): \{presente\}, \{non presente\} — una proprietà reale e
-costruibile indipendentemente sia per \{gestito\} (es. \texttt{PNEW} non ancora flushato =
-non presente, \texttt{PCLEAN} = presente) sia per \{non gestito\}, indipendentemente da
-\texttt{find}; non si applica solo per \texttt{obj}=\{null\} (nessuna identità da cercare).
-Classi in Tabella~\ref{tab:isdetached-classi} (Appendice).
+\textit{Categorie e partizioni:} \texttt{obj}: \{null\}, \{gestito\}, \{non gestito\}, fondate
+su \texttt{StoreContext.getStateManager(Object obj)}. \texttt{find}: \{true\}, \{false\}.
+\texttt{store}* (presenza dell'identità di \texttt{obj} nel datastore, dedotta dal testo del
+parametro \texttt{find} stesso: ``as a last resort this method will check whether or not the
+provided object exists in the DB''): \{presente\}, \{non presente\}, non applicabile solo per
+\texttt{obj}=\{null\}. Classi in Tabella~\ref{tab:isdetached-classi} (Appendice).
 
-\textit{Note di modellazione:} una revisione ha corretto un'assunzione precedente su cosa
-significhi ``detached'' per questo metodo. Il testo esatto: ``if true, as a last resort this
-method will check whether or not the provided object exists in the DB. If it is in the DB, the
-provided object is detached.'' È una frase ambigua tra due letture: (a) \emph{stativa} — se
-l'identità è trovata nel DB, l'oggetto \emph{viene classificato} come detached (una
-conclusione, non un'azione); (b) \emph{azione} — il metodo \emph{stacca} l'oggetto come effetto
-collaterale. Una prima analisi aveva trattato \{detached\} come una classe di \texttt{obj}
-costruibile indipendentemente, senza approfondire questa ambiguità. La lettura (a) è stata
-preferita per due motivi, entrambi di coerenza: primo, la definizione di ``detached'' già usata
-per \texttt{detachAll}/\texttt{attachAll} (Javadoc di \texttt{Broker.isDetached(Object)}, citato
-in Sezione~\ref{sec:brokerimpl-analisi-doc}: ``un oggetto che può essere riagganciato... tramite
-\texttt{Broker\#attach}'') descrive detached come una proprietà di dati realmente persistiti e
-riagganciabili, non come ``separato dal database'' — trovare l'identità nel DB conferma questa
-proprietà, non la contraddice. Secondo, un argomento pratico: \texttt{isDetached} restituisce
-solo un \texttt{boolean}; se ``staccasse'' davvero l'oggetto, non ci sarebbe un canale di
-ritorno per la copia risultante (a differenza di \texttt{detachAll}, che restituisce
-esplicitamente le istanze staccate), e mutare \texttt{obj} sul posto contraddirebbe il pattern
-già stabilito (\texttt{detachAll} produce copie, non muta gli originali). Di conseguenza,
-\{detached\} non è più una classe di \texttt{obj} costruibile a sé: emerge dalla combinazione
-\{non gestito\} + \{store presente\}, esattamente come cache/store per \texttt{find}. Il
-controllo sul DB è descritto come ``last resort'': scatta solo quando il controllo economico
-(state manager attivo o no) non è dirimente, cioè solo per \{non gestito\} — per \{gestito\}
-l'esito è già determinato, \texttt{find} è irrilevante. \{non gestito\} da sola è condizione
-necessaria ma non sufficiente per ``detached'': copre sia un'istanza mai stata persistita
-(nessuna identità nel datastore, semplicemente transient) sia un'istanza che lo era e non lo è
-più (identità presente, genuinamente detached) — indistinguibili dal solo controllo economico.
-Il controllo sul DB serve esattamente a scegliere tra i due; senza di esso (\texttt{find=false})
-non c'è modo di distinguerli, da cui l'ipotesi prudente (\texttt{false}). Nota per
-l'implementazione: a differenza degli altri sei metodi, qui non c'è un \texttt{OpCallbacks} da
-mockare per osservare/costruire lo stato di \texttt{obj} — costruire un \texttt{obj} realmente
-\{gestito\} per il broker sotto test potrebbe richiedere un'interazione con lo stato del broker
-stesso (es. una \texttt{persist} preventiva sullo stesso broker), non un semplice collaboratore
-mockato isolato; dettaglio da risolvere in fase di implementazione, non di design.
+\textit{Note di modellazione:} il testo (``if it is in the DB, the provided object is
+detached'') è ambiguo tra una lettura "l'oggetto viene classificato come detached" e una
+lettura "il metodo stacca l'oggetto". La prima è preferita per coerenza con
+la definizione di ``detached'' già usata per \texttt{detachAll}/\texttt{attachAll}, e perché
+\texttt{isDetached} restituisce solo un \texttt{boolean}, senza canale di ritorno per una
+copia. \{detached\} emerge dalla
+combinazione \{non gestito\} + \{store presente\}. Il controllo sul DB è ``last resort'': scatta
+solo per \{non gestito\}, dove il controllo economico (state manager attivo o no) non basta a
+distinguere un'istanza mai persistita da una genuinamente detached.
 
-Una revisione ha inoltre corretto un'eliminazione non ammissibile: \texttt{store} era stato
-collassato anche per \{gestito\} e per \{non gestito\}/\texttt{find=false}, sulla base della
-previsione che l'oracolo non ne dipendesse. Ma \texttt{store} è una proprietà realmente
-costruibile in modo indipendente in entrambi i casi (uno stato \texttt{gestito} può comunque
-avere o non avere già una riga nello store; l'identità di un oggetto non gestito esiste o non
-esiste indipendentemente dal fatto che il metodo la controlli), quindi non è un'eliminazione
-strutturale — è esattamente il tipo di eliminazione basata su un oracolo previsto vietata
-altrove in questo documento. Le uniche combinazioni davvero irrealizzabili restano quelle con
-\texttt{obj}=\{null\}, dove non esiste alcuna identità da cercare.
-
-\textit{Ipotesi sull'oracolo:} \texttt{obj} \{gestito\} (\emph{diretta}, indipendente da
-\texttt{find} e da \texttt{store}): ha uno state manager attivo, non è detached, dal
-\texttt{@return} (``false otherwise''); il controllo sul DB non viene mai raggiunto per questo
-stato (il controllo economico basta), quindi il suo esito resta lo stesso qualunque sia lo stato
-reale di \texttt{store}. \texttt{obj} \{non gestito\}, \texttt{find=true}, \texttt{store}
-presente (\emph{diretta}): esattamente il caso descritto dal testo (``if it is in the DB, the
-provided object is detached''). \texttt{obj} \{non gestito\}, \texttt{find=true}, \texttt{store}
-non presente (\emph{inferenza}): converso naturale del caso diretto, non dichiarato alla lettera
-ma fortemente implicito dal \texttt{@return} binario. \texttt{obj} \{non gestito\},
-\texttt{find=false}, qualunque \texttt{store} (\emph{ipotesi}): il controllo last-resort non
-viene eseguito, nessuna fonte dice cosa succeda; si assume una risposta negativa indipendente
-dallo stato reale di \texttt{store} (che il metodo non arriva a osservare), stesso trattamento
-prudente già usato per \texttt{obj} null. \texttt{obj} null (\emph{ipotesi}): non documentato;
-essendo un metodo predicato (query, non un'operazione), si assume una risposta negativa
-piuttosto che un'eccezione.
+\textit{Ipotesi sull'oracolo:} \texttt{obj} \{gestito\}
+ (documentazione esplicita, indipendente da find e store)
+: ha uno state manager attivo, non è detached per la
+definizione già citata, e il controllo ``last resort'' su \texttt{find}/\texttt{store} non
+interviene perché riguarda solo \{non gestito\}
+(\texttt{@return}: ``false otherwise''). \texttt{obj} \{non gestito\}, \texttt{find=true},
+\texttt{store} presente (documentazione esplicita): esattamente il caso descritto dal testo.
+\texttt{store} non presente (deduzione): converso naturale del caso precedente.
+\texttt{find=false} (ipotesi): il controllo last-resort non
+viene eseguito, si assume una risposta negativa. \texttt{obj} null (ipotesi): non documentato,
+si assume una risposta negativa (metodo predicato, non un'operazione).
 
 \textit{Combinazioni:} $3 (\texttt{obj}) \times 2 (\texttt{find}) \times 2 (\texttt{store}) =
 12$.
 
-\textit{Eliminazioni:} solo strutturale, \texttt{store} non si applica (collassa da 2 a 1) solo
-quando \texttt{obj}=\{null\} (nessuna identità da cercare). Combinazioni valide:
-$2 \times 2 \times 2 + 1 \times 2 \times 1 = 10$ (2 eliminate).
+\textit{Eliminazioni:} solo strutturale, \texttt{store} non si applica solo quando
+\texttt{obj}=\{null\}. Combinazioni valide: $2 \times 2 \times 2 + 1 \times 2 \times 1 = 10$
+(2 eliminate).
 
-\textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico. Per le classi con
-più valori possibili si documenta comunque il valore rappresentativo usato nell'implementazione:
-\texttt{obj} \{gestito\} è rappresentato da un \texttt{PersistenceCapable} il cui
-\texttt{pcGetStateManager()} ritorna uno \texttt{StateManager} mockato attivo; \texttt{obj}
-\{non gestito\} è rappresentato dallo stesso tipo di mock con \texttt{pcGetStateManager()} nullo.
-\texttt{store} \{presente\} è rappresentato restituendo un \texttt{new Object()} arbitrario dalla
-chiamata interna a \texttt{find} usata per verificare l'esistenza nel datastore (si veda
-Sezione~\ref{sec:implementazione}).
+\textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
-\textit{Oracolo:} 5 dirette, 1 per inferenza, 4 per ipotesi. Materializzate per esteso in
-Appendice.
+\textit{Oracolo:} su 10 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 5, dedotto dalla documentazione per 1, e ipotizzato in assenza di
+documentazione per 4.
 
 \subsubsection{\texttt{persist(Object pc, Object id, OpCallbacks call)}}
 
-\textit{Categorie e partizioni:} \texttt{pc}: \{null\}, \{non gestito\}, \{gestito\} — definite
+\textit{Categorie e partizioni:} \texttt{pc}: \{null\}, \{non gestito\}, \{gestito\}, definite
 tramite \texttt{PCState} (\texttt{TRANSIENT} per il primo caso, \texttt{PNEW}/\texttt{PCLEAN}/
-\texttt{PDIRTY}/\texttt{HOLLOW} indistinte per il secondo, stesso costrutto già usato per
-\texttt{lock}), esposto da \texttt{getPCState()} su \texttt{OpenJPAStateManager}. A differenza di
-\texttt{lock}, qui non si distinguono tra loro gli stati già gestiti: nessuna fonte descrive un
-comportamento diverso di \texttt{persist} tra \texttt{PNEW}, \texttt{PCLEAN}/\texttt{PDIRTY} e
-\texttt{HOLLOW}, tutti accomunati dall'essere già gestiti (nessuno stato manager da assegnare ex
-novo). Il motivo per cui, a differenza di \texttt{lock}, non serve distinguere \texttt{PNEW}
-(non ancora presente fisicamente nello store) dagli altri è concettuale, non solo di assenza di
-fonte: il nome stesso \texttt{PNEW} è ``Persistent-New'' — è già stata resa persistente nel
-senso in cui \texttt{persist()} usa il termine (ha già uno state manager, ha già un'identità
-assegnata); il fatto che non sia ancora scritta fisicamente sullo store è un dettaglio di
-\emph{quando} avviene il flush, non di \emph{se} è già stata resa persistente. Per
-\texttt{lock()} la distinzione contava perché bloccare richiede concettualmente una riga fisica
-(confermato da \texttt{StoreManager.flush}); per \texttt{persist()} il criterio rilevante è se
-``rendere persistente'' è già avvenuto una volta, e \texttt{PNEW} lo soddisfa per definizione
-tanto quanto \texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}. Delle restanti 18 costanti di
-\texttt{PCState} (varianti non-transazionali, transient-qualificate, \texttt{Embedded}, casi
-limite di flush/delete), nessuna ha un appiglio testuale diverso da quello già usato per
-\texttt{lock}: stessa esclusione, stesse motivazioni. \texttt{id}: \{null\}, \{non null\} —
-dominio esplicitamente dichiarato nel Javadoc del parametro. \texttt{cascade}* (relazione
-marcata \texttt{ValueMetaData.CASCADE\_IMMEDIATE} verso un'istanza correlata non gestita):
-\{presente\}, \{assente\} — verifica direttamente la garanzia dichiarata nella prima frase del
-Javadoc (``this method does \textbf{not} immediately cascade to fields marked
-\texttt{CASCADE\_IMMEDIATE}''); non si applica per \texttt{pc}=\{null\} (nessun oggetto, nessun
-campo). \texttt{call}: \{null\}, \{non null\}. \texttt{call.processArgument}** (richiede
-\texttt{call} non null): \{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\}
-(stessa unione già applicata a \texttt{lock}/\texttt{detachAll}/\texttt{attachAll}: nessuna
-delle tre costanti ha Javadoc). Classi in Tabella~\ref{tab:persist-classi} (Appendice).
+\texttt{PDIRTY}/\texttt{HOLLOW} indistinte per il secondo: nessuna fonte descrive un
+comportamento diverso di \texttt{persist} tra questi stati, tutti già gestiti). \texttt{id}:
+\{null\}, \{non null\}, dominio esplicitamente dichiarato nel Javadoc. \texttt{cascade}*
+(relazione marcata \texttt{ValueMetaData.CASCADE\_IMMEDIATE} verso un'istanza correlata non
+gestita): \{presente\}, \{assente\}, verifica esplicita della garanzia dichiarata nella prima
+frase del Javadoc (``this method does \textbf{not} immediately cascade to fields marked
+\texttt{CASCADE\_IMMEDIATE}''), non applicabile per \texttt{pc}=\{null\}. \texttt{call}:
+\{null\}, \{non null\}. \texttt{call.processArgument}** (richiede \texttt{call} non null):
+\{ritorna un codice azione\}, \{lancia \texttt{OpenJPAException}\}. Classi in
+Tabella~\ref{tab:persist-classi} (Appendice).
 
-\textit{Note di modellazione:} le classi di \texttt{pc} sostituiscono un'iniziale coppia
-\{non valido\}/\{valido\} basata su conoscenza di dominio generica, stesso problema già
-riscontrato e corretto per \texttt{lock}.
+\textit{Note di modellazione:} a differenza di \texttt{lock}, \texttt{PNEW} non è distinto dagli
+altri stati gestiti: il nome stesso (``Persistent-New'') indica che l'istanza è già stata resa
+persistente nel senso in cui \texttt{persist()} usa il termine (ha già uno state manager),
+indipendentemente da quando avviene il flush fisico sullo store o l'assegnazione definitiva
+dell'identità: per \texttt{OpenJPAStateManager.getObjectId()}, l'oid può restare non assegnato
+fino al primo utilizzo o al flush. Per \texttt{pc} già gestito, ``dare'' un'identità
+(\texttt{@param id}: ``the id to give the state manager'') non ha un meccanismo descritto per
+uno state manager che esiste già: si assume quindi un no-op (\texttt{pc} resta quello già
+gestito, \texttt{id} ignorato).
 
-Una revisione ha corretto due punti. Primo: la garanzia su \texttt{CASCADE\_IMMEDIATE} era
-inizialmente scartata come dimensione, motivata come ``effetto collaterale su un campo
-correlato, non sul valore di ritorno testato'' — ma è una garanzia dichiarata esplicitamente
-nella prima frase del Javadoc del metodo target, quindi un comportamento verificabile a tutti
-gli effetti, non diverso per importanza dal resto dell'oracolo. Scartarla equivaleva a
-restringere l'oracolo solo al valore di ritorno per comodità, non per un motivo legittimo:
-corretto aggiungendo la classe \texttt{cascade}, verificabile controllando che un'istanza
-correlata raggiungibile da \texttt{pc} tramite un campo \texttt{CASCADE\_IMMEDIATE} resti non
-gestita subito dopo la chiamata.
-
-Secondo: l'ipotesi su \texttt{pc} già gestito è stata rivista. In precedenza si assumeva, per
-analogia col caso documentato, che valesse comunque la stessa postcondizione (nuovo
-\texttt{id} assegnato). Ma questo presuppone implicitamente qualcosa che il Javadoc non
-supporta: ``dare'' un'identità (\texttt{@param id}: ``the id to give the state manager'') ha
-senso solo per un'istanza che non ne ha ancora una — un'istanza già gestita ha già
-un'identità assegnata in precedenza, e sovrascriverla con un \texttt{id} diverso non è
-un'estensione naturale del caso documentato, è un comportamento nuovo e più aggressivo senza
-alcun appiglio. Per coerenza con la scelta già fatta per \texttt{attachAll} sullo stesso tipo
-di scenario (un'istanza già nello stato desiderato, senza transizione da compiere): si assume
-un no-op (\texttt{pc} resta quello già gestito, \texttt{id} ignorato) invece che la stessa
-postcondizione del caso documentato.
-
-L'overload scelto (a 3 parametri, con \texttt{id}) si distingue esplicitamente da ``altre
-operazioni di persist'' proprio per la garanzia su \texttt{CASCADE\_IMMEDIATE} discussa sopra.
-Le altre configurazioni di stato collaterali (\texttt{DetachState}, \texttt{PostLoadOnMerge} per
-i metodi precedenti) restano non tracciate: a differenza di \texttt{CASCADE\_IMMEDIATE}, non
-sono citate nella documentazione del metodo target stesso.
-
-Nota per l'implementazione: le righe \texttt{cascade}=\{presente\} e \texttt{pc}=\{gestito\}
-non sono realizzabili con un semplice collaboratore mockato isolato, come invece \texttt{id} e
-\texttt{call}. Per \texttt{cascade} serve una piccola classe entità di test con un campo
-dichiarato \texttt{CASCADE\_IMMEDIATE} verso un'istanza correlata transient, verificando dopo la
-chiamata che quest'ultima resti non gestita (tramite \texttt{getStateManager()}, senza
-mockare un datastore). Per \texttt{pc} già gestito serve un'interazione a due passi sullo stesso
-broker (es. una \texttt{persist} preventiva) prima di richiamare il metodo sotto test — stessa
-considerazione già fatta per \texttt{isDetached}.
-
-\textit{Ipotesi sull'oracolo:} \texttt{pc} \texttt{TRANSIENT} (non gestito), con \texttt{id} null
-o non null, \texttt{cascade} assente: entrambe \emph{dirette}, dal \texttt{@return} (``the state
-manager for the newly persistent instance'') combinato col \texttt{@param id} (``may be null
-for default'') — questo è il caso descritto dal Javadoc, un'istanza non gestita che diventa
-persistente. \texttt{cascade} presente (\emph{diretta} anch'essa): l'istanza correlata resta non
-gestita, dalla stessa prima frase del Javadoc citata sopra. \texttt{pc} già \texttt{gestito}
-(\texttt{PNEW}/\texttt{PCLEAN}/\texttt{PDIRTY}/\texttt{HOLLOW}, \emph{ipotesi}): nessuna fonte
-documenta l'esito di \texttt{persist} su un'istanza già persistente; si assume un no-op (stesso
-motivo già discusso per \texttt{attachAll}), non la stessa postcondizione del caso documentato.
-\texttt{pc} null: non documentato, si assume un'eccezione (\emph{ipotesi}).
-\texttt{processArgument} che lancia eccezione: propagazione (\emph{inferenza}, stessa proprietà
-generale già usata per gli altri metodi). Il codice azione: nessuna descrizione
-dell'effetto su questo metodo, si assume che il comportamento di base non cambi (\emph{ipotesi}).
+\textit{Ipotesi sull'oracolo:} \texttt{pc} \texttt{TRANSIENT}, con \texttt{id} null o non null,
+\texttt{cascade} assente o presente: tutte con oracolo dichiarato esplicitamente dalla
+documentazione, dal \texttt{@return} (``the state manager
+for the newly persistent instance'') combinato col \texttt{@param id} (``may be null for
+default'') e dalla prima frase del Javadoc per \texttt{cascade}. \texttt{pc} già gestito
+(ipotesi): nessuna fonte documenta l'esito su un'istanza già persistente, si assume un no-op.
+\texttt{pc} null: non documentato, si assume un'eccezione (ipotesi).
+\texttt{processArgument} che lancia eccezione: propagazione (deduzione). Il codice azione non ha
+un effetto documentato (ipotesi).
 
 \textit{Combinazioni:} $3 (\texttt{pc}) \times 2 (\texttt{id}) \times 2 (\texttt{cascade}) \times
 2 (\texttt{call}) \times 2 (\texttt{processArgument}) = 48$.
 
-\textit{Eliminazioni:} solo strutturale: \texttt{cascade} non si applica (collassa da 2 a 1)
-quando \texttt{pc}=\{null\}; \texttt{call} null collassa \texttt{processArgument} da 2 a 1.
-Combinazioni valide: $2 \times 2 \times 2 \times (1+2) + 1 \times 2 \times 1 \times (1+2) = 30$
-(18 eliminate).
+\textit{Eliminazioni:} solo strutturale: \texttt{cascade} non si applica quando
+\texttt{pc}=\{null\}; \texttt{call} null collassa \texttt{processArgument}. Combinazioni valide:
+$2 \times 2 \times 2 \times (1+2) + 1 \times 2 \times 1 \times (1+2) = 30$ (18 eliminate).
 
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico con soglia
-documentata.
+documentata. Per le 10 combinazioni base (su 30) in cui \texttt{call.processArgument} ritorna un
+codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
-\textit{Oracolo:} su 30 combinazioni valide, 4 dirette (\texttt{pc} \texttt{TRANSIENT},
-\texttt{call} null, entrambe le classi di \texttt{cascade}), 10 per inferenza (propagazione
-eccezione), 16 per ipotesi (\texttt{pc} null o già \texttt{gestito}, o \texttt{call} con codice
-azione). Materializzate per esteso in Appendice.
+\textit{Oracolo:} su 30 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
+documentazione per 4, dedotto dalla documentazione per 10, e ipotizzato in assenza di
+documentazione per 16.
 
 \subsection{LoginDialog}
 

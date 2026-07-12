@@ -4,225 +4,69 @@
 
 \subsection{BrokerImpl}
 
-Il Javadoc di classe di \texttt{BrokerImpl} chiarisce la separazione di responsabilità
-della classe: gestisce il comportamento a livello di oggetto, mentre delega allo
-\texttt{StoreManager} (fornito al momento dell'inizializzazione) tutta l'interazione con
-lo store.
+Il Javadoc di \texttt{BrokerImpl} separa le responsabilità: gestisce il comportamento a
+livello di oggetto, delegando allo \texttt{StoreManager} l'interazione con lo store.
 
-La documentazione usata per determinare i metodi target è stata principalmente quella della classe target, delle
-interfacce che implementa direttamente e quelle che queste ultime estendono
-transitivamente, escludendo i tipi di libreria standard per rimanere concentrati sulle interfacce del progetto.
-L'analisi dei metodi è stata condotta a best effort. Il focus è stato dedicato maggiormente a \texttt{Broker} e \texttt{StoreContext} in quanto
-ipotizzate come più rilevanti.
+La documentazione consultata è quella della classe target e delle interfacce che implementa
+direttamente (\texttt{Broker}, \texttt{StoreContext}), oltre agli attributi per identificare i
+parametri di stato del SUT. Il manuale OpenJPA non aggiunge informazioni sul comportamento dei
+singoli metodi.
 
-Gli attributi di \texttt{BrokerImpl} sono stati consultati per identificare i parametri di stato del SUT.
-Alcuni metodi variano anche lo stato di oggetti passati in input, quindi anche questi sono stati analizzati.
-Anche il manuale OpenJPA e la documentazione online sono state utilizzate, tuttavia descrivono \texttt{BrokerImpl}
-senza aggiungere informazioni sul comportamento dei metodi.
-
-La scelta dei metodi da testare è stata guidata bilanciando la presenza di \textbf{parametri di input},
-la \textbf{significatività} del metodo e la disponibilità di \textbf{documentazione} (non è sempre
-possibile disporre di un oracolo completo). Per gestire la grande mole di metodi, una prima scrematura è stata effettuata
-ordinando in modo decrescente i metodi per linee di javadoc. I metodi selezionati, con l'interfaccia o la classe che li dichiara, sono riportati in
-Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
+La scelta dei metodi da testare bilancia \textbf{parametri di input}, \textbf{significatività
+funzionale} e disponibilità di \textbf{documentazione} (non sempre è possibile disporre di un
+oracolo completo). I metodi selezionati sono in Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
 
 \subsubsection{Documentazione}
 \label{sec:brokerimpl-analisi-doc}
 
-\begin{itemize}[itemsep=12pt, parsep=7pt]
-    \item\texttt{find(Object oid, boolean validate, FindCallbacks call)}
+\textbf{\texttt{find(Object oid, boolean validate, FindCallbacks call)}}\\[6pt]
+Restituisce l'istanza persistente associata all'\texttt{oid}. Con \texttt{validate=true}:
+\texttt{null} se assente, non-null se presente. Con \texttt{validate=false}: mai \texttt{null},
+tentando cache, poi un'istanza hollow, poi \texttt{ObjectNotFoundException}. Il parametro
+\texttt{call} (\texttt{FindCallbacks}) espone \texttt{processArgument} (sostituisce o ignora
+l'\texttt{oid}, o lancia eccezione) e \texttt{processReturn} (determina il valore restituito).
 
-    \textit{Documentato esplicitamente:} restituisce l'istanza della classe persistente
-    associata all'oid dato. Il Javadoc distingue tre casi:
-        \begin{itemize}
-        
-        \item \texttt{validate=true} e oggetto assente $\to$ null;
-        \item \texttt{validate=true} e presente $\to$ non-null;
-        \item\texttt{validate=false} $\to$ mai null, restituendo l'istanza in cache se presente,
-        altrimenti tentando di crearne una hollow, altrimenti \texttt{ObjectNotFoundException}.
-    
-        \end{itemize}
-    Se validate è true, e viene convalidata la presenza dell'oggetto nello store, vengono caricati i fetch group fields.
+\bigskip
+\textbf{\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}}\\[6pt]
+Blocca l'istanza al livello richiesto. Il Javadoc documenta solo \texttt{timeout}
+(\texttt{-1} = attesa illimitata); i livelli ammessi sono le costanti di \texttt{LockLevels}
+(\texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/\texttt{LOCK\_WRITE}), la postcondizione è verificabile
+con \texttt{getLockLevel(pc) == level}. Il parametro \texttt{call} (\texttt{OpCallbacks}) può
+rifiutare l'argomento o restituire un codice azione, senza effetto documentato specifico per
+\texttt{lock}.
 
-    \textit{Dedotto / documentato altrove:} il parametro \texttt{validate} ``convalida'' la presenza dell'oggetto nello store.
-    \texttt{StoreContext} espone anche un secondo overload di \texttt{find}, con Javadoc che documenta un comportamento di default legato a
-    \texttt{flags}, controllabile tramite le costanti: queste ultime
-    non hanno però una propria documentazione. Il parametro \texttt{exclude} ha invece un
-    valore documentato, \texttt{StoreContext.EXCLUDE\_ALL}.
-    \texttt{BrokerImpl} espone inoltre un terzo overload, \texttt{protected}, il cui Javadoc
-    (``Internal finder.'') non aggiunge informazioni utili oltre al nome. Il parametro
-    \texttt{call} è di tipo
-    \texttt{FindCallbacks}: il suo Javadoc di interfaccia documenta \texttt{processArgument}
-    (può rifiutare l'argomento con un'eccezione, sostituirlo con un altro id, o ignorarlo
-    restituendo \texttt{null}) e \texttt{processReturn} (riceve l'id e uno state manager, il
-    suo \texttt{@return} dichiara il valore ``da restituire'').
+\bigskip
+\textbf{\texttt{detachAll(Collection objs, OpCallbacks call)}}\\[6pt]
+Stacca dal broker le istanze indicate, producendo copie non gestite; attraversa solo i campi
+della \texttt{FetchConfiguration} corrente. Il Javadoc di \texttt{isDetached} definisce
+``detached'': ogni istanza restituita lo soddisfa. Il parametro \texttt{call} è
+\texttt{OpCallbacks}, come per \texttt{lock}.
 
-    \textit{Riferimenti:} \texttt{StoreContext.java} (\texttt{find} a 3 e 5 parametri,
-    \texttt{EXCLUDE\_ALL}), \texttt{BrokerImpl.java} (\texttt{find} \texttt{protected}),
-    \texttt{FindCallbacks.java}.
+\bigskip
+\textbf{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}\\[6pt]
+Importa nel broker le istanze indicate: se precedentemente staccate, le modifiche vengono
+unite (merge) nell'istanza persistente esistente; se nuove, vengono persistite, con
+\texttt{copyNew} che controlla se copiarle. Il caso non documentato di un'istanza già gestita
+dallo stesso broker non rientra in nessuno dei due rami.
 
-    \item\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}
+\bigskip
+\textbf{\texttt{newInstance(Class cls)}}\\[6pt]
+Crea una nuova istanza di \texttt{cls}. Se \texttt{cls} è un'interfaccia o una classe astratta
+con metodi JavaBeans, genera un'implementazione concreta; se è già un tipo managed concreto, ne
+restituisce direttamente un'istanza; altrimenti lancia \texttt{IllegalArgumentException}.
 
-    \textit{Documentato esplicitamente:} assicura che l'istanza indicata venga bloccata al
-    livello richiesto. Il Javadoc documenta solo \texttt{timeout} come millisecondi di
-    attesa prima di rinunciare (\texttt{-1} per attesa illimitata); non contiene alcun
-    riferimento esplicito a dove siano definiti i livelli ammessi né a come verificarne
-    l'esito.
+\bigskip
+\textbf{\texttt{isDetached(Object obj, boolean find)}}\\[6pt]
+Verifica se l'oggetto è staccato. Con \texttt{find=true}, come ultima risorsa verifica anche
+l'esistenza nel datastore. La distinzione gestito/non gestito è fondata su
+\texttt{StoreContext.getStateManager(Object obj)}; ``detached'' è definito dal Javadoc
+dell'overload a un parametro come un'istanza riagganciabile tramite \texttt{Broker\#attach}.
 
-    \textit{Dedotto / documentato altrove:}
-    \texttt{Broker} estende \texttt{LockLevels}, che dichiara i livelli ammessi; \texttt{StoreContext}
-    dichiara inoltre \texttt{getLockLevel}, da cui si deduce che la postcondizione di
-    \texttt{lock} sia verificabile con \texttt{getLockLevel(pc) == level}. Il parametro
-    \texttt{call} è di tipo \texttt{OpCallbacks}: il suo unico metodo,
-    \texttt{processArgument}, può rifiutare l'argomento con un'eccezione o restituire un
-    codice azione, senza che
-    l'effetto sia documentato specificamente per \texttt{lock}. \texttt{Broker} espone anche
-    un secondo overload, \texttt{lock(Object pc, OpCallbacks call)}: utile per sapere che il
-    livello di lock ha anche una fonte alternativa (quello corrente della
-    \texttt{FetchConfiguration} del broker), non usata nell'overload qui scelto.
-    \texttt{OpenJPAStateManager} (tipo del terzo parametro di
-    \texttt{OpCallbacks.processArgument}, quindi collegato strutturalmente a \texttt{call})
-    espone \texttt{getPCState()}; \texttt{PCState} dichiara con Javadoc esplicito il
-    significato di ciascuno stato (\texttt{TRANSIENT}: ``unmanaged instance''; \texttt{PNEW}:
-    ``Persistent-New''; \texttt{PCLEAN}/\texttt{PDIRTY}: ``Persistent-Clean''/``Persistent-Dirty'';
-    \texttt{HOLLOW}: ``exists in data store''). \texttt{PCState} dichiara in totale 23 costanti:
-    delle restanti, nessuna ha un appiglio testuale rilevante per questo metodo (dettaglio in
-    Sezione~\ref{sec:cp}). \texttt{StoreManager} (raggiungibile via
-    \texttt{StoreContext.getStoreManager()}) conferma il significato di \texttt{HOLLOW} (metodo
-    \texttt{load}) e che le istanze \texttt{PNEW} non hanno ancora una riga fisica nello store
-    prima del flush (metodo \texttt{flush}). Questi stati definiscono le classi di \texttt{pc}.
-    \texttt{LockLevels} (estesa direttamente da \texttt{Broker}) dichiara con Javadoc proprio
-    3 costanti (\texttt{LOCK\_NONE}=0 ``No lock'', \texttt{LOCK\_READ}=10 ``Generic read lock
-    level'', \texttt{LOCK\_WRITE}=20 ``Generic write lock level''), nessuna distinta da un
-    effetto diverso su \texttt{lock}: definiscono le classi di \texttt{level} (\{valore
-    noto\}/\{valore non noto\}). Un valore ``non noto'' (es. \texttt{10000}) non è comunque
-    un valore da rifiutare secondo alcuna fonte, ma non se ne può interpretare un significato di
-    dominio oltre a ``non è una delle 3 costanti dichiarate''. \texttt{timeout} è documentato da
-    \texttt{Broker.lock} solo per il valore esatto \texttt{-1} (``-1 for no limit''); nessuna
-    fonte strutturalmente connessa a \texttt{Broker.lock} documenta il comportamento per un
-    negativo diverso da \texttt{-1}. (\texttt{LockManager}, raggiungibile via
-    \texttt{StoreContext.getLockManager()}, dichiara un proprio metodo \texttt{lock} con un
-    Javadoc più esteso su \texttt{level}/\texttt{timeout}, ma è un metodo diverso su
-    un'interfaccia diversa, senza delega dichiarata verso \texttt{Broker.lock}: non è usato
-    come fonte per il dominio del metodo target, dettaglio in Sezione~\ref{sec:cp}.)
-
-    \textit{Riferimenti:} \texttt{Broker.java} (\texttt{lock} a 4 e 2 parametri),
-    \texttt{LockLevels.java}, \texttt{StoreContext.java}
-    (\texttt{getLockLevel}, \texttt{getStoreManager}),
-    \texttt{OpCallbacks.java}, \texttt{OpenJPAStateManager.java} (\texttt{getPCState}),
-    \texttt{PCState.java}, \texttt{StoreManager.java} (\texttt{load}, \texttt{flush}).
-
-    \item\texttt{detachAll(Collection objs, OpCallbacks call)}
-
-    \textit{Documentato esplicitamente:} stacca dal broker le istanze indicate, producendo
-    copie non gestite. Garantisce il valore di ritorno e specifica che vengono attraversati
-    solo i campi della \texttt{FetchConfiguration} corrente; per staccare un grafo di
-    oggetti collegati, le relazioni verso altre istanze persistenti devono trovarsi nel
-    \texttt{default-fetch-group} o nella \texttt{FetchConfiguration} personalizzata corrente.
-
-    \textit{Dedotto / documentato altrove:} tramite collegamento con il Javadoc di
-    \texttt{Broker.isDetached(Object obj)} si può affermare che ogni istanza restituita
-    soddisfa \texttt{isDetached(e)=true}. \texttt{Broker} espone altri due overload di
-    \texttt{detachAll}: rivelano un comportamento di flush automatico (sempre eseguito, o reso
-    opzionale) non presente nell'overload con collezione qui scelto.
-    Il tipo dichiarato (\texttt{Collection}) permette di partizionare anche
-    quanti elementi contiene la collezione, oltre a cosa può essere un singolo elemento. Il
-    parametro \texttt{call} è di tipo \texttt{OpCallbacks} (vedi \texttt{lock}). Come per
-    \texttt{lock}/\texttt{persist}, un singolo elemento della collezione è classificato tramite
-    \texttt{PCState}: \{non gestito\} (\texttt{TRANSIENT}) contro \{gestito\} (ogni altro stato,
-    non ulteriormente distinto poiché \texttt{detachAll} non documenta un effetto diverso tra
-    sotto-stati gestiti). Aggiunta anche una classe con elementi misti (un gestito e un non
-    gestito nella stessa collezione), per testare l'atomicità non documentata dell'operazione.
-
-    \textit{Riferimenti:} \texttt{Broker.java} (\texttt{detachAll} nei suoi 3 overload,
-    \texttt{isDetached(Object)}), \texttt{OpCallbacks.java}, \texttt{OpenJPAStateManager.java}
-    (\texttt{getPCState}), \texttt{PCState.java}.
-
-    \item\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}
-
-    \textit{Documentato esplicitamente:} importa nel broker le istanze indicate. Distingue
-    due comportamenti in base allo stato di ogni istanza: se precedentemente staccata da
-    questo o da un altro broker, le modifiche vengono unite (merge) nell'istanza persistente
-    esistente; se nuova, viene persistita come tale; \texttt{copyNew} controlla
-    esplicitamente questo secondo caso.
-
-    \textit{Dedotto / documentato altrove:} come per \texttt{detachAll}, il tipo
-    \texttt{Collection} permette di partizionare anche la cardinalità, oltre al contenuto di un
-    singolo elemento. Il parametro \texttt{call} è di tipo \texttt{OpCallbacks} (vedi
-    \texttt{lock}). A differenza di \texttt{detachAll}, qui \texttt{TRANSIENT} non è il caso non
-    valido: coincide col ramo documentato ``nuovo''. Il caso non valido è invece
-    \texttt{PCState.PDELETED} (``Persistent-Deleted''): un'istanza già marcata per cancellazione,
-    concettualmente incompatibile con un attach/merge, non coperta da nessuno dei due rami
-    documentati. Aggiunte anche due classi con elementi misti: validi di tipo diverso tra loro
-    (nuovo/detached/già gestito), e almeno un elemento non valido (stesso motivo atomicità già
-    usato per \texttt{detachAll}).
-
-    \textit{Riferimenti:} \texttt{Broker.java} (\texttt{attachAll}), \texttt{OpCallbacks.java},
-    \texttt{OpenJPAStateManager.java} (\texttt{getPCState}), \texttt{PCState.java}.
-
-    \item\texttt{newInstance(Class cls)}
-
-    \textit{Documentato esplicitamente:} crea una nuova istanza di tipo \texttt{cls}.
-    Documenta due esiti: se \texttt{cls} è un'interfaccia o una classe astratta con metodi
-    conformi alla convenzione JavaBeans, ne genera un'implementazione concreta dai metadati;
-    se \texttt{cls} è già un tipo managed concreto, ne restituisce direttamente un'istanza;
-    altrimenti lancia \texttt{IllegalArgumentException}.
-
-    \textit{Riferimenti:} \texttt{Broker.java} (\texttt{newInstance}).
-
-    \item\texttt{isDetached(Object obj, boolean find)}
-
-    \textit{Documentato esplicitamente:} verifica se l'oggetto fornito è staccato. Se
-    \texttt{find=true}, come ultima risorsa verifica anche l'esistenza dell'oggetto nel
-    database, considerandolo staccato se presente. Il Javadoc non descrive esplicitamente
-    il comportamento per \texttt{find=false}.
-
-    \textit{Dedotto / documentato altrove:} \texttt{Broker} dichiara un overload a
-    un solo parametro, \texttt{isDetached(Object obj)}, il cui Javadoc definisce
-    esplicitamente cosa significhi ``detached'': un'istanza ``che può
-    essere riagganciata a un Broker tramite una chiamata a \texttt{Broker\#attach}''.
-    A differenza di \texttt{lock}/\texttt{detachAll}/\texttt{persist}/\texttt{attachAll} (dove
-    \texttt{OpenJPAStateManager} è raggiungibile tramite \texttt{OpCallbacks.processArgument}),
-    \texttt{isDetached} non ha un parametro \texttt{OpCallbacks}: \texttt{obj} gestito/non
-    gestito è definito invece tramite \texttt{StoreContext.getStateManager(Object obj)} (estesa
-    direttamente da \texttt{Broker}), il cui Javadoc dichiara un'eccezione se \texttt{obj}
-    ``is not a managed type''. ``Detached'' non è uno dei 23 stati di \texttt{PCState}
-    (verificato) e non è una classe di \texttt{obj} costruibile a sé: emerge
-    dalla combinazione \texttt{obj} non gestito + identità presente nel datastore (il controllo
-    ``last resort'' descritto per \texttt{find=true}), coerentemente con la definizione di
-    ``detached'' data sopra (dati realmente persistiti, riagganciabili) piuttosto che un'azione
-    di distacco eseguita dal metodo.
-
-    \textit{Riferimenti:} \texttt{BrokerImpl.java} (\texttt{isDetached} a 2 parametri),
-    \texttt{Broker.java} (\texttt{isDetached} a 1 parametro),
-    \texttt{StoreContext.java} (\texttt{getStateManager}), \texttt{PCState.java}.
-
-    \item\texttt{persist(Object pc, Object id, OpCallbacks call)}
-
-    \textit{Documentato esplicitamente:} rende persistente l'istanza data; il \texttt{@return}
-    documenta che restituisce lo state manager assegnato alla nuova istanza. Documenta
-    \texttt{id} come opzionale (\texttt{null} assegna un identificativo di default) e
-    chiarisce che, a differenza di altre operazioni di persist, questo metodo non effettua
-    cascata immediata sui campi marcati \texttt{CASCADE\_IMMEDIATE}.
-
-    \textit{Dedotto / documentato altrove:} \texttt{Broker} espone anche
-    \texttt{persist(Object, OpCallbacks)} (Javadoc di una riga, nessuna postcondizione utile) e
-    \texttt{persistAll}. \texttt{ValueMetaData}
-    documenta un terzo valore di cascata oltre a \texttt{CASCADE\_NONE}/
-    \texttt{CASCADE\_IMMEDIATE} (\texttt{CASCADE\_AUTO}), e chiarisce che
-    \texttt{CASCADE\_NONE} genera un errore se una relazione transiente è ancora presente al
-    momento del flush: possibile scenario di eccezione.
-    Il parametro \texttt{call} è di tipo
-    \texttt{OpCallbacks} (vedi \texttt{lock}). Come per \texttt{lock}, \texttt{pc} è definito
-    tramite \texttt{PCState}/\texttt{getPCState()}: qui però il caso documentato dal Javadoc è
-    quello opposto, un'istanza \texttt{TRANSIENT} (``unmanaged instance'') che diventa
-    persistente; il caso di un \texttt{pc} già gestito (\texttt{PNEW}/\texttt{PCLEAN}/
-    \texttt{PDIRTY}/\texttt{HOLLOW}) non ha alcun riscontro testuale.
-
-    \textit{Riferimenti:} \texttt{Broker.java} (\texttt{persist} nei suoi 3 overload),
-    \texttt{ValueMetaData.java} (\texttt{CASCADE\_*}), \texttt{OpCallbacks.java},
-    \texttt{OpenJPAStateManager.java} (\texttt{getPCState}), \texttt{PCState.java}.
-\end{itemize}
+\bigskip
+\textbf{\texttt{persist(Object pc, Object id, OpCallbacks call)}}\\[6pt]
+Rende persistente l'istanza data, restituendo lo state manager assegnato; \texttt{id} è
+opzionale (\texttt{null} assegna un identificativo di default); non effettua cascata immediata
+sui campi marcati \texttt{CASCADE\_IMMEDIATE}. Il parametro \texttt{call} è \texttt{OpCallbacks}.
 
 \subsection{LoginDialog}
 

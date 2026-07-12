@@ -637,7 +637,7 @@ public class LockTest {
             case ZERO:
                 return 0;
             case POSITIVE:
-                return 1000;
+                return 1;
             default:
                 throw new IllegalStateException();
         }

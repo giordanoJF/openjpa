@@ -1,0 +1,39 @@
+pc,id,cascade,call,processArgument,fonte_oracolo,oracolo,nota
+null,null,--,null,--,osservazione,persist ritorna null,"corretto: pc==null ritorna null direttamente, nessuna eccezione lanciata"
+null,null,--,non null,azione,osservazione,persist ritorna null,"corretto: pc==null ritorna null prima di consultare call, indipendentemente dal codice azione"
+null,null,--,non null,eccezione,osservazione,persist ritorna null,"corretto: pc==null ritorna null prima di invocare processArgument, l'eccezione non viene mai lanciata"
+null,non null,--,null,--,osservazione,persist ritorna null,"corretto: pc==null ritorna null direttamente, nessuna eccezione lanciata"
+null,non null,--,non null,azione,osservazione,persist ritorna null,"corretto: pc==null ritorna null prima di consultare call, indipendentemente dal codice azione"
+null,non null,--,non null,eccezione,osservazione,persist ritorna null,"corretto: pc==null ritorna null prima di invocare processArgument, l'eccezione non viene mai lanciata"
+non gestito,null,presente,null,--,diretto,"state manager non-null, id di default assegnato; istanza correlata (CASCADE_IMMEDIATE) non cascata, resta non gestita","istanza non gestita: comportamento descritto direttamente in persist(), id di default; niente cascata immediata, documentato esplicitamente in persist()"
+non gestito,null,presente,non null,azione,osservazione,persist ritorna null,"corretto: con ACT_NONE, persistInternal ritorna lo state manager corrente prima di crearne uno nuovo; per un'istanza non gestita lo state manager corrente e' null"
+non gestito,null,presente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+non gestito,null,assente,null,--,diretto,"state manager non-null, id di default assegnato","istanza non gestita: comportamento descritto direttamente in persist(), id di default"
+non gestito,null,assente,non null,azione,osservazione,persist ritorna null,"corretto: con ACT_NONE, persistInternal ritorna lo state manager corrente prima di crearne uno nuovo; per un'istanza non gestita lo state manager corrente e' null"
+non gestito,null,assente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+non gestito,non null,presente,null,--,diretto,"state manager non-null, con l'id specificato assegnato; istanza correlata (CASCADE_IMMEDIATE) non cascata, resta non gestita","istanza non gestita: comportamento descritto direttamente in persist(), id specificato usato; niente cascata immediata, documentato esplicitamente in persist()"
+non gestito,non null,presente,non null,azione,osservazione,persist ritorna null,"corretto: con ACT_NONE, persistInternal ritorna lo state manager corrente prima di crearne uno nuovo; per un'istanza non gestita lo state manager corrente e' null"
+non gestito,non null,presente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+non gestito,non null,assente,null,--,diretto,"state manager non-null, con l'id specificato assegnato","istanza non gestita: comportamento descritto direttamente in persist(), id specificato usato"
+non gestito,non null,assente,non null,azione,osservazione,persist ritorna null,"corretto: con ACT_NONE, persistInternal ritorna lo state manager corrente prima di crearne uno nuovo; per un'istanza non gestita lo state manager corrente e' null"
+non gestito,non null,assente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+gestito,null,presente,null,--,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato","gia' gestito: nessuna fonte lo documenta, si assume un no-op (id non applicabile a un'istanza che ne ha gia' una)"
+gestito,null,presente,non null,azione,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato",il codice azione non ha effetto noto: il risultato non cambia
+gestito,null,presente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+gestito,null,assente,null,--,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato","gia' gestito: nessuna fonte lo documenta, si assume un no-op (id non applicabile a un'istanza che ne ha gia' una)"
+gestito,null,assente,non null,azione,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato",il codice azione non ha effetto noto: il risultato non cambia
+gestito,null,assente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+gestito,non null,presente,null,--,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato","gia' gestito: nessuna fonte lo documenta, si assume un no-op (id non applicabile a un'istanza che ne ha gia' una)"
+gestito,non null,presente,non null,azione,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato",il codice azione non ha effetto noto: il risultato non cambia
+gestito,non null,presente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+gestito,non null,assente,null,--,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato","gia' gestito: nessuna fonte lo documenta, si assume un no-op (id non applicabile a un'istanza che ne ha gia' una)"
+gestito,non null,assente,non null,azione,ipotesi,"nessuna modifica: pc resta quello gia' gestito, id ignorato",il codice azione non ha effetto noto: il risultato non cambia
+gestito,non null,assente,non null,eccezione,inferenza,eccezione propagata da persist,l'eccezione di processArgument si propaga
+non gestito,null,presente,non null,azione(ACT_CASCADE),osservazione,persist ritorna null,"approfondimento azione: ACT_CASCADE coincide con ACT_NONE, resta null"
+non gestito,null,presente,non null,azione(ACT_RUN),osservazione,"state manager non-null, id di default assegnato","approfondimento azione: solo ACT_RUN crea davvero lo state manager e rende persistente l'istanza"
+non gestito,null,assente,non null,azione(ACT_CASCADE),osservazione,persist ritorna null,"approfondimento azione: ACT_CASCADE coincide con ACT_NONE, resta null"
+non gestito,null,assente,non null,azione(ACT_RUN),osservazione,"state manager non-null, id di default assegnato","approfondimento azione: solo ACT_RUN crea davvero lo state manager e rende persistente l'istanza"
+non gestito,non null,presente,non null,azione(ACT_CASCADE),osservazione,persist ritorna null,"approfondimento azione: ACT_CASCADE coincide con ACT_NONE, resta null"
+non gestito,non null,presente,non null,azione(ACT_RUN),osservazione,"state manager non-null, con l'id specificato assegnato","approfondimento azione: solo ACT_RUN crea davvero lo state manager e rende persistente l'istanza"
+non gestito,non null,assente,non null,azione(ACT_CASCADE),osservazione,persist ritorna null,"approfondimento azione: ACT_CASCADE coincide con ACT_NONE, resta null"
+non gestito,non null,assente,non null,azione(ACT_RUN),osservazione,"state manager non-null, con l'id specificato assegnato","approfondimento azione: solo ACT_RUN crea davvero lo state manager e rende persistente l'istanza"

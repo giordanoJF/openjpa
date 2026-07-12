@@ -2,26 +2,17 @@
 
 \begin{table}[H]
 \centering
-\begin{tabularx}{\textwidth}{p{0.36\textwidth} l X}
+\begin{tabularx}{\textwidth}{X l}
 \toprule
-Metodo & Interfaccia / classe & Perché scelto \\
+Metodo & Interfaccia / classe \\
 \midrule
-\texttt{find(Object oid, boolean validate, FindCallbacks call)} & \texttt{StoreContext} &
-3 parametri + 2 collaboratori (cache/store), oracolo a 3 rami documentati \\
-\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)} & \texttt{Broker} &
-4 parametri, il più ampio spazio di combinazioni tra i selezionati \\
-\texttt{detachAll(Collection objs, OpCallbacks call)} & \texttt{Broker} &
-unico overload con parametro di input (\texttt{objs}) e valore di ritorno, a differenza dei
-fratelli \texttt{void} \\
-\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)} & \texttt{Broker} &
-doppio ramo documentato + parametro \texttt{copyNew}, controparte naturale di
-\texttt{detachAll} \\
-\texttt{newInstance(Class cls)} & \texttt{Broker} &
-oracolo doppio ben documentato nonostante un solo parametro \\
-\texttt{isDetached(Object obj, boolean find)} & \texttt{BrokerImpl} &
-overload con una dimensione (\texttt{find}) assente nel gemello a un parametro \\
-\texttt{persist(Object pc, Object id, OpCallbacks call)} & \texttt{Broker} &
-\texttt{id} esplicitamente nullable con comportamento di default documentato \\
+\texttt{find(Object oid, boolean validate, FindCallbacks call)} & \texttt{StoreContext} \\
+\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{detachAll(Collection objs, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)} & \texttt{Broker} \\
+\texttt{newInstance(Class cls)} & \texttt{Broker} \\
+\texttt{isDetached(Object obj, boolean find)} & \texttt{BrokerImpl} \\
+\texttt{persist(Object pc, Object id, OpCallbacks call)} & \texttt{Broker} \\
 \bottomrule
 \end{tabularx}
 \caption{Metodi di \texttt{BrokerImpl} selezionati per Category Partition.}
@@ -166,12 +157,8 @@ Parametro & Classi di equivalenza (corrette) \\
 \bottomrule
 \end{tabularx}
 \caption{Classi di equivalenza corrette per \texttt{attachAll(Collection objs, boolean copyNew,
-OpCallbacks call)} (confronto con Tabella~\ref{tab:attachall-classi}). * \{all attached\} non è
-una classe di comportamento distinta da \{all new\}: nessun ramo del codice tratta un'istanza
-già gestita come caso a sé, viene elaborata dallo stesso percorso di \{all new\}. **
-\texttt{ACT\_CASCADE} si separa da \texttt{ACT\_NONE}: entrambi lasciano l'elemento invariato,
-ma solo \texttt{ACT\_CASCADE} tenta il cascade sui campi correlati, sollevando un'eccezione
-quando l'elemento non ha ancora uno StateManager (\{all new\}, \{all old\}). Richiede
+OpCallbacks call)} (confronto con Tabella~\ref{tab:attachall-classi}). * \{all attached\} resta
+una classe distinta, ma il suo oracolo osservato coincide con quello di \{all new\}. ** richiede
 \texttt{call} non null.}
 \label{tab:attachall-classi-corrette}
 \end{table}
@@ -224,6 +211,27 @@ Parametro & Classi di equivalenza \\
 \caption{Classi di equivalenza per \texttt{persist(Object pc, Object id, OpCallbacks call)}.
 * non si applica per \texttt{pc}=\{null\}. ** richiede \texttt{call} non null.}
 \label{tab:persist-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza (corrette) \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito\} \\
+\texttt{id} & \{null\} -- \{non null\} \\
+\texttt{cascade}* & \{presente\} -- \{assente\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}** & \{ritorna \texttt{ACT\_RUN}\} -- \{ritorna \texttt{ACT\_NONE}/
+\texttt{ACT\_CASCADE}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza corrette per \texttt{persist(Object pc, Object id, OpCallbacks
+call)} (confronto con Tabella~\ref{tab:persist-classi}). * non si applica per \texttt{pc}=\{null\}.
+** richiede \texttt{call} non null.}
+\label{tab:persist-classi-corrette}
 \end{table}
 
 % Tabelle esaustive combinazioni+oracolo, tutte in lavorazione come CSV, da inserire
