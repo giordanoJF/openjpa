@@ -3,43 +3,21 @@
 \label{sec:randoop}
 % ============================================================
 
-Randoop genera sequenze casuali di chiamate ai metodi pubblici della classe indicata e le esegue,
-classificando ogni sequenza come test di regressione (nessuna eccezione, il comportamento
-osservato viene cristallizzato in un'asserzione) o come test error-revealing (un'eccezione non
-attesa, sintomo di una violazione di contratto Java).
+Randoop genera sequenze casuali di chiamate ai metodi pubblici della classe indicata,
+classificando ogni sequenza come test di regressione (comportamento osservato cristallizzato in
+un'asserzione) o error-revealing (eccezione non attesa).
 
 \subsection{BrokerImpl}
 
-Il jar di Randoop è stato scaricato da GitHub (versione 4.3.3).
-
-È stato compilato \texttt{openjpa-kernel} per avere i riferimenti su cui lavora Randoop:
+Versione 4.3.3 (jar scaricato da GitHub).
+La generazione con un tentativo esplorativo senza limiti sull'output aveva prodotto
+quasi 1800 sequenze, troppe da osservare concretamente; la generazione definitiva usa quindi
+\texttt{--output-limit=100}:
 
 \begin{lstlisting}
 mvn -pl openjpa-kernel -am compile
-\end{lstlisting}
+mvn -pl openjpa-kernel dependency:build-classpath -Dmdep.outputFile=kernel-cp.txt
 
-È stato estratto il classpath delle dipendenze del modulo, necessario per eseguire Randoop
-insieme al codice appena compilato:
-
-\begin{lstlisting}
-mvn -pl openjpa-kernel dependency:build-classpath \
-  -Dmdep.outputFile=kernel-cp.txt
-\end{lstlisting}
-
-Il classpath da passare a Randoop è la concatenazione di \texttt{openjpa-kernel/target/classes}
-con il contenuto di \texttt{kernel-cp.txt}.
-
-È stato eseguito un primo tentativo esplorativo, con un limite di tempo di 30 secondi e nessun
-limite sul numero di test, per capire quanti test genera Randoop senza vincoli sull'output: il
-risultato è stato quasi 1800 sequenze. Randoop nasce per essere uno strumento automatico, quindi
-di per sé non richiede una revisione manuale dell'output generato; in questo contesto ipotizzo però
-ragionevole voler osservare concretamente i risultati
-prodotti, cosa che con quasi 1800 sequenze diventa impraticabile. Per questo la generazione
-definitiva usa \texttt{--output-limit=100}.
-
-È stata lanciata la generazione definitiva su \texttt{BrokerImpl}:
-
-\begin{lstlisting}
 java -Xmx3000m -cp tools/randoop-all-4.3.3.jar:openjpa-kernel/target/classes:<contenuto-di-kernel-cp.txt> \
   randoop.main.Main gentests \
   --testclass=org.apache.openjpa.kernel.BrokerImpl \
@@ -47,31 +25,20 @@ java -Xmx3000m -cp tools/randoop-all-4.3.3.jar:openjpa-kernel/target/classes:<co
   --junit-output-dir=report/data/randoop-brokerimpl
 \end{lstlisting}
 
-L'esecuzione produce 101 sequenze in totale (162 tentativi):
-12 classificate error-revealing, scritte in \texttt{ErrorTest0.java}; delle restanti, 88
-candidate come regressione, 61 diventano il file finale \texttt{RegressionTest0.java} dopo la
-selezione interna dello strumento. L'output completo stampato da Randoop durante questa
-esecuzione è salvato in \texttt{report/data/randoop-brokerimpl/randoop-log.txt}.
+101 sequenze generate: 12 error-revealing (\texttt{ErrorTest0.java}), 61 di regressione
+(\texttt{RegressionTest0.java}). Log completo in
+\texttt{report/data/randoop-brokerimpl/randoop-log.txt}.
 
-I due file generati si trovano fuori dal ciclo maven, quindi Maven/Surefire non
-li vede. Sono stati compilati ed eseguiti con gli
-strumenti del JDK direttamente:
+I due file sono stati copiati e rinominati in \texttt{openjpa-kernel/src/test/java/.../kernel/}, integrandoli
+nella build Maven standard. I 12 test error-revealing sono marcati \texttt{@Ignore}. L'integrazione ha
+richiesto tre correzioni: aggiunta dell'header di licenza Apache mancante, terminatori di riga normalizzati, e un'eccezione in
+\texttt{openjpa-project/suppressions.xml} per escludere questi file dal controllo Checkstyle sulla
+lunghezza delle righe.
 
-\begin{lstlisting}
-javac -cp openjpa-kernel/target/classes:<contenuto-di-kernel-cp.txt>:junit-4.13.2.jar \
-  -d <dir-output> RegressionTest0.java ErrorTest0.java
-
-java -cp <dir-output>:openjpa-kernel/target/classes:<contenuto-di-kernel-cp.txt>:junit-4.13.2.jar:hamcrest-core.jar \
-  org.junit.runner.JUnitCore RegressionTest0
-
-java -cp <dir-output>:openjpa-kernel/target/classes:<contenuto-di-kernel-cp.txt>:junit-4.13.2.jar:hamcrest-core.jar \
-  org.junit.runner.JUnitCore ErrorTest0
-\end{lstlisting}
-
-I 61 test di regressione passano tutti. I 12 error-revealing falliscono tutti con
-\texttt{NullPointerException}, con la stessa causa in ognuno: \texttt{new BrokerImpl()} lascia i
-campi \texttt{\_conf}, \texttt{\_transEventManager}, \texttt{\_lifeEventManager},
-\texttt{\_cache} e \texttt{\_log} a \texttt{null}, impostati solo da \texttt{initialize(...)}.
+I 61 test di regressione passano tutti. I 12 error-revealing (esclusi dall'esecuzione via
+\texttt{@Ignore}) documentano tutti una \texttt{NullPointerException} riconducibile alla stessa
+causa: \texttt{new BrokerImpl()} lascia diversi campi collaboratori a \texttt{null}
+(\texttt{\_conf}, \texttt{\_transEventManager}, \texttt{\_lifeEventManager}, \texttt{\_cache},
+\texttt{\_log} tra quelli coinvolti), impostati solo da \texttt{initialize(...)}.
 
 \subsection{LoginDialog}
-

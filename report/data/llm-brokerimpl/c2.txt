@@ -1,0 +1,278 @@
+Step 1: Method selection and rationale
+BrokerImpl is a 5,500-line god-class with heavy runtime dependencies
+(StoreManager, MetaDataRepository, configuration, transactions).
+Most methods need a fully initialize()-d broker to run safely, which
+would require mocking a huge dependency graph. I deliberately picked
+10 methods that are reachable and meaningfully testable without calling initialize()
+— because they either operate on plain fields, have documented input-normalization
+behavior, or fail in a specific, testable way (NPE) when the broker isn't wired up.
+This also let me surface a real bug.
+
+setAuthentication(String,String)
+First method called after construction per javadoc; simple state mutation but a natural contract to lock down.
+
+setConnectionFactoryName / getConnectionFactoryName
+Javadoc explicitly promises "trimmed to null before being stored" — a documented normalization contract worth verifying.
+
+setConnectionFactory2Name / getConnectionFactory2Name
+Same normalization contract, separate field/path (JTA vs non-JTA), easy to accidentally swap.
+
+getConnectionFactory()
+Branches on blank-name check before attempting a JNDI lookup; the "no name set" branch is deterministic and safe to test
+
+getConnectionFactory2()
+Mirrors #4 for the second connection factory; worth checking independently since it's a copy-pasted method (common bug source).
+
+setAutoDetach(int) / getAutoDetach()
+Contains real validation logic (assertAutoDetachValue) enforcing that DETACH_NONE is exclusive — a genuine business rule with an exception path.
+
+setDetachedNew(boolean) / isDetachedNew()
+Simple flag, but default value is true (unusual default) — worth pinning down explicitly.
+
+putUserObject / getUserObject
+Has real logic: lazy map init, and null value triggers removal rather than storing null — an easy-to-miss edge case.
+
+setCachePreparedQuery / getCachePreparedQuery
+Setter is trivial, but getter dereferences _conf — worth confirming it fails predictably (NPE) rather than silently misbehaving when broker isn't initialized.
+
+setCacheFinderQuery / getCacheFinderQuery
+Suspected bug: setCacheFinderQuery writes to _cachePreparedQuery instead of _cacheFinderQuery (copy-paste error, same pattern visible in setCacheFinderQuery's body). Worth a regression test either way.
+
+
+
+Step 2: Expected behavior + edge case per method
+
+setAuthentication — stores user/pass verbatim, retrievable via getConnectionUserName/getConnectionPassword. Edge case: null values should be stored as-is (no NPE).
+setConnectionFactoryName — trims whitespace; edge case: empty/blank string should normalize to null, not "".
+setConnectionFactory2Name — same as above, independent field. Edge case: null input stays null.
+getConnectionFactory — returns null when _connectionFactoryName is blank (default state). Edge case: default constructed broker (name "") must not attempt a JNDI lookup and must not throw.
+getConnectionFactory2 — same edge case as #4 for the second factory.
+setAutoDetach — valid bitmask combinations (e.g. DETACH_CLOSE | DETACH_COMMIT) are stored as-is. Edge case/exception: combining DETACH_NONE with any other flag must throw UserException.
+setDetachedNew — default is true; setting false flips it. Edge case: verify the default explicitly, since it's counter-intuitive.
+putUserObject/getUserObject — stores and returns arbitrary key/value pairs. Edge case: passing null as the value removes the key (per source), and reading an unset key returns null without throwing.
+setCachePreparedQuery/getCachePreparedQuery — setter always succeeds and updates the flag. Edge case/exception: getter throws NullPointerException on an uninitialized broker because it dereferences _conf.
+setCacheFinderQuery/getCacheFinderQuery — expected: setter should flip _cacheFinderQuery. Edge case (bug): it actually flips _cachePreparedQuery instead, leaving _cacheFinderQuery untouched — verified via reflection since the getter can't be called safely (same NPE as #9).
+
+
+The reasoning for steps 1 and 2 is above;
+the file below is the resulting test suite
+(16 @Test methods across the 10 chosen methods, well under the 20-test cap).
+
+
+One thing worth flagging: test #10 (testSetCacheFinderQueryActuallyMutatesCachePreparedQueryField) documents
+what looks like a genuine copy-paste bug in setCacheFinderQuery — it writes to _cachePreparedQuery
+instead of _cacheFinderQuery. You may want to fix the source rather than keep this as a permanent
+regression test.
+
+
+###Test START##
+package org.apache.openjpa.kernel;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+
+import org.apache.openjpa.util.UserException;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Unit tests for {@link BrokerImpl}.
+ *
+ * These tests deliberately avoid calling {@link BrokerImpl#initialize} because doing so
+ * requires a fully wired {@code AbstractBrokerFactory}/{@code DelegatingStoreManager}/
+ * {@code OpenJPAConfiguration} graph. Instead they exercise methods that are safe to call
+ * on a bare, uninitialized broker (plain field mutators, documented normalization
+ * behavior, and validation logic), plus the specific, deterministic failure mode
+ * (NullPointerException) that occurs when a method needs configuration that was never set.
+ */
+public class BrokerImplTest {
+
+    private BrokerImpl broker;
+
+    @Before
+    public void setUp() {
+        broker = new BrokerImpl();
+    }
+
+    /**
+     * Reads a private field via reflection since some fields under test have no
+     * corresponding public accessor that can be safely invoked without initialize().
+     */
+    private Object getPrivateField(String name) throws Exception {
+        Field f = BrokerImpl.class.getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(broker);
+    }
+
+    // ------------------------------------------------------------------
+    // 1. setAuthentication
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetAuthenticationStoresUserAndPassword() {
+        broker.setAuthentication("alice", "s3cr3t");
+        assertEquals("alice", broker.getConnectionUserName());
+        assertEquals("s3cr3t", broker.getConnectionPassword());
+    }
+
+    @Test
+    public void testSetAuthenticationAllowsNullValues() {
+        broker.setAuthentication(null, null);
+        assertNull(broker.getConnectionUserName());
+        assertNull(broker.getConnectionPassword());
+    }
+
+    // ------------------------------------------------------------------
+    // 2. setConnectionFactoryName / getConnectionFactoryName
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetConnectionFactoryNameTrimsWhitespace() {
+        broker.setConnectionFactoryName("  jndi/MyFactory  ");
+        assertEquals("jndi/MyFactory", broker.getConnectionFactoryName());
+    }
+
+    @Test
+    public void testSetConnectionFactoryNameBlankBecomesNull() {
+        broker.setConnectionFactoryName("   ");
+        assertNull(broker.getConnectionFactoryName());
+    }
+
+    // ------------------------------------------------------------------
+    // 3. setConnectionFactory2Name / getConnectionFactory2Name
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetConnectionFactory2NameTrimsAndStores() {
+        broker.setConnectionFactory2Name("  jndi/Factory2  ");
+        assertEquals("jndi/Factory2", broker.getConnectionFactory2Name());
+    }
+
+    @Test
+    public void testSetConnectionFactory2NameNullStaysNull() {
+        broker.setConnectionFactory2Name(null);
+        assertNull(broker.getConnectionFactory2Name());
+    }
+
+    // ------------------------------------------------------------------
+    // 4. getConnectionFactory
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testGetConnectionFactoryReturnsNullWhenNameBlank() {
+        // default state: _connectionFactoryName == ""
+        assertNull(broker.getConnectionFactory());
+    }
+
+    // ------------------------------------------------------------------
+    // 5. getConnectionFactory2
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testGetConnectionFactory2ReturnsNullWhenNameBlank() {
+        // default state: _connectionFactory2Name == ""
+        assertNull(broker.getConnectionFactory2());
+    }
+
+    // ------------------------------------------------------------------
+    // 6. setAutoDetach / getAutoDetach
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetAutoDetachStoresValidCombination() {
+        int flags = AutoDetach.DETACH_CLOSE | AutoDetach.DETACH_COMMIT;
+        broker.setAutoDetach(flags);
+        assertEquals(flags, broker.getAutoDetach());
+    }
+
+    @Test(expected = UserException.class)
+    public void testSetAutoDetachNoneCombinedWithOtherFlagThrows() {
+        broker.setAutoDetach(AutoDetach.DETACH_NONE | AutoDetach.DETACH_CLOSE);
+    }
+
+    // ------------------------------------------------------------------
+    // 7. setDetachedNew / isDetachedNew
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testIsDetachedNewDefaultsToTrue() {
+        assertTrue(broker.isDetachedNew());
+    }
+
+    @Test
+    public void testSetDetachedNewFalseUpdatesFlag() {
+        broker.setDetachedNew(false);
+        assertFalse(broker.isDetachedNew());
+    }
+
+    // ------------------------------------------------------------------
+    // 8. putUserObject / getUserObject
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testPutUserObjectStoresAndRetrievesValue() {
+        Object previous = broker.putUserObject("key1", "value1");
+        assertNull(previous);
+        assertEquals("value1", broker.getUserObject("key1"));
+    }
+
+    @Test
+    public void testPutUserObjectNullValueRemovesKey() {
+        broker.putUserObject("key2", "value2");
+        Object removed = broker.putUserObject("key2", null);
+        assertEquals("value2", removed);
+        assertNull(broker.getUserObject("key2"));
+    }
+
+    @Test
+    public void testGetUserObjectReturnsNullWhenNeverSet() {
+        assertNull(broker.getUserObject("neverSet"));
+    }
+
+    // ------------------------------------------------------------------
+    // 9. setCachePreparedQuery / getCachePreparedQuery
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetCachePreparedQueryUpdatesField() throws Exception {
+        broker.setCachePreparedQuery(false);
+        assertEquals(Boolean.FALSE, getPrivateField("_cachePreparedQuery"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetCachePreparedQueryThrowsWithoutConfiguration() {
+        // _conf is null because initialize() was never called.
+        broker.getCachePreparedQuery();
+    }
+
+    // ------------------------------------------------------------------
+    // 10. setCacheFinderQuery / getCacheFinderQuery
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetCacheFinderQueryActuallyMutatesCachePreparedQueryField() throws Exception {
+        // Documents existing (buggy) behavior: setCacheFinderQuery(false) writes to
+        // _cachePreparedQuery instead of _cacheFinderQuery. If this test starts
+        // failing because _cacheFinderQuery changed to false, the underlying bug
+        // has likely been fixed and this test (and the production code) should be
+        // revisited together.
+        broker.setCacheFinderQuery(false);
+
+        assertEquals("expected the (buggy) setter to leave _cacheFinderQuery untouched",
+            Boolean.TRUE, getPrivateField("_cacheFinderQuery"));
+        assertEquals("expected the (buggy) setter to have overwritten _cachePreparedQuery",
+            Boolean.FALSE, getPrivateField("_cachePreparedQuery"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetCacheFinderQueryThrowsWithoutConfiguration() {
+        // _conf is null because initialize() was never called.
+        broker.getCacheFinderQuery();
+    }
+}
+###Test END##

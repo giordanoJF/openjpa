@@ -12,4 +12,6 @@
 	<suppress checks="RegexpSinglelineJava" files="Main.java" />
 	<suppress checks=".*" files=".*generated-sources.*[.]java" />
 	<suppress checks=".*" files=".*_[.]java" />
+	<suppress checks=".*" files=".*Randoop(Regression|Error)Test[.]java" />
+	<suppress checks=".*" files=".*BrokerImplLlm.*Test[.]java" />
 </suppressions>

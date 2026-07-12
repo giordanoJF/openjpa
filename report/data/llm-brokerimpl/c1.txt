@@ -1,0 +1,297 @@
+Step 1 & 2: Method Selection and Analysis
+I reviewed the ~5,500-line BrokerImpl class. Most public methods depend
+on a fully-initialized broker (_conf, _store, _repo, active transactions,
+etc.), which would require heavy mocking of internal OpenJPA infrastructure.
+I deliberately chose methods that are testable against a plain new BrokerImpl()
+(no initialize() call), since assertOpen() only checks the _closed flag (false by default)
+rather than requiring a real store/config. This keeps the tests self-contained while still
+exercising real logic, validation, and — notably — two apparent bugs in the class.
+
+setAuthentication(String,String) + getConnectionUserName()/getConnectionPassword()
+
+Simplest state-setting method; first thing called after construction per its own Javadoc.
+
+
+setConnectionFactoryName(String) + getConnectionFactoryName()
+
+Uses StringUtil.trimToNull, a non-trivial transformation worth verifying.
+
+
+setConnectionFactory2Name(String) + getConnectionFactory2Name()
+
+Mirrors #2 for the "NonJTA" factory; same trimming logic, separate field — worth independent
+verification since it's easy to copy-paste a bug between the two.
+
+
+getConnectionFactory()
+
+Guards against blank name before attempting a JNDI lookup via Configurations.lookup.
+
+
+setAutoDetach(int) + getAutoDetach()
+
+Contains real validation logic (assertAutoDetachValue) — a private helper only reachable through this public method.
+
+
+setMultithreaded(boolean) + getMultithreaded()
+
+Has a side effect beyond the field assignment: it allocates/releases an internal ReentrantLock.
+
+
+setRetainState(boolean) + getRetainState()
+
+Representative of the many simple boolean flag setters; verifies default value and pass-through
+
+
+setSuppressBatchOLELogging(boolean) + getSuppressBatchOLELogging()
+
+Javadoc explicitly claims "Defaults to true" but the field is declared = false. This is a documentation/implementation mismatch worth catching.
+
+
+getCachePreparedQuery() + setCachePreparedQuery(boolean)
+
+_cachePreparedQuery defaults to true, and the getter unconditionally dereferences _conf.getQuerySQLCacheInstance() when true. On an uninitialized broker _conf is null.
+
+
+setCacheFinderQuery(boolean) + getCacheFinderQuery()
+
+Inspecting the source reveals setCacheFinderQuery erroneously assigns to _cachePreparedQuery instead of _cacheFinderQuery — a real bug.
+
+
+
+
+
+A couple of things worth flagging: this test suite deliberately avoids
+calling initialize(...) on the broker, since doing so realistically would
+require mocking StoreManager, OpenJPAConfiguration, MetaDataRepository,
+etc. — a much larger effort. It also surfaces two real defects in the
+class as it stands: getSuppressBatchOLELogging()'s actual default (false)
+contradicts its own Javadoc ("Defaults to true"), and setCacheFinderQuery(boolean)
+mistakenly writes to _cachePreparedQuery instead of _cacheFinderQuery.
+Both are captured as passing tests that document current (buggy) behavior
+rather than the intended behavior — worth raising with whoever owns this code.
+
+
+###Test START##
+package org.apache.openjpa.kernel;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.apache.openjpa.util.UserException;
+import org.junit.Before;
+import org.junit.Test;
+
+/**
+ * Unit tests for {@link BrokerImpl}.
+ *
+ * These tests exercise BrokerImpl instances that have NOT been through
+ * initialize(...) (i.e. no real StoreManager / OpenJPAConfiguration is
+ * wired up). This is intentional: the methods under test only touch
+ * fields that are safe to access pre-initialization (assertOpen() only
+ * checks the _closed flag, which is false on a fresh instance). Methods
+ * that require a fully initialized broker (persist, find, commit, etc.)
+ * are out of scope for these tests.
+ */
+public class BrokerImplTest {
+
+    private BrokerImpl broker;
+
+    @Before
+    public void setUp() {
+        broker = new BrokerImpl();
+    }
+
+    // ------------------------------------------------------------------
+    // 1. setAuthentication / getConnectionUserName / getConnectionPassword
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetAuthentication_storesUserAndPassword() {
+        broker.setAuthentication("scott", "tiger");
+        assertEquals("scott", broker.getConnectionUserName());
+        assertEquals("tiger", broker.getConnectionPassword());
+    }
+
+    @Test
+    public void testSetAuthentication_nullValuesDoNotThrow() {
+        broker.setAuthentication(null, null);
+        assertNull(broker.getConnectionUserName());
+        assertNull(broker.getConnectionPassword());
+    }
+
+    // ------------------------------------------------------------------
+    // 2. setConnectionFactoryName / getConnectionFactoryName
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetConnectionFactoryName_storesNonBlankValue() {
+        broker.setConnectionFactoryName("jdbc/MyDS");
+        assertEquals("jdbc/MyDS", broker.getConnectionFactoryName());
+    }
+
+    @Test
+    public void testSetConnectionFactoryName_blankStringBecomesNull() {
+        broker.setConnectionFactoryName("   ");
+        assertNull(broker.getConnectionFactoryName());
+    }
+
+    // ------------------------------------------------------------------
+    // 3. setConnectionFactory2Name / getConnectionFactory2Name
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetConnectionFactory2Name_storesNonBlankValue() {
+        broker.setConnectionFactory2Name("jdbc/MyDS2");
+        assertEquals("jdbc/MyDS2", broker.getConnectionFactory2Name());
+    }
+
+    @Test
+    public void testSetConnectionFactory2Name_blankStringBecomesNull() {
+        broker.setConnectionFactory2Name("");
+        assertNull(broker.getConnectionFactory2Name());
+    }
+
+    // ------------------------------------------------------------------
+    // 4. getConnectionFactory
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testGetConnectionFactory_returnsNullWhenNameBlank() {
+        // Default _connectionFactoryName is "" -> isNotBlank is false,
+        // so no JNDI lookup should be attempted and null is returned.
+        assertNull(broker.getConnectionFactory());
+    }
+
+    // ------------------------------------------------------------------
+    // 5. setAutoDetach / getAutoDetach
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetAutoDetach_validSingleFlagIsStored() {
+        broker.setAutoDetach(AutoDetach.DETACH_CLOSE);
+        assertEquals(AutoDetach.DETACH_CLOSE, broker.getAutoDetach());
+    }
+
+    @Test(expected = UserException.class)
+    public void testSetAutoDetach_detachNoneCombinedWithOtherFlagThrows() {
+        // DETACH_NONE must be exclusive; combining it with another flag
+        // should trigger assertAutoDetachValue's validation failure.
+        broker.setAutoDetach(AutoDetach.DETACH_NONE | AutoDetach.DETACH_CLOSE);
+    }
+
+    // ------------------------------------------------------------------
+    // 6. setMultithreaded / getMultithreaded
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testSetMultithreaded_togglesFlagCorrectly() {
+        assertFalse(broker.getMultithreaded());
+        broker.setMultithreaded(true);
+        assertTrue(broker.getMultithreaded());
+        broker.setMultithreaded(false);
+        assertFalse(broker.getMultithreaded());
+    }
+
+    @Test
+    public void testSetMultithreaded_repeatedTogglingDoesNotThrow() {
+        try {
+            broker.setMultithreaded(true);
+            broker.setMultithreaded(false);
+            broker.setMultithreaded(true);
+            broker.setMultithreaded(true);
+            broker.setMultithreaded(false);
+        } catch (Exception e) {
+            fail("Toggling multithreaded flag repeatedly should not throw: " + e);
+        }
+        assertFalse(broker.getMultithreaded());
+    }
+
+    // ------------------------------------------------------------------
+    // 7. setRetainState / getRetainState
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testGetRetainState_defaultsToFalse() {
+        assertFalse(broker.getRetainState());
+    }
+
+    @Test
+    public void testSetRetainState_roundTrip() {
+        broker.setRetainState(true);
+        assertTrue(broker.getRetainState());
+        broker.setRetainState(false);
+        assertFalse(broker.getRetainState());
+    }
+
+    // ------------------------------------------------------------------
+    // 8. setSuppressBatchOLELogging / getSuppressBatchOLELogging
+    // ------------------------------------------------------------------
+
+    @Test
+    public void testGetSuppressBatchOLELogging_defaultIsFalse() {
+        // NOTE: the method's Javadoc claims "Defaults to true", but the
+        // backing field _suppressBatchOLELogging is declared as false.
+        // This test documents the actual (buggy/undocumented) behavior.
+        assertFalse(broker.getSuppressBatchOLELogging());
+    }
+
+    @Test
+    public void testSetSuppressBatchOLELogging_roundTrip() {
+        broker.setSuppressBatchOLELogging(true);
+        assertTrue(broker.getSuppressBatchOLELogging());
+        broker.setSuppressBatchOLELogging(false);
+        assertFalse(broker.getSuppressBatchOLELogging());
+    }
+
+    // ------------------------------------------------------------------
+    // 9. getCachePreparedQuery / setCachePreparedQuery
+    // ------------------------------------------------------------------
+
+    @Test(expected = NullPointerException.class)
+    public void testGetCachePreparedQuery_defaultStateThrowsNPE() {
+        // _cachePreparedQuery defaults to true, and the getter
+        // unconditionally dereferences _conf.getQuerySQLCacheInstance()
+        // when true. On an uninitialized broker _conf is null.
+        broker.getCachePreparedQuery();
+    }
+
+    @Test
+    public void testSetCachePreparedQuery_falseAvoidsConfDereference() {
+        // When the flag is false, "&&" short-circuits before touching
+        // the null _conf, so this should return false without throwing.
+        broker.setCachePreparedQuery(false);
+        assertFalse(broker.getCachePreparedQuery());
+    }
+
+    // ------------------------------------------------------------------
+    // 10. setCacheFinderQuery / getCacheFinderQuery (documents a bug)
+    // ------------------------------------------------------------------
+
+    @Test(expected = NullPointerException.class)
+    public void testSetCacheFinderQuery_bugDoesNotPreventNPE() {
+        // BUG: setCacheFinderQuery(flag) mistakenly assigns to
+        // _cachePreparedQuery instead of _cacheFinderQuery. As a result,
+        // _cacheFinderQuery remains at its default value of true, and
+        // getCacheFinderQuery() still dereferences the null _conf,
+        // throwing NPE even after "disabling" the flag.
+        broker.setCacheFinderQuery(false);
+        broker.getCacheFinderQuery();
+    }
+
+    @Test
+    public void testSetCacheFinderQuery_bugActuallyMutatesCachePreparedQuery() {
+        // Demonstrates the side effect of the bug described above:
+        // calling setCacheFinderQuery(false) actually flips
+        // _cachePreparedQuery to false, which is observable via
+        // getCachePreparedQuery() (short-circuits before the null _conf).
+        broker.setCacheFinderQuery(false);
+        assertFalse(broker.getCachePreparedQuery());
+    }
+}
+###Test END##
+
+
