@@ -1,0 +1,27 @@
+% ============================================================
+\section{Adeguatezza}
+\label{sec:adeguatezza}
+% ============================================================
+
+Due metriche di adeguatezza, entrambe misurate con JaCoCo: branch decision coverage e statement
+coverage (nell'output di JaCoCo quest'ultima è riportata per riga, colonna \texttt{LINE}).
+
+\subsection{BrokerImpl}
+
+Valori calcolati sull'insieme di test Maven (BB, Randoop, LLM;
+\hyperref[cmd:jacoco-brokerimpl]{Appendice}): branch decision coverage 17,69\% (253/1430),
+statement coverage 27,07\% (680/2512). Il divario di quasi 10 punti conferma la gerarchia: molte
+istruzioni vengono eseguite senza che siano stati esercitati entrambi i rami di ogni decisione al
+loro interno.
+
+\texttt{BrokerImpl} è una classe di 5510 righe e circa 250 metodi pubblici o protetti: nessuna
+delle suite ha mai avuto l'obiettivo di coprirla per intero. La suite BB copre per progettazione
+solo i 7 metodi selezionati nel Capitolo~\ref{sec:cp}, non un campione rappresentativo dell'intera
+classe.
+
+Rilevanza rispetto alle funzionalità attese: i test BB derivano l'oracolo da Javadoc, quindi ogni
+ramo o riga che coprono corrisponde per costruzione a comportamento documentato. Randoop ed
+EvoSuite generano senza conoscere la specifica: aumentano la coverage ma non garantiscono di
+esercitare comportamento rilevante secondo la documentazione della classe. I test LLM occupano una
+posizione intermedia: hanno accesso al codice sorgente nel prompt, ma producono asserzioni motivate
+da un ragionamento sul comportamento atteso, non dedotte meccanicamente dai rami del codice.

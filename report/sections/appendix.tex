@@ -2060,3 +2060,14 @@ Caused by: org.evosuite.runtime.FalsePositiveException: Mock call to processArgu
 FAILURES!!!
 Tests run: 456,  Failures: 4
 \end{lstlisting}
+
+\paragraph*{Comando JaCoCo (BB, Randoop, LLM).}
+\label{cmd:jacoco-brokerimpl}
+\begin{lstlisting}
+AGENT_JAR=~/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar
+
+mvn -pl openjpa-kernel \
+  "-Dsurefire.jvm.args=-javaagent:${AGENT_JAR}=destfile=$(pwd)/openjpa-kernel/target/jacoco.exec -Xmx1024m -XX:+HeapDumpOnOutOfMemoryError" \
+  test \
+  org.jacoco:jacoco-maven-plugin:0.8.11:report
+\end{lstlisting}
