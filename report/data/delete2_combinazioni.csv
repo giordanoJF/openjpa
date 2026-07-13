@@ -1,0 +1,3 @@
+pc,call,fonte_oracolo,oracolo,nota
+gestito e detached,null,osservazione,"UserException: ""You cannot perform operation delete on detached object...""","ipotesi iniziale (categoria ""detached"" gia' stabilita dalla Javadoc di isDetached(), convenzione JPA generale), confermata dall'esecuzione"
+gestito e detached,non null,osservazione,"UserException: ""You cannot perform operation delete on detached object...""",idem

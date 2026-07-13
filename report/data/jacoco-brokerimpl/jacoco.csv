@@ -21,7 +21,7 @@ OpenJPA Kernel,org.apache.openjpa.event,BrokerFactoryEvent,14,0,0,0,5,0,3,0,3,0
 OpenJPA Kernel,org.apache.openjpa.event,RemoteCommitEvent,239,0,36,0,55,0,30,0,12,0
 OpenJPA Kernel,org.apache.openjpa.event,JMSRemoteCommitProvider,344,0,38,0,94,0,33,0,14,0
 OpenJPA Kernel,org.apache.openjpa.event,TransactionEvent,50,0,8,0,12,0,10,0,6,0
-OpenJPA Kernel,org.apache.openjpa.event,TransactionEventManager,160,17,47,1,42,5,33,2,5,2
+OpenJPA Kernel,org.apache.openjpa.event,TransactionEventManager,150,27,45,3,40,7,31,4,3,4
 OpenJPA Kernel,org.apache.openjpa.event,LifecycleEventManager.ListenerList,206,0,30,0,52,0,21,0,6,0
 OpenJPA Kernel,org.apache.openjpa.event,TCPRemoteCommitProvider.BroadcastWorkerThread,49,0,6,0,17,0,7,0,4,0
 OpenJPA Kernel,org.apache.openjpa.event,TCPRemoteCommitProvider,514,0,36,0,131,0,38,0,20,0
@@ -113,7 +113,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,ENonTransState,45,3,4,0,18,1,12,1,10,1
 OpenJPA Kernel,org.apache.openjpa.kernel,AbstractPCData.ProxyDataList,13,0,0,0,4,0,2,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,StoreQuery.Range,30,0,0,0,9,0,2,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl.TransactionalCache,290,38,73,5,59,12,57,4,19,3
-OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl,7119,2435,1177,253,1832,680,792,205,141,136
+OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl,6891,2663,1140,290,1764,748,775,222,132,145
 OpenJPA Kernel,org.apache.openjpa.kernel,FillStrategy.Factory,158,0,12,0,21,0,8,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DistinctResultList,216,0,6,0,63,0,29,0,26,0
 OpenJPA Kernel,org.apache.openjpa.kernel,ECopyState,39,3,0,0,17,1,13,1,13,1
@@ -206,7 +206,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,TCleanState,37,3,4,0,13,1,9,1,7,1
 OpenJPA Kernel,org.apache.openjpa.kernel,QueryImpl.CompilationKey,147,0,32,0,29,0,19,0,3,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DetachManager.InstanceDetachFieldManager,625,65,106,4,143,16,74,3,16,3
 OpenJPA Kernel,org.apache.openjpa.kernel,AttachStrategy,1106,68,223,8,246,17,131,7,12,4
-OpenJPA Kernel,org.apache.openjpa.kernel,ManagedCache,467,163,110,30,98,47,67,15,5,7
+OpenJPA Kernel,org.apache.openjpa.kernel,ManagedCache,450,180,106,34,92,53,66,16,4,8
 OpenJPA Kernel,org.apache.openjpa.kernel,MethodStoreQuery.MethodExecutor,489,0,60,0,109,0,37,0,7,0
 OpenJPA Kernel,org.apache.openjpa.kernel,InverseManager,606,8,149,0,157,2,99,1,20,1
 OpenJPA Kernel,org.apache.openjpa.kernel,ClearFieldManager,22,8,0,0,11,3,11,2,11,2

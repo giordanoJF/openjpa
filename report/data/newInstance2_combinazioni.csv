@@ -1,0 +1,2 @@
+cls,fonte_oracolo,oracolo,nota
+tipo non managed concreto,diretto,IllegalArgumentException,"Javadoc: ""@throws IllegalArgumentException if cls is not a managed type or interface"". Il test originale (NewInstanceTest) verifica solo ""un'eccezione, tipo non specificato""; qui si rafforza l'oracolo al tipo effettivamente documentato"

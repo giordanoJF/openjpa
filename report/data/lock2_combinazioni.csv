@@ -1,0 +1,21 @@
+pc,call,fonte_oracolo,oracolo,nota
+null,null,osservazione,"nessun effetto (nessuna eccezione, nessun lock applicato)","coerente con il comportamento gia' osservato per lock(pc, level, timeout, call) con pc null"
+null,azione (ACT_NONE),osservazione,nessun effetto,idem indipendentemente dal valore restituito da processArgument
+null,azione (ACT_CASCADE),osservazione,nessun effetto,idem
+null,azione (ACT_RUN),osservazione,nessun effetto,idem
+null,lancia eccezione,osservazione,nessun effetto; l'eccezione di processArgument non si propaga,"coerente con lock(pc, level, timeout, call): pc null intercettato prima dell'invocazione di processArgument"
+non gestito,null,ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,"la Javadoc presuppone un'istanza gestita (""the given instance""); per un'istanza non gestita il contratto non e' definito"
+non gestito,azione (ACT_NONE),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,azione (ACT_CASCADE),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,azione (ACT_RUN),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,lancia eccezione,inferenza,l'eccezione di processArgument si propaga,"pattern osservato in tutta la classe: processArgument e' invocato presto, prima di verificare lo stato di gestione dell'istanza"
+gestito non persistito,null,diretto,lock applicato al livello di default della FetchConfiguration del broker; nessuna eccezione,"Javadoc: ""Ensure that the given instance is locked at the current lock level, as set in the FetchConfiguration for the broker."""
+gestito non persistito,azione (ACT_NONE),osservazione,nessun effetto (nessun lock applicato); nessuna eccezione,"corretto da ipotesi ""equivalenti per design"": osservato (test eseguito) che solo azione ACT_RUN fa procedere il lock, ACT_NONE non ha effetto"
+gestito non persistito,azione (ACT_CASCADE),osservazione,nessun effetto (nessun lock applicato); nessuna eccezione,idem: osservato che ACT_CASCADE non ha effetto
+gestito non persistito,azione (ACT_RUN),diretto,lock applicato al livello di default; nessuna eccezione,unico valore di azione osservato che produce l'effetto di lock
+gestito non persistito,lancia eccezione,diretto,l'eccezione di processArgument si propaga; nessun lock applicato,coerente con il pattern OpCallbacks gia' osservato nella classe
+gestito persistito,null,diretto,lock applicato al livello di default della FetchConfiguration del broker; nessuna eccezione,"Javadoc: ""Ensure that the given instance is locked at the current lock level, as set in the FetchConfiguration for the broker."""
+gestito persistito,azione (ACT_NONE),osservazione,nessun effetto (nessun lock applicato); nessuna eccezione,"corretto da ipotesi ""equivalenti per design"": osservato (test eseguito) che solo azione ACT_RUN fa procedere il lock, ACT_NONE non ha effetto"
+gestito persistito,azione (ACT_CASCADE),osservazione,nessun effetto (nessun lock applicato); nessuna eccezione,idem: osservato che ACT_CASCADE non ha effetto
+gestito persistito,azione (ACT_RUN),diretto,lock applicato al livello di default; nessuna eccezione,unico valore di azione osservato che produce l'effetto di lock
+gestito persistito,lancia eccezione,diretto,l'eccezione di processArgument si propaga; nessun lock applicato,coerente con il pattern OpCallbacks gia' osservato nella classe

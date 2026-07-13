@@ -2071,3 +2071,108 @@ mvn -pl openjpa-kernel \
   test \
   org.jacoco:jacoco-maven-plugin:0.8.11:report
 \end{lstlisting}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito, non ancora persistito\} -- \{gestito,
+presente nello store\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{ritorna \texttt{ACT\_RUN}\} -- \{ritorna \texttt{ACT\_NONE}/
+\texttt{ACT\_CASCADE}\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{lock(Object pc, OpCallbacks call)}. * richiede
+\texttt{call} non null.}
+\label{tab:lock2-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{flush} & \{true\} -- \{false\} \\
+\midrule
+transazione & \{non attiva\} -- \{attiva\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{detachAll(OpCallbacks call, boolean flush)}.}
+\label{tab:detachall2-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{pc} & \{null\} -- \{non gestito\} -- \{gestito, non ancora persistito\} -- \{gestito,
+presente nello store\} \\
+\midrule
+\texttt{call} & \{null\} -- \{non null\} \\
+\texttt{call.processArgument}* & \{ritorna un codice azione\} -- \{lancia \texttt{OpenJPAException}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{delete(Object pc, OpCallbacks call)}. * richiede
+\texttt{call} non null.}
+\label{tab:delete-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Stato del broker & Classi di equivalenza \\
+\midrule
+transazione & \{non attiva\} -- \{attiva, senza istanze dirty\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{flush()}.}
+\label{tab:flush-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{pc} & \{gestito e detached\} \\
+\texttt{call} & \{null\} -- \{non null\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza aggiuntive per \texttt{delete(Object pc, OpCallbacks call)},
+categoria \texttt{pc} riusata da Tabella~\ref{tab:isdetached-classi}.}
+\label{tab:delete2-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{cls} & \{tipo non managed concreto\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classe di equivalenza aggiuntiva per \texttt{newInstance(Class cls)}, oracolo rafforzato
+rispetto a Tabella~\ref{tab:newinstance-classi}.}
+\label{tab:newinstance2-classi}
+\end{table}
+
+\paragraph*{Comando PITest.}
+\label{cmd:pitest-brokerimpl}
+\begin{lstlisting}
+mvn -pl openjpa-kernel \
+  org.pitest:pitest-maven:1.5.1:mutationCoverage \
+  -DtargetClasses=org.apache.openjpa.kernel.BrokerImpl \
+  -DtargetTests=org.apache.openjpa.kernel.* \
+  -DoutputFormats=CSV,HTML
+\end{lstlisting}

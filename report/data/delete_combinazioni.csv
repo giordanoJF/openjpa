@@ -1,0 +1,21 @@
+pc,call,fonte_oracolo,oracolo,nota
+null,null,ipotesi,nessun effetto (nessuna eccezione),"Javadoc (""Delete the given object."") non specifica il caso null; per analogia con altri metodi della classe (pc null -> nessun effetto) si assume nessuna eccezione"
+null,azione (ACT_NONE),osservazione,nessuna eccezione osservata (test eseguito),"ipotesi iniziale: valori di azione equivalenti per design (stessa convenzione di lock/detachAll), confermata dal test: nessuna eccezione per nessun valore di azione"
+null,azione (ACT_CASCADE),osservazione,nessuna eccezione osservata (test eseguito),idem
+null,azione (ACT_RUN),osservazione,nessuna eccezione osservata (test eseguito),idem
+null,lancia eccezione,ipotesi,nessun effetto; l'eccezione di processArgument non si propaga,"coerente con il pattern osservato per lock/detachAll: pc null intercettato prima dell'invocazione di processArgument"
+non gestito,null,ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,"la Javadoc presuppone un'istanza persistente; per un'istanza non gestita il contratto non e' definito"
+non gestito,azione (ACT_NONE),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,azione (ACT_CASCADE),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,azione (ACT_RUN),ipotesi (oracolo incerto),comportamento non specificato dalla Javadoc,idem
+non gestito,lancia eccezione,inferenza,l'eccezione di processArgument si propaga,pattern osservato in tutta la classe: processArgument invocato presto
+gestito non persistito,null,diretto,nessuna eccezione,"Javadoc: ""Delete the given object."""
+gestito non persistito,azione (ACT_NONE),osservazione,nessuna eccezione osservata (test eseguito),"ipotesi iniziale: valori di azione equivalenti per design, confermata dal test: nessuna eccezione per nessun valore di azione"
+gestito non persistito,azione (ACT_CASCADE),osservazione,nessuna eccezione osservata (test eseguito),idem
+gestito non persistito,azione (ACT_RUN),osservazione,nessuna eccezione osservata (test eseguito),idem
+gestito non persistito,lancia eccezione,diretto,l'eccezione di processArgument si propaga,coerente con il pattern OpCallbacks gia' osservato per persist/lock/detachAll
+gestito persistito,null,diretto,nessuna eccezione,"Javadoc: ""Delete the given object."""
+gestito persistito,azione (ACT_NONE),osservazione,nessuna eccezione osservata (test eseguito),"ipotesi iniziale: valori di azione equivalenti per design, confermata dal test: nessuna eccezione per nessun valore di azione"
+gestito persistito,azione (ACT_CASCADE),osservazione,nessuna eccezione osservata (test eseguito),idem
+gestito persistito,azione (ACT_RUN),osservazione,nessuna eccezione osservata (test eseguito),idem
+gestito persistito,lancia eccezione,diretto,l'eccezione di processArgument si propaga,coerente con il pattern OpCallbacks gia' osservato per persist/lock/detachAll

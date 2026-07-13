@@ -1683,14 +1683,14 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
     public boolean getRollbackOnly() {
 <span class="fc" id="L1684">        beginOperation(true);</span>
         try {
-<span class="pc bpc" id="L1686" title="1 of 2 branches missed.">            if ((_flags &amp; FLAG_ACTIVE) == 0)</span>
+<span class="fc bfc" id="L1686" title="All 2 branches covered.">            if ((_flags &amp; FLAG_ACTIVE) == 0)</span>
 <span class="fc" id="L1687">                return false;</span>
 
-<span class="nc" id="L1689">            jakarta.transaction.Transaction trans =</span>
-<span class="nc" id="L1690">                _runtime.getTransactionManager().getTransaction();</span>
-<span class="nc bnc" id="L1691" title="All 2 branches missed.">            if (trans == null)</span>
+<span class="fc" id="L1689">            jakarta.transaction.Transaction trans =</span>
+<span class="fc" id="L1690">                _runtime.getTransactionManager().getTransaction();</span>
+<span class="pc bpc" id="L1691" title="1 of 2 branches missed.">            if (trans == null)</span>
 <span class="nc" id="L1692">                return false;</span>
-<span class="nc bnc" id="L1693" title="All 2 branches missed.">            return trans.getStatus() == Status.STATUS_MARKED_ROLLBACK;</span>
+<span class="pc bpc" id="L1693" title="1 of 2 branches missed.">            return trans.getStatus() == Status.STATUS_MARKED_ROLLBACK;</span>
 <span class="nc" id="L1694">        } catch (OpenJPAException ke) {</span>
 <span class="nc" id="L1695">            throw ke;</span>
 <span class="nc" id="L1696">        } catch (Exception e) {</span>
@@ -1942,27 +1942,27 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
     @Override
     public void flush() {
-<span class="nc" id="L1945">        beginOperation(true);</span>
+<span class="fc" id="L1945">        beginOperation(true);</span>
         try {
             // return silently if no trans is active, or if this is a reentrant
             // call, which can happen if the store manager tries to get an
             // auto-inc oid during flush
-<span class="nc bnc" id="L1950" title="All 4 branches missed.">            if ((_flags &amp; FLAG_ACTIVE) == 0</span>
+<span class="pc bpc" id="L1950" title="1 of 4 branches missed.">            if ((_flags &amp; FLAG_ACTIVE) == 0</span>
                 || (_flags &amp; FLAG_STORE_FLUSHING) != 0)
-<span class="nc" id="L1952">                return;</span>
+<span class="fc" id="L1952">                return;</span>
 
             // make sure the runtime supports it
-<span class="nc bnc" id="L1955" title="All 2 branches missed.">            if (!_conf.supportedOptions().contains(OpenJPAConfiguration.OPTION_INC_FLUSH))</span>
+<span class="pc bpc" id="L1955" title="1 of 2 branches missed.">            if (!_conf.supportedOptions().contains(OpenJPAConfiguration.OPTION_INC_FLUSH))</span>
 <span class="nc" id="L1956">                throw new UnsupportedException(_loc.get</span>
 <span class="nc" id="L1957">                    (&quot;incremental-flush-not-supported&quot;));</span>
-<span class="nc bnc" id="L1958" title="All 4 branches missed.">            if (_savepoints != null &amp;&amp; !_savepoints.isEmpty()</span>
+<span class="pc bpc" id="L1958" title="3 of 4 branches missed.">            if (_savepoints != null &amp;&amp; !_savepoints.isEmpty()</span>
 <span class="nc bnc" id="L1959" title="All 2 branches missed.">                &amp;&amp; !_spm.supportsIncrementalFlush())</span>
 <span class="nc" id="L1960">                throw new UnsupportedException(_loc.get</span>
 <span class="nc" id="L1961">                    (&quot;savepoint-flush-not-supported&quot;));</span>
 
             try {
-<span class="nc" id="L1964">                flushSafe(FLUSH_INC);</span>
-<span class="nc" id="L1965">                _flags |= FLAG_FLUSHED;</span>
+<span class="fc" id="L1964">                flushSafe(FLUSH_INC);</span>
+<span class="fc" id="L1965">                _flags |= FLAG_FLUSHED;</span>
 <span class="nc" id="L1966">            } catch (OpenJPAException ke) {</span>
                 // rollback on flush error; objects may be in inconsistent state
 <span class="nc" id="L1968">                setRollbackOnly(ke);</span>
@@ -1971,12 +1971,12 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
                 // rollback on flush error; objects may be in inconsistent state
 <span class="nc" id="L1972">                setRollbackOnly(re);</span>
 <span class="nc" id="L1973">                throw new StoreException(re).setFatal(true);</span>
-<span class="nc" id="L1974">            }</span>
+<span class="fc" id="L1974">            }</span>
         }
         finally {
-<span class="nc" id="L1977">            endOperation();</span>
+<span class="fc" id="L1977">            endOperation();</span>
         }
-<span class="nc" id="L1979">    }</span>
+<span class="fc" id="L1979">    }</span>
 
     @Override
     public void preFlush() {
@@ -2198,11 +2198,11 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
 <span class="fc" id="L2199">        _flags |= FLAG_FLUSHING;</span>
         try {
-<span class="nc" id="L2201">            flush(reason);</span>
+<span class="fc" id="L2201">            flush(reason);</span>
         } finally {
 <span class="fc" id="L2203">            _flags &amp;= ~FLAG_FLUSHING;</span>
         }
-<span class="nc" id="L2205">    }</span>
+<span class="fc" id="L2205">    }</span>
 
     /**
      * Flush the transactional state to the data store. Subclasses that
@@ -2217,20 +2217,20 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
     protected void flush(int reason) {
         // this will enlist proxied states as necessary so we know whether we
         // have anything to flush
-<span class="nc" id="L2220">        Collection transactional = getTransactionalStates();</span>
+<span class="fc" id="L2220">        Collection transactional = getTransactionalStates();</span>
 
         // do we actually have to flush?  only if our flags say so, or if
         // we have transaction listeners that need to be invoked for commit
         // (no need to invoke them on inc flush if nothing is dirty).  we
         // special case the remote commit listener used by the datacache cause
         // we know it doesn't require the commit event when nothing changes
-<span class="nc bnc" id="L2227" title="All 2 branches missed.">        boolean flush = (_flags &amp; FLAG_FLUSH_REQUIRED) != 0;</span>
-<span class="nc bnc" id="L2228" title="All 2 branches missed.">        boolean listeners = (_transEventManager.hasFlushListeners()</span>
-<span class="nc bnc" id="L2229" title="All 4 branches missed.">            || _transEventManager.hasEndListeners())</span>
+<span class="pc bpc" id="L2227" title="1 of 2 branches missed.">        boolean flush = (_flags &amp; FLAG_FLUSH_REQUIRED) != 0;</span>
+<span class="pc bpc" id="L2228" title="1 of 2 branches missed.">        boolean listeners = (_transEventManager.hasFlushListeners()</span>
+<span class="pc bpc" id="L2229" title="3 of 4 branches missed.">            || _transEventManager.hasEndListeners())</span>
             &amp;&amp; ((_flags &amp; FLAG_REMOTE_LISTENER) == 0
-<span class="nc bnc" id="L2231" title="All 2 branches missed.">            || _transEventManager.getListeners().size() &gt; 1);</span>
-<span class="nc bnc" id="L2232" title="All 6 branches missed.">        if (!flush &amp;&amp; (reason != FLUSH_COMMIT || !listeners))</span>
-<span class="nc" id="L2233">            return;</span>
+<span class="pc bnc" id="L2231" title="All 2 branches missed.">            || _transEventManager.getListeners().size() &gt; 1);</span>
+<span class="pc bpc" id="L2232" title="4 of 6 branches missed.">        if (!flush &amp;&amp; (reason != FLUSH_COMMIT || !listeners))</span>
+<span class="fc" id="L2233">            return;</span>
 
 <span class="nc" id="L2235">        Collection mobjs = null;</span>
 <span class="nc" id="L2236">        _flags |= FLAG_PRESTORING;</span>
@@ -2877,52 +2877,52 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
     @Override
     public void delete(Object obj, OpCallbacks call) {
-<span class="nc bnc" id="L2880" title="All 2 branches missed.">        if (obj == null)</span>
-<span class="nc" id="L2881">            return;</span>
+<span class="fc bfc" id="L2880" title="All 2 branches covered.">        if (obj == null)</span>
+<span class="fc" id="L2881">            return;</span>
 
-<span class="nc" id="L2883">        beginOperation(true);</span>
+<span class="fc" id="L2883">        beginOperation(true);</span>
         try {
-<span class="nc" id="L2885">            assertWriteOperation();</span>
-<span class="nc" id="L2886">            delete(obj, getStateManagerImpl(obj, true), call);</span>
-<span class="nc" id="L2887">        } catch (OpenJPAException ke) {</span>
-<span class="nc" id="L2888">            throw ke;</span>
+<span class="fc" id="L2885">            assertWriteOperation();</span>
+<span class="fc" id="L2886">            delete(obj, getStateManagerImpl(obj, true), call);</span>
+<span class="fc" id="L2887">        } catch (OpenJPAException ke) {</span>
+<span class="fc" id="L2888">            throw ke;</span>
 <span class="nc" id="L2889">        } catch (RuntimeException re) {</span>
 <span class="nc" id="L2890">            throw new GeneralException(re);</span>
         } finally {
-<span class="nc" id="L2892">            endOperation();</span>
+<span class="fc" id="L2892">            endOperation();</span>
         }
-<span class="nc" id="L2894">    }</span>
+<span class="fc" id="L2894">    }</span>
 
     /**
      * Internal delete.
      */
     void delete(Object obj, StateManagerImpl sm, OpCallbacks call) {
-<span class="nc bnc" id="L2900" title="All 2 branches missed.">        if (!operatingAdd(obj))</span>
+<span class="pc bpc" id="L2900" title="1 of 2 branches missed.">        if (!operatingAdd(obj))</span>
 <span class="nc" id="L2901">            return;</span>
 
-<span class="nc" id="L2903">        int action = processArgument(OpCallbacks.OP_DELETE, obj, sm, call);</span>
-<span class="nc bnc" id="L2904" title="All 2 branches missed.">        if (action == OpCallbacks.ACT_NONE)</span>
-<span class="nc" id="L2905">            return;</span>
+<span class="fc" id="L2903">        int action = processArgument(OpCallbacks.OP_DELETE, obj, sm, call);</span>
+<span class="fc bfc" id="L2904" title="All 2 branches covered.">        if (action == OpCallbacks.ACT_NONE)</span>
+<span class="fc" id="L2905">            return;</span>
 
         // ACT_CASCADE
-<span class="nc bnc" id="L2908" title="All 2 branches missed.">        if ((action &amp; OpCallbacks.ACT_RUN) == 0) {</span>
-<span class="nc bnc" id="L2909" title="All 2 branches missed.">            if (sm != null) {</span>
-<span class="nc bnc" id="L2910" title="All 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
-<span class="nc" id="L2911">                    sm.cascadeDelete(call);</span>
+<span class="fc bfc" id="L2908" title="All 2 branches covered.">        if ((action &amp; OpCallbacks.ACT_RUN) == 0) {</span>
+<span class="pc bpc" id="L2909" title="1 of 2 branches missed.">            if (sm != null) {</span>
+<span class="pc bpc" id="L2910" title="3 of 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
+<span class="fc" id="L2911">                    sm.cascadeDelete(call);</span>
                 }
             }
             else
 <span class="nc" id="L2915">                cascadeTransient(OpCallbacks.OP_DELETE, obj, call, &quot;delete&quot;);</span>
-<span class="nc" id="L2916">            return;</span>
+<span class="fc" id="L2916">            return;</span>
         }
 
         // ACT_RUN
-<span class="nc bnc" id="L2920" title="All 2 branches missed.">        if (sm != null) {</span>
-<span class="nc bnc" id="L2921" title="All 2 branches missed.">            if (sm.isDetached())</span>
+<span class="pc bpc" id="L2920" title="1 of 2 branches missed.">        if (sm != null) {</span>
+<span class="pc bpc" id="L2921" title="1 of 2 branches missed.">            if (sm.isDetached())</span>
 <span class="nc" id="L2922">                throw newDetachedException(obj, &quot;delete&quot;);</span>
-<span class="nc bnc" id="L2923" title="All 2 branches missed.">            if ((action &amp; OpCallbacks.ACT_CASCADE) != 0) {</span>
-<span class="nc bnc" id="L2924" title="All 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
-<span class="nc bnc" id="L2925" title="All 2 branches missed.">                    if (ValidatingLifecycleEventManager.class.isAssignableFrom(_lifeEventManager.getClass())) {</span>
+<span class="fc bfc" id="L2923" title="All 2 branches covered.">            if ((action &amp; OpCallbacks.ACT_CASCADE) != 0) {</span>
+<span class="pc bpc" id="L2924" title="3 of 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
+<span class="pc bpc" id="L2925" title="1 of 2 branches missed.">                    if (ValidatingLifecycleEventManager.class.isAssignableFrom(_lifeEventManager.getClass())) {</span>
 <span class="nc" id="L2926">                        ValidatingLifecycleEventManager _validatingLCEventManager =</span>
                             (ValidatingLifecycleEventManager) _lifeEventManager;
 <span class="nc" id="L2928">                        boolean saved = _validatingLCEventManager.setValidationEnabled(false);</span>
@@ -2932,14 +2932,14 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 <span class="nc" id="L2932">                            _validatingLCEventManager.setValidationEnabled(saved);</span>
                         }
 <span class="nc" id="L2934">                    } else {</span>
-<span class="nc" id="L2935">                        sm.cascadeDelete(call);</span>
+<span class="fc" id="L2935">                        sm.cascadeDelete(call);</span>
                     }
                 }
             }
-<span class="nc" id="L2939">            sm.delete();</span>
+<span class="fc" id="L2939">            sm.delete();</span>
 <span class="nc bnc" id="L2940" title="All 2 branches missed.">        } else if (assertPersistenceCapable(obj).pcIsDetached() == Boolean.TRUE)</span>
 <span class="nc" id="L2941">            throw newDetachedException(obj, &quot;delete&quot;);</span>
-<span class="nc" id="L2942">    }</span>
+<span class="fc" id="L2942">    }</span>
 
     /**
      * Throw an exception indicating that the current action can't be
@@ -3562,30 +3562,30 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
     @Override
     public void detachAll(OpCallbacks call, boolean flush) {
-<span class="nc" id="L3565">        beginOperation(true);</span>
+<span class="fc" id="L3565">        beginOperation(true);</span>
         try {
             // If a flush is desired (based on input parm), then check if the
             // &quot;dirty&quot; flag is set before calling flush().
-<span class="nc bnc" id="L3569" title="All 4 branches missed.">            if (flush &amp;&amp; (_flags &amp; FLAG_FLUSH_REQUIRED) != 0)</span>
+<span class="pc bpc" id="L3569" title="1 of 4 branches missed.">            if (flush &amp;&amp; (_flags &amp; FLAG_FLUSH_REQUIRED) != 0)</span>
 <span class="nc" id="L3570">                flush();</span>
-<span class="nc" id="L3571">            detachAllInternal(call);</span>
+<span class="fc" id="L3571">            detachAllInternal(call);</span>
 <span class="nc" id="L3572">        } catch (OpenJPAException ke) {</span>
 <span class="nc" id="L3573">            throw ke;</span>
 <span class="nc" id="L3574">        } catch (RuntimeException re) {</span>
 <span class="nc" id="L3575">            throw new GeneralException(re);</span>
         } finally {
-<span class="nc" id="L3577">            endOperation();</span>
+<span class="fc" id="L3577">            endOperation();</span>
         }
-<span class="nc" id="L3579">    }</span>
+<span class="fc" id="L3579">    }</span>
 
     private void detachAllInternal(OpCallbacks call) {
-<span class="nc bnc" id="L3582" title="All 2 branches missed.">        if(_conf.getDetachStateInstance().getLiteAutoDetach()){</span>
+<span class="pc bpc" id="L3582" title="1 of 2 branches missed.">        if(_conf.getDetachStateInstance().getLiteAutoDetach()){</span>
 <span class="nc" id="L3583">            detachAllInternalLite();</span>
 <span class="nc" id="L3584">            return;</span>
         }
-<span class="nc" id="L3586">        Collection&lt;StateManagerImpl&gt; states = getManagedStates();</span>
+<span class="fc" id="L3586">        Collection&lt;StateManagerImpl&gt; states = getManagedStates();</span>
         StateManagerImpl sm;
-<span class="nc bnc" id="L3588" title="All 2 branches missed.">        for (Iterator&lt;StateManagerImpl&gt; itr = states.iterator(); itr.hasNext();) {</span>
+<span class="pc bpc" id="L3588" title="1 of 2 branches missed.">        for (Iterator&lt;StateManagerImpl&gt; itr = states.iterator(); itr.hasNext();) {</span>
 <span class="nc" id="L3589">            sm = itr.next();</span>
 <span class="nc bnc" id="L3590" title="All 2 branches missed.">            if (!sm.isPersistent())</span>
 <span class="nc" id="L3591">                itr.remove();</span>
@@ -3594,8 +3594,8 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 <span class="nc" id="L3594">                itr.remove();</span>
             }
         }
-<span class="nc bnc" id="L3597" title="All 2 branches missed.">        if (states.isEmpty())</span>
-<span class="nc" id="L3598">            return;</span>
+<span class="pc bpc" id="L3597" title="1 of 2 branches missed.">        if (states.isEmpty())</span>
+<span class="fc" id="L3598">            return;</span>
 
 <span class="nc bnc" id="L3600" title="All 2 branches missed.">        if (call == null)</span>
 <span class="nc" id="L3601">            call = _call;</span>
@@ -4035,16 +4035,16 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
     @Override
     public void lock(Object obj, OpCallbacks call) {
-<span class="nc bnc" id="L4038" title="All 2 branches missed.">        if (obj == null)</span>
-<span class="nc" id="L4039">            return;</span>
+<span class="fc bfc" id="L4038" title="All 2 branches covered.">        if (obj == null)</span>
+<span class="fc" id="L4039">            return;</span>
 
-<span class="nc" id="L4041">        beginOperation(true); // have to sync or lock level always NONE</span>
+<span class="fc" id="L4041">        beginOperation(true); // have to sync or lock level always NONE</span>
         try {
-<span class="nc" id="L4043">            lock(obj, _fc.getWriteLockLevel(), _fc.getLockTimeout(), call);</span>
+<span class="fc" id="L4043">            lock(obj, _fc.getWriteLockLevel(), _fc.getLockTimeout(), call);</span>
         } finally {
-<span class="nc" id="L4045">            endOperation();</span>
+<span class="fc" id="L4045">            endOperation();</span>
         }
-<span class="nc" id="L4047">    }</span>
+<span class="fc" id="L4047">    }</span>
 
     @Override
     public void lock(Object obj, int level, int timeout, OpCallbacks call) {
@@ -4250,16 +4250,16 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
      * Return a copy of all managed state managers.
      */
     protected Collection getManagedStates() {
-<span class="nc" id="L4253">        return _cache.copy();</span>
+<span class="fc" id="L4253">        return _cache.copy();</span>
     }
 
     /**
      * Return a copy of all transactional state managers.
      */
     protected Collection&lt;StateManagerImpl&gt; getTransactionalStates() {
-<span class="nc bnc" id="L4260" title="All 2 branches missed.">        if (!hasTransactionalObjects()) {</span>
+<span class="pc bpc" id="L4260" title="1 of 2 branches missed.">        if (!hasTransactionalObjects()) {</span>
             // return a new empty set. Entities may be added by TransactionListeners
-<span class="nc" id="L4262">            return new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L4262">            return new LinkedHashSet&lt;&gt;();</span>
         }
 <span class="nc" id="L4264">        return _transCache.copy();</span>
     }

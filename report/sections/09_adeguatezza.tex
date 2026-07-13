@@ -25,3 +25,82 @@ EvoSuite generano senza conoscere la specifica: aumentano la coverage ma non gar
 esercitare comportamento rilevante secondo la documentazione della classe. I test LLM occupano una
 posizione intermedia: hanno accesso al codice sorgente nel prompt, ma producono asserzioni motivate
 da un ragionamento sul comportamento atteso, non dedotte meccanicamente dai rami del codice.
+
+\subsubsection{Iterazione 1: metodi già selezionati}
+
+Leggendo il report di jacoco 2 punti sono stati approfonditi:
+
+\texttt{lock(Object pc, OpCallbacks call)}: stesse categorie di
+stato di \texttt{pc} già stabilite per l'overload a 4 argomenti (Capitolo~\ref{sec:cp}), incrociate
+con il comportamento di \texttt{call.processArgument}, livello e timeout impliciti. Una
+correzione emersa in esecuzione: l'ipotesi iniziale trattava ACT\_NONE/ACT\_CASCADE/ACT\_RUN come
+equivalenti, ma solo ACT\_RUN fa procedere il lock. Classi in Tabella~\ref{tab:lock2-classi}
+(Appendice).
+
+\texttt{detachAll(OpCallbacks call, boolean flush)}: Javadoc documenta esplicitamente il parametro
+\texttt{flush}. Con broker senza istanze gestite, verificato con \texttt{verify(callback,
+never()).processArgument(...)} che il callback non viene mai invocato: quindi le 8 tuple
+incrociano solo \texttt{call} (assente/presente) $\times$ \texttt{flush} $\times$ transazione
+attiva o meno. Classi in Tabella~\ref{tab:detachall2-classi} (Appendice).
+
+\subsubsection{Iterazione 2: nuovi metodi}
+
+Tra i metodi segnalati da JaCoCo, la maggioranza sono helper interni, poco
+significativi dal punto di vista funzionale: non utilizzati. Selezionati invece due metodi
+più documentati e funzionalmente interessanti:
+
+\texttt{delete(Object pc, OpCallbacks call)}.
+Javadoc minima ("Delete the given object."). Stesse categorie di stato di \texttt{pc} già stabilite,
+incrociate con lo stesso comportamento di \texttt{call.processArgument} usato per \texttt{lock}.
+Nessuna eccezione osservata per nessun valore di azione è stata confermata
+dall'esecuzione. Classi in Tabella~\ref{tab:delete-classi} (Appendice).
+
+\texttt{flush()}. Nessun parametro formale: le categorie derivano dallo stato del broker (transazione
+attiva o meno). Classi in Tabella~\ref{tab:flush-classi} (Appendice).
+
+42 nuovi test, tutti passano. Risultato finale, dopo entrambe le iterazioni: branch decision
+coverage 20,28\% (290/1430), statement coverage 29,78\% (748/2512). Rispetto alla misurazione
+iniziale: +2,59 punti percentuali di branch e +2,71 di statement.
+
+Un'analisi white-box dei rami scoperti alzerebbe questi numeri più rapidamente, ma sposterebbe
+l'obiettivo dalla verifica delle funzionalità documentate al solo inseguimento della copertura:
+il primo resta l'obiettivo principale di questo progetto. Questa analisi è stata condotta
+\textit{best effort} sulla documentazione disponibile, non sul codice.
+
+Tuple complete per tutti e quattro i metodi in \texttt{report/data/}.
+
+\subsubsection{Mutation testing}
+
+Mutazioni sull'intera classe \texttt{BrokerImpl}, eseguite dalla suite Maven completa: 1475
+mutazioni generate, 259 uccise (17,56\%).
+
+Per \texttt{attachAll}, \texttt{isDetached}, \texttt{find}, \texttt{lock} e
+\texttt{detachAll} (Capitolo~\ref{sec:cp}) la progettazione originale copre già ogni dimensione
+dichiarata dalla Javadoc: i mutanti sopravvissuti lì sono
+verosimilmente distinguibili solo con dettagli che la documentazione non offre. \texttt{flush()}
+ha 10 mutanti sopravvissuti: con solo 2 tuple di test, resta scoperto il
+ramo con un'istanza transazionale reale e uno store che fallisce. \texttt{delete} (12 sopravvissuti) e \texttt{newInstance} (3
+sopravvissuti) restano gli unici due con margine reale, perché partivano da una progettazione
+Javadoc meno matura degli
+altri; due miglioramenti sono stati introdotti.
+
+\texttt{delete}: nuova categoria per \texttt{pc}, \{gestito e detached\}. Ipotesi di eccezione attesa,
+confermata dall'esecuzione: \texttt{UserException}. Classi in Tabella~\ref{tab:delete2-classi} (Appendice), test in
+\texttt{Delete2Test.java}.
+
+\texttt{newInstance(Class cls)}: la Javadoc dichiara \texttt{@throws IllegalArgumentException if
+cls is not a managed type or interface}, oracolo più preciso di quello già usato nel test
+originale. 1 tupla che rafforza l'oracolo per il caso già coperto "tipo non
+managed concreto". Classi in Tabella~\ref{tab:newinstance2-classi} (Appendice), test in
+\texttt{NewInstance2Test.java}.
+
+3 nuovi test, tutti passano (613 totali sulla suite Maven). Risultato: \texttt{delete} 6
+$\rightarrow$ 9 mutanti uccisi su 23 (i 2 nuovi test coprono la parte di \texttt{delete} raggiunta
+solo da un'istanza detached); \texttt{newInstance} invariato, 4 su 7: oracolo più preciso ma nessun mutante nuovo raggiunto.
+Punteggio aggregato sull'intera classe: 262/1475 (17,76\%).
+
+Stesso principio della coverage: leggere il diff dei mutanti sopravvissuti e progettare test
+mirati a colpirli alzerebbe il punteggio più rapidamente, ma sposterebbe il test dalla verifica
+delle funzionalità documentate al solo inseguimento del punteggio di mutazione, a scapito
+dell'obiettivo principale di questo progetto. Anche questa analisi è stata condotta
+\textit{best effort} sulla documentazione disponibile, non sul codice.

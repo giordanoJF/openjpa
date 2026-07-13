@@ -1,0 +1,9 @@
+call,flush,transazione,fonte_oracolo,oracolo,nota
+null,true,non attiva,ipotesi,nessuna eccezione; nessuna istanza gestita quindi nessun effetto osservabile,"broker senza istanze gestite: caso base per isolare l'effetto di flush e transazione"
+null,true,attiva,ipotesi,nessuna eccezione; nessun effetto,"idem, con broker.begin() esplicito"
+null,false,non attiva,ipotesi,nessuna eccezione; nessun effetto,idem con flush=false
+null,false,attiva,ipotesi,nessuna eccezione; nessun effetto,idem
+non null,true,non attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,"ipotesi iniziale da Javadoc (""option of performing a flush before doing the detachment""), confermata dall'esecuzione: nessuna istanza gestita su cui operare"
+non null,true,attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem
+non null,false,non attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem con flush=false
+non null,false,attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem
