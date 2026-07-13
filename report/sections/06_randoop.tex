@@ -12,18 +12,7 @@ un'asserzione) o error-revealing (eccezione non attesa).
 Versione 4.3.3 (jar scaricato da GitHub).
 La generazione con un tentativo esplorativo senza limiti sull'output aveva prodotto
 quasi 1800 sequenze, troppe da osservare concretamente; la generazione definitiva usa quindi
-\texttt{--output-limit=100}:
-
-\begin{lstlisting}
-mvn -pl openjpa-kernel -am compile
-mvn -pl openjpa-kernel dependency:build-classpath -Dmdep.outputFile=kernel-cp.txt
-
-java -Xmx3000m -cp tools/randoop-all-4.3.3.jar:openjpa-kernel/target/classes:<contenuto-di-kernel-cp.txt> \
-  randoop.main.Main gentests \
-  --testclass=org.apache.openjpa.kernel.BrokerImpl \
-  --output-limit=100 \
-  --junit-output-dir=report/data/randoop-brokerimpl
-\end{lstlisting}
+\texttt{--output-limit=100} (\hyperref[cmd:randoop-brokerimpl]{Appendice}).
 
 101 sequenze generate: 12 error-revealing (\texttt{ErrorTest0.java}), 61 di regressione
 (\texttt{RegressionTest0.java}). Log completo in

@@ -1,0 +1,71 @@
+JUnit version 4.13.2
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.evosuite.runtime.GuiSupport (file:/home/jokey/uniprojects/openjpa/tools/evosuite-standalone-runtime-1.2.0.jar) to field java.awt.GraphicsEnvironment.headless
+WARNING: Please consider reporting this to the maintainers of org.evosuite.runtime.GuiSupport
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+.E.E.......................................................................................................................................E.......................................................................................................................................................................................................E........................................................................................................................
+Time: 1.798
+There were 4 failures:
+1) test097(org.apache.openjpa.kernel.BrokerImpl_ESTest)
+java.lang.ExceptionInInitializerError
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.evosuite.runtime.classhandling.ClassResetter.reset(ClassResetter.java:159)
+	at org.evosuite.runtime.classhandling.ClassStateSupport.resetClasses(ClassStateSupport.java:137)
+	at org.apache.openjpa.kernel.BrokerImpl_ESTest_scaffolding.resetClasses(BrokerImpl_ESTest_scaffolding.java:349)
+	at org.apache.openjpa.kernel.BrokerImpl_ESTest_scaffolding.doneWithTestCase(BrokerImpl_ESTest_scaffolding.java:68)
+	... 36 trimmed
+Caused by: java.util.MissingResourceException: Your system is missing product derivations.  Product derivations provide configuration options for supported data stores and specifications.  You must have a META-INF/services/org.apache.openjpa.lib.conf.ProductDerivation file in your classpath listing the available derivation classes, and some listed class must be instantiable.  Typically this file is bundled as part of the distribution.  Have you unbundled it, or unbundled its listed classes? If you are using ant, a common solution to this problem is to place the jar libraries of the OpenJPA distribution in the ${user.home}/.ant/lib directory. Another common cause of this problem is an overly-restrictive security manager.
+ProductDerivations: 0
+	at org.apache.openjpa.lib.conf.ProductDerivations.<clinit>(ProductDerivations.java)
+	... 45 more
+2) test098(org.apache.openjpa.kernel.BrokerImpl_ESTest)
+java.lang.IllegalStateException: Trying to set up the sandbox while executing a test case
+	at org.evosuite.runtime.sandbox.MSecurityManager.goingToExecuteTestCase(MSecurityManager.java:339)
+	at org.evosuite.runtime.sandbox.Sandbox.goingToExecuteSUTCode(Sandbox.java:127)
+	at org.apache.openjpa.kernel.BrokerImpl_ESTest_scaffolding.initTestCase(BrokerImpl_ESTest_scaffolding.java:56)
+3) test000(org.apache.openjpa.kernel.BrokerImpl_ESTest)
+<openjpa-4.1.1-r9f3072fM nonfatal general error> org.apache.openjpa.util.GeneralException: Mock call to processArgument which was not presented when the test was generated
+	at org.apache.openjpa.kernel.BrokerImpl.retrieve(BrokerImpl.java:3420)
+	at org.apache.openjpa.kernel.BrokerImpl.retrieveAll(BrokerImpl.java:3307)
+	at org.apache.openjpa.kernel.BrokerImpl_ESTest.test000(BrokerImpl_ESTest.java:116)
+	... 11 trimmed
+Caused by: org.evosuite.runtime.FalsePositiveException: Mock call to processArgument which was not presented when the test was generated
+	at org.evosuite.runtime.ViolatedAssumptionAnswer.answer(ViolatedAssumptionAnswer.java:39)
+	at org.evosuite.shaded.org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:110)
+	at org.evosuite.shaded.org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.evosuite.shaded.org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:56)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor$DispatcherDefaultingToRealMethod.interceptAbstract(MockMethodInterceptor.java:161)
+	at org.apache.openjpa.kernel.OpCallbacks$MockitoMock$403016300.processArgument(Unknown Source)
+	at org.apache.openjpa.kernel.BrokerImpl.processArgument(BrokerImpl.java:2432)
+	at org.apache.openjpa.kernel.BrokerImpl.retrieve(BrokerImpl.java:3401)
+	... 14 more
+4) test137(org.apache.openjpa.kernel.BrokerImpl_ESTest)
+<openjpa-4.1.1-r9f3072fM nonfatal general error> org.apache.openjpa.util.GeneralException: Mock call to processArgument which was not presented when the test was generated
+	at org.apache.openjpa.kernel.BrokerImpl.retrieve(BrokerImpl.java:3420)
+	at org.apache.openjpa.kernel.BrokerImpl_ESTest.test137(BrokerImpl_ESTest.java:2159)
+	... 11 trimmed
+Caused by: org.evosuite.runtime.FalsePositiveException: Mock call to processArgument which was not presented when the test was generated
+	at org.evosuite.runtime.ViolatedAssumptionAnswer.answer(ViolatedAssumptionAnswer.java:39)
+	at org.evosuite.shaded.org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:110)
+	at org.evosuite.shaded.org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.evosuite.shaded.org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:56)
+	at org.evosuite.shaded.org.mockito.internal.creation.bytebuddy.MockMethodInterceptor$DispatcherDefaultingToRealMethod.interceptAbstract(MockMethodInterceptor.java:161)
+	at org.apache.openjpa.kernel.OpCallbacks$MockitoMock$403016300.processArgument(Unknown Source)
+	at org.apache.openjpa.kernel.BrokerImpl.processArgument(BrokerImpl.java:2432)
+	at org.apache.openjpa.kernel.BrokerImpl.retrieve(BrokerImpl.java:3401)
+	... 13 more
+
+FAILURES!!!
+Tests run: 456,  Failures: 4
+

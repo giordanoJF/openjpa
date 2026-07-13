@@ -1,0 +1,41 @@
+% ============================================================
+\section{EvoSuite}
+\label{sec:evosuite}
+% ============================================================
+
+EvoSuite genera una test suite tramite algoritmo genetico che opera sui casi di test stessi (non
+sul codice sorgente): la fitness combina la copertura del criterio scelto con la compattezza della
+suite.
+
+\subsection{BrokerImpl}
+
+Versione 1.2.0. Su Maven Central la versione più recente è la 1.0.6, incompatibile con il bytecode Java 11
+con cui è compilato il progetto; anche il plugin Maven
+ufficiale, fermo alla stessa 1.0.6, è incompatibile: da qui la scelta del jar standalone. Criterio di copertura lasciato al default
+dello strumento, che ottimizza contemporaneamente più criteri
+(\texttt{LINE;BRANCH;EXCEPTION;WEAKMUTATION;OUTPUT;METHOD;METHODNOEXCEPTION;CBRANCH})
+(\hyperref[cmd:evosuite-brokerimpl-gen]{Appendice}).
+
+Un primo tentativo con budget di 60 secondi aveva dato 43,7\% di copertura aggregata; portando il
+budget a 300 secondi la copertura sale al 48,7\%, con 456 metodi
+\texttt{@Test} generati in 303 secondi. Log completo in
+\texttt{report/data/evosuite-brokerimpl/evosuite-log.txt}, statistiche in
+\texttt{report/data/evosuite-brokerimpl/evosuite-report/statistics.csv}.
+
+A differenza di Randoop e Test LLM, la suite non è stata integrata nel test tree Maven. I test
+generati richiedono a runtime, non solo in generazione, le classi di \texttt{org.evosuite.runtime},
+pacchettizzate nella libreria
+\texttt{evosuite-standalone-runtime}. Su Maven Central questa libreria si ferma anch'essa alla
+versione 1.0.6, incompatibile con i test generati con la 1.2.0. La suite resta quindi documentata,
+compilata ed eseguita a parte con la stessa libreria scaricata manualmente
+(\hyperref[cmd:evosuite-brokerimpl-offline]{Appendice}).
+
+452 test su 456 passano. L'output di \texttt{JUnitCore} su questa esecuzione
+(\hyperref[log:evosuite-offline-junitcore]{Appendice}) nomina i 4 fallimenti e ne mostra lo stack
+trace: \texttt{test097} fallisce per una risorsa di servizio (\texttt{ProductDerivation}) mancante
+nella classpath minimale usata per questa sola verifica offline; \texttt{test098} fallisce a
+cascata per lo stesso motivo. \texttt{test000} e \texttt{test137} falliscono entrambi con la stessa
+eccezione (\texttt{GeneralException: Mock call to processArgument...}).
+
+\subsection{LoginDialog}
+% non affrontato in questo giro, per decisione presa in Sezione~\ref{sec:randoop}
