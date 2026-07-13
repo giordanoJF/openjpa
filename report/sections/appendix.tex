@@ -2101,9 +2101,12 @@ Parametro & Classi di equivalenza \\
 \texttt{flush} & \{true\} -- \{false\} \\
 \midrule
 transazione & \{non attiva\} -- \{attiva\} \\
+\midrule
+stato del broker & \{senza istanze gestite\} -- \{con istanza gestita\} \\
 \bottomrule
 \end{tabularx}
-\caption{Classi di equivalenza per \texttt{detachAll(OpCallbacks call, boolean flush)}.}
+\caption{Classi di equivalenza per \texttt{detachAll(OpCallbacks call, boolean flush)}.
+\{con istanza gestita\} $\times$ \texttt{flush=true} non implementato.}
 \label{tab:detachall2-classi}
 \end{table}
 
@@ -2131,10 +2134,11 @@ presente nello store\} \\
 \toprule
 Stato del broker & Classi di equivalenza \\
 \midrule
-transazione & \{non attiva\} -- \{attiva, senza istanze dirty\} \\
+transazione & \{non attiva\} -- \{attiva, senza istanze\} -- \{attiva, istanze presenti, successo\}*
+-- \{attiva, istanze presenti, fallimento\}* \\
 \bottomrule
 \end{tabularx}
-\caption{Classi di equivalenza per \texttt{flush()}.}
+\caption{Classi di equivalenza per \texttt{flush()}. * non implementate.}
 \label{tab:flush-classi}
 \end{table}
 

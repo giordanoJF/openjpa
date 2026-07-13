@@ -20,87 +20,192 @@ solo i 7 metodi selezionati nel Capitolo~\ref{sec:cp}, non un campione rappresen
 classe.
 
 Rilevanza rispetto alle funzionalità attese: i test BB derivano l'oracolo da Javadoc, quindi ogni
-ramo o riga che coprono corrisponde per costruzione a comportamento documentato. Randoop ed
-EvoSuite generano senza conoscere la specifica: aumentano la coverage ma non garantiscono di
-esercitare comportamento rilevante secondo la documentazione della classe. I test LLM occupano una
-posizione intermedia: hanno accesso al codice sorgente nel prompt, ma producono asserzioni motivate
-da un ragionamento sul comportamento atteso, non dedotte meccanicamente dai rami del codice.
+ramo o riga che coprono corrisponde per costruzione a comportamento documentato. Randoop genera
+senza conoscere la specifica: aumenta la coverage ma non garantisce di esercitare comportamento
+rilevante secondo la documentazione della classe. I test LLM occupano una posizione intermedia:
+hanno accesso al codice sorgente nel prompt, ma producono asserzioni motivate da un ragionamento
+sul comportamento atteso, non dedotte meccanicamente dai rami del codice. \texttt{EvoSuite}, mai
+integrato nella build Maven, non contribuisce a questa misurazione.
 
-\subsubsection{Iterazione 1: metodi già selezionati}
+\subsubsection{Coverage (JaCoCo)}
 
-Leggendo il report di jacoco 2 punti sono stati approfonditi:
+\textit{Selezione.}
+\texttt{lock(Object, OpCallbacks)} e \texttt{detachAll(OpCallbacks, boolean)} risultano a 0\%,
+accanto ai rispettivi overload già testati nel Capitolo~\ref{sec:cp},
+\texttt{lock(Object, int, int, OpCallbacks)} all'87\% e \texttt{detachAll(Collection,
+OpCallbacks)} al 100\%. La firma dei due metodi, già nota dalla Javadoc, basta a riconoscerli come
+metodi pubblici mai esercitati: nessuna lettura del corpo necessaria. Tra gli altri metodi
+segnalati da JaCoCo la maggioranza sono helper interni poco significativi; selezionati invece
+\texttt{delete(Object, OpCallbacks)} e \texttt{flush()} per rilevanza funzionale.
 
-\texttt{lock(Object pc, OpCallbacks call)}: stesse categorie di
-stato di \texttt{pc} già stabilite per l'overload a 4 argomenti (Capitolo~\ref{sec:cp}), incrociate
-con il comportamento di \texttt{call.processArgument}, livello e timeout impliciti. Una
-correzione emersa in esecuzione: l'ipotesi iniziale trattava ACT\_NONE/ACT\_CASCADE/ACT\_RUN come
-equivalenti, ma solo ACT\_RUN fa procedere il lock. Classi in Tabella~\ref{tab:lock2-classi}
-(Appendice).
+\textit{Progettazione.} \texttt{lock(Object pc, OpCallbacks call)}: riusa le categorie di
+\texttt{pc} e il comportamento di \texttt{call.processArgument} già stabiliti per l'overload a 4
+argomenti. A differenza di quello, \texttt{level} e \texttt{timeout} non sono parametri: la
+Javadoc dichiara il livello corrente della \texttt{FetchConfiguration}, il timeout non è
+documentato. Ipotesi: \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} equivalenti tra
+loro; per \texttt{pc} non gestito, nessun effetto e nessuna eccezione, per analogia col risultato
+già confermato per l'overload a 4 argomenti su \texttt{pc} non gestito nel
+Capitolo~\ref{sec:implementazione}. Classi in Tabella~\ref{tab:lock2-classi}. 20 tuple.
 
-\texttt{detachAll(OpCallbacks call, boolean flush)}: Javadoc documenta esplicitamente il parametro
-\texttt{flush}. Con broker senza istanze gestite, verificato con \texttt{verify(callback,
-never()).processArgument(...)} che il callback non viene mai invocato: quindi le 8 tuple
-incrociano solo \texttt{call} (assente/presente) $\times$ \texttt{flush} $\times$ transazione
-attiva o meno. Classi in Tabella~\ref{tab:detachall2-classi} (Appendice).
+\texttt{detachAll(OpCallbacks call, boolean flush)}: non ha un parametro con gli oggetti da
+staccare, opera su tutte le istanze già tracciate dal broker. Un'istanza entra in quel registro
+solo chiamando prima un altro metodo pubblico, tipicamente \texttt{persist()}: non essendoci un
+parametro da cui prenderle, l'unica via è costruire lo stato del broker prima di chiamare
+\texttt{detachAll}. Categorie: \texttt{call} (null/non null) $\times$ \texttt{flush} $\times$
+transazione $\times$ stato del broker, \{registro vuoto\} oppure \{registro con un'istanza
+gestita\}, dove "gestita" vuol dire semplicemente presente in quel registro, indipendentemente dal
+fatto che sia nuova o già presente nello store. Con registro vuoto, transazione incrociata con
+\texttt{call} e \texttt{flush}: 8 combinazioni. Con registro con un'istanza gestita, transazione
+fissa ad attiva, richiesta da \texttt{persist()} per costruire quello stato: solo \texttt{call}
+$\times$ \texttt{flush}, altre 4 combinazioni, 12 in totale. Ipotesi per il registro vuoto:
+nessuna eccezione, callback non invocato per assenza di istanze da processare. Ipotesi per il
+registro con un'istanza gestita, per analogia con \texttt{detachAll(Collection, OpCallbacks)} del
+Capitolo~\ref{sec:cp}: nessuna eccezione, callback invocato sull'istanza gestita. Classi in
+Tabella~\ref{tab:detachall2-classi}. 12 tuple.
 
-\subsubsection{Iterazione 2: nuovi metodi}
+\texttt{delete(Object pc, OpCallbacks call)}: Javadoc minima, "Delete the given object.". Stesse
+categorie di \texttt{pc} e stesso comportamento di \texttt{call.processArgument} di \texttt{lock}.
+Né \texttt{pc} null né \texttt{pc} non gestito sono specificati dalla Javadoc: ipotesi per
+entrambi, nessun effetto, per analogia con gli altri metodi della classe che si comportano così su
+un oggetto non ancora persistito. Classi in Tabella~\ref{tab:delete-classi}. 20 tuple.
 
-Tra i metodi segnalati da JaCoCo, la maggioranza sono helper interni, poco
-significativi dal punto di vista funzionale: non utilizzati. Selezionati invece due metodi
-più documentati e funzionalmente interessanti:
+\texttt{flush()}: nessun parametro formale, categorie dallo stato del broker. \texttt{transazione}:
+\{non attiva\}, \{attiva\}. \texttt{istanze da flushare}: \{nessuna\}, \{presenti\}.
+\texttt{esito dello store}* (richiede istanze presenti, senza scrittura non c'è un esito da
+misurare): \{successo\}, \{fallimento\}, quest'ultimo documentato dalla Javadoc, "may set the
+rollback only flag... if it encounters an error". Prodotto cartesiano: $2 \times 2 \times 2 = 8$
+combinazioni. Con \{nessuna\} istanza l'esito è privo di senso, non c'è una scrittura da cui
+misurarlo: le combinazioni \{non attiva, nessuna istanza, successo\} e \{non attiva, nessuna
+istanza, fallimento\} sono indistinguibili e si uniscono in una sola, \{non attiva, nessuna
+istanza\}; allo stesso modo \{attiva, nessuna istanza, successo\} e \{attiva, nessuna istanza,
+fallimento\} si uniscono in \{attiva, nessuna istanza\}. Dalle 8 combinazioni di partenza ne
+restano 6. Per ipotesi dalla Javadoc: senza transazione attiva non ci sono comunque istanze
+da flushare, quindi le combinazioni \{non attiva, istanze presenti, successo\} e \{non attiva,
+istanze presenti, fallimento\} non sono modellate, escluse per ipotesi e non per impossibilità
+accertata. Restano 4 categorie progettate: \{non attiva\},
+\{attiva, nessuna istanza\}, \{attiva, istanze presenti, successo\}, \{attiva, istanze presenti,
+fallimento\}. Ipotesi sull'oracolo: nessuna eccezione nei primi tre casi; \texttt{rollbackOnly} a
+true nel quarto. Classi in Tabella~\ref{tab:flush-classi}. 4 categorie.
 
-\texttt{delete(Object pc, OpCallbacks call)}.
-Javadoc minima ("Delete the given object."). Stesse categorie di stato di \texttt{pc} già stabilite,
-incrociate con lo stesso comportamento di \texttt{call.processArgument} usato per \texttt{lock}.
-Nessuna eccezione osservata per nessun valore di azione è stata confermata
-dall'esecuzione. Classi in Tabella~\ref{tab:delete-classi} (Appendice).
+\textit{Implementazione e correzione.} \texttt{lock}: l'ipotesi iniziale, i tre valori di azione
+equivalenti tra loro, non regge per \texttt{pc} gestito: solo \texttt{ACT\_RUN} fa procedere il
+lock, \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE} non hanno effetto. Per \texttt{pc} null e non
+gestito l'equivalenza regge, perché nessuno dei tre ha effetto in nessun caso. Ipotesi su
+\texttt{pc} non gestito confermata. 20/20 test passano.
 
-\texttt{flush()}. Nessun parametro formale: le categorie derivano dallo stato del broker (transazione
-attiva o meno). Classi in Tabella~\ref{tab:flush-classi} (Appendice).
+\texttt{detachAll}: con broker senza istanze gestite, confermato con \texttt{verify(callback,
+never()).processArgument(...)} che il callback non viene mai invocato, in tutte le 8 tuple. Con
+un'istanza gestita, ottenuta persistendo davvero un'istanza con la stessa tecnica di registrazione
+usata in \texttt{PersistTest} del Capitolo~\ref{sec:implementazione}: l'ipotesi di progettazione,
+nessuna eccezione e callback invocato, è sbagliata. Con \texttt{flush=false} l'esecuzione rivela
+\texttt{InvalidStateException}, un'istanza appena persistita e mai flushata non può essere
+staccata; il callback non viene invocato affatto, verificato con \texttt{verify(callback,
+never()).processArgument(...)}. Oracolo corretto di conseguenza a eccezione attesa: le 2 tuple con
+\texttt{flush=false}, \texttt{call} null e non null, sono implementate. Con \texttt{flush=true}
+il test fallisce con un'eccezione il cui stack trace, output dell'esecuzione, non lettura del
+sorgente, indica \texttt{StateManagerImpl.assertObjectIdAssigned}: richiede un'assegnazione reale
+dell'id dallo store, che il mock minimale usato qui non fornisce. Le 2 tuple con \texttt{flush=true}
+restano non implementate. In totale 10/12 tuple implementate, tutte passano: le 8 con broker senza
+istanze gestite più le 2 appena corrette con \texttt{flush=false}.
 
-42 nuovi test, tutti passano. Risultato finale, dopo entrambe le iterazioni: branch decision
-coverage 20,28\% (290/1430), statement coverage 29,78\% (748/2512). Rispetto alla misurazione
-iniziale: +2,59 punti percentuali di branch e +2,71 di statement.
+\texttt{delete}: nessuna eccezione confermata per \texttt{pc} gestito, indipendentemente
+dall'azione. Per \texttt{pc} non gestito, ipotesi per analogia confermata per \texttt{call}
+assente, \texttt{ACT\_NONE}, \texttt{ACT\_RUN}. \texttt{ACT\_CASCADE} inizialmente fallisce con
+un'eccezione: lo stack trace dell'esecuzione indica \texttt{cascadeTransient}, che tratta l'istanza
+non gestita come se fosse nuova e prova a persisterla, creando un vero \texttt{StateManager} che
+richiede il tipo di identità della classe, dichiarato nella \texttt{ClassMetaData}. Il mock di
+\texttt{pc} non gestito usato per le altre azioni non ha questa informazione: aggiunta registrando
+la classe con \texttt{PCRegistry.register} e collegandole una \texttt{ClassMetaData} mock con
+\texttt{getIdentityType()} impostato, stessa configurazione già scritta per il caso \texttt{pc} non
+gestito di \texttt{persist()} in \texttt{PersistTest} del Capitolo~\ref{sec:implementazione}, qui
+copiata sull'istanza di \texttt{delete}. Con questa aggiunta l'esecuzione conferma l'ipotesi anche
+per \texttt{ACT\_CASCADE}, nessuna eccezione. 20/20 tuple implementate, tutte passano.
+
+\texttt{flush}: ipotesi confermata per i primi due casi, nessuna correzione. Caso di successo:
+stesso muro di \texttt{StateManagerImpl.assertObjectIdAssigned} già incontrato per
+\texttt{detachAll(flush=true)}; implementazione non proseguita.
+
+Caso di fallimento. \texttt{BrokerImpl.flush()} non scrive lui stesso sul datastore: delega a uno
+\texttt{StoreManager}, mockato al posto di un database reale. La sua firma dichiarata,
+\texttt{Collection<Exception> flush(Collection<OpenJPAStateManager> sms)}, prova a scrivere tutte
+le istanze ricevute e restituisce le eccezioni delle sole istanze fallite, invece di lanciarne una
+sola e fermarsi: lista vuota, tutto scritto; lista non vuota, quelle istanze non si sono scritte.
+Simulato un fallimento facendo restituire a \texttt{storeManager.flush()} una
+lista con un'eccezione. Ipotesi, da Javadoc: \texttt{BrokerImpl}, vedendo quella lista non vuota,
+imposta \texttt{rollbackOnly} a true. Osservato invece: \texttt{rollbackOnly} resta false, nessuna
+eccezione lanciata, test senza errori. A differenza del caso di successo, qui non c'è uno stack
+trace che indichi cosa manca al mock: non sappiamo se \texttt{BrokerImpl} ha davvero ispezionato
+quella lista nel nostro scenario o l'ha ignorata, e senza un errore da diagnosticare non c'è modo
+di saperlo senza leggere il codice. Implementazione non proseguita. In totale 2/4 categorie
+implementate, i 2 test corrispondenti passano.
+
+Risultato: branch decision coverage 20,91\% (299/1430), statement coverage 30,25\% (760/2512), da
+17,69\% (253/1430) e 27,07\% (680/2512) di partenza: +3,22pp branch, +3,18pp statement.
 
 Un'analisi white-box dei rami scoperti alzerebbe questi numeri più rapidamente, ma sposterebbe
 l'obiettivo dalla verifica delle funzionalità documentate al solo inseguimento della copertura:
-il primo resta l'obiettivo principale di questo progetto. Questa analisi è stata condotta
-\textit{best effort} sulla documentazione disponibile, non sul codice.
+il primo resta l'obiettivo principale di questo progetto. Analisi condotta \textit{best effort}
+sulla documentazione disponibile, non sul codice.
 
-Tuple complete per tutti e quattro i metodi in \texttt{report/data/}.
+\subsubsection{Mutation testing (PITest)}
 
-\subsubsection{Mutation testing}
+\textit{Selezione.} Mutazioni sull'intera classe, dalla suite dopo l'iterazione di coverage: 1475
+generate, 259 uccise (17,56\%). PITest aggrega per nome di metodo, non per overload: le mutazioni
+di \texttt{lock}, \texttt{detachAll} e \texttt{find} includono anche overload mai selezionati nel
+Capitolo~\ref{sec:cp}, ad esempio \texttt{find(Object, FetchConfiguration, BitSet, ...)} contro
+l'unico testato, \texttt{find(Object, boolean, FindCallbacks)}. Su questi tre nomi, la
+maggioranza dei mutanti non uccisi risulta \texttt{NO\_COVERAGE} sull'overload mai selezionato,
+non \texttt{SURVIVED} sull'overload progettato. Per \texttt{attachAll}, \texttt{isDetached},
+\texttt{find}, \texttt{lock}, \texttt{detachAll}, \texttt{persist} la progettazione copre già
+ogni dimensione dichiarata dalla Javadoc, sull'overload testato: margine minimo, \texttt{persist}
+a punteggio pieno. \texttt{delete}, 12 sopravvissuti su 23, e \texttt{newInstance}, 3 su 7,
+partivano da una progettazione meno matura: selezionati per il miglioramento. L'overload non
+selezionato di \texttt{find} richiederebbe una progettazione Category Partition nuova per una
+firma mai analizzata: non è stato fatto.
 
-Mutazioni sull'intera classe \texttt{BrokerImpl}, eseguite dalla suite Maven completa: 1475
-mutazioni generate, 259 uccise (17,56\%).
-
-Per \texttt{attachAll}, \texttt{isDetached}, \texttt{find}, \texttt{lock} e
-\texttt{detachAll} (Capitolo~\ref{sec:cp}) la progettazione originale copre già ogni dimensione
-dichiarata dalla Javadoc: i mutanti sopravvissuti lì sono
-verosimilmente distinguibili solo con dettagli che la documentazione non offre. \texttt{flush()}
-ha 10 mutanti sopravvissuti: con solo 2 tuple di test, resta scoperto il
-ramo con un'istanza transazionale reale e uno store che fallisce. \texttt{delete} (12 sopravvissuti) e \texttt{newInstance} (3
-sopravvissuti) restano gli unici due con margine reale, perché partivano da una progettazione
-Javadoc meno matura degli
-altri; due miglioramenti sono stati introdotti.
-
-\texttt{delete}: nuova categoria per \texttt{pc}, \{gestito e detached\}. Ipotesi di eccezione attesa,
-confermata dall'esecuzione: \texttt{UserException}. Classi in Tabella~\ref{tab:delete2-classi} (Appendice), test in
-\texttt{Delete2Test.java}.
+\textit{Progettazione.} \texttt{delete}: nuova categoria per \texttt{pc}, gestito e detached,
+riusata dalla categoria "detached" già stabilita dalla Javadoc di \texttt{isDetached()} del
+Capitolo~\ref{sec:cp}. Ipotesi: eccezione attesa, tipo non specificato dal design. Classi in
+Tabella~\ref{tab:delete2-classi}. 2 tuple.
 
 \texttt{newInstance(Class cls)}: la Javadoc dichiara \texttt{@throws IllegalArgumentException if
-cls is not a managed type or interface}, oracolo più preciso di quello già usato nel test
-originale. 1 tupla che rafforza l'oracolo per il caso già coperto "tipo non
-managed concreto". Classi in Tabella~\ref{tab:newinstance2-classi} (Appendice), test in
-\texttt{NewInstance2Test.java}.
+cls is not a managed type or interface}, oracolo più preciso di quello già usato per il caso "tipo
+non managed concreto". Classi in Tabella~\ref{tab:newinstance2-classi}. 1 tupla.
 
-3 nuovi test, tutti passano (613 totali sulla suite Maven). Risultato: \texttt{delete} 6
-$\rightarrow$ 9 mutanti uccisi su 23 (i 2 nuovi test coprono la parte di \texttt{delete} raggiunta
-solo da un'istanza detached); \texttt{newInstance} invariato, 4 su 7: oracolo più preciso ma nessun mutante nuovo raggiunto.
-Punteggio aggregato sull'intera classe: 262/1475 (17,76\%).
+\textit{Implementazione e correzione.} \texttt{delete}: ipotesi confermata, \texttt{UserException},
+"You cannot perform operation delete on detached object...". 2/2 test passano. Mutation score
+finale: 10/23 mutanti uccisi, da 6/23 di partenza; il miglioramento viene sia dai 2 test qui
+progettati sia dalle altre tuple \texttt{pc} non gestito già aggiunte per \texttt{delete}.
 
-Stesso principio della coverage: leggere il diff dei mutanti sopravvissuti e progettare test
-mirati a colpirli alzerebbe il punteggio più rapidamente, ma sposterebbe il test dalla verifica
-delle funzionalità documentate al solo inseguimento del punteggio di mutazione, a scapito
-dell'obiettivo principale di questo progetto. Anche questa analisi è stata condotta
-\textit{best effort} sulla documentazione disponibile, non sul codice.
+\texttt{newInstance}: oracolo confermato direttamente da Javadoc, nessuna correzione; 4/7
+invariato, nessun mutante nuovo raggiunto.
+
+Risultato: punteggio aggregato sull'intera classe 272/1475 (18,44\%), da 259/1475 (17,56\%) di
+partenza.
+
+Stesso compromesso della coverage: leggere il diff dei mutanti sopravvissuti alzerebbe il
+punteggio più rapidamente, a scapito della verifica delle funzionalità documentate. Anche questa
+analisi resta \textit{best effort} sulla documentazione, non sul codice.
+
+Tuple complete per tutti i metodi in \texttt{report/data/}.
+
+\subsubsection{Reliability}
+
+Assumendo un profilo operazionale con probabilità di utilizzo
+uniforme sull'insieme finale di test ottenuto dopo le iterazioni dei paragrafi precedenti:
+reliability $= 1 - PFD =$ test passati / test eseguiti.
+
+La suite Maven per \texttt{BrokerImpl} conta 623 test, esecuzioni di metodi \texttt{@Test}
+incluse le ripetizioni parametrizzate di \texttt{@Parameters}. 15 sono disabilitati con
+\texttt{@Ignore} e non fanno parte dell'insieme di esecuzioni misurate: 3 nei test LLM
+(\texttt{BrokerImplLlmZ1Test}, \texttt{BrokerImplLlmZ2Test}) hanno un oracolo scorretto, non un
+comportamento scorretto della classe; 12 in \texttt{RandoopErrorTest} sono sequenze
+generate su un'istanza mai inizializzata.
+
+Sui restanti 608 test eseguiti: 608 passano, 0 falliscono. Reliability $=$ 608/608 $=$ 1
+(PFD $=$ 0).
+
+Il valore non è un'asserzione di correttezza di \texttt{BrokerImpl}: è una stima statistica
+relativa a questo campione di esecuzioni, al profilo operazionale uniforme assunto e
+ad una suite che esercita 11 dei circa 250 metodi della classe, overload inclusi: 9 metodi
+distinti, di cui \texttt{lock} e \texttt{detachAll} con due overload ciascuno.

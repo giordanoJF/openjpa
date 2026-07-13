@@ -2833,13 +2833,13 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 <span class="fc" id="L2833">            newInstance(this), meta);</span>
 <span class="fc" id="L2834">        sm.initialize(pc, PCState.TLOADED);</span>
         try {
-<span class="pc bpc" id="L2836" title="3 of 4 branches missed.">            switch (op) {</span>
+<span class="pc bpc" id="L2836" title="2 of 4 branches missed.">            switch (op) {</span>
                 case OpCallbacks.OP_PERSIST:
 <span class="fc" id="L2838">                    sm.cascadePersist(call);</span>
 <span class="fc" id="L2839">                    break;</span>
                 case OpCallbacks.OP_DELETE:
-<span class="nc" id="L2841">                    sm.cascadeDelete(call);</span>
-<span class="nc" id="L2842">                    break;</span>
+<span class="fc" id="L2841">                    sm.cascadeDelete(call);</span>
+<span class="fc" id="L2842">                    break;</span>
                 case OpCallbacks.OP_REFRESH:
 <span class="nc" id="L2844">                    sm.gatherCascadeRefresh(call);</span>
 <span class="nc" id="L2845">                    break;</span>
@@ -2906,19 +2906,19 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 
         // ACT_CASCADE
 <span class="fc bfc" id="L2908" title="All 2 branches covered.">        if ((action &amp; OpCallbacks.ACT_RUN) == 0) {</span>
-<span class="pc bpc" id="L2909" title="1 of 2 branches missed.">            if (sm != null) {</span>
+<span class="fc bfc" id="L2909" title="All 2 branches covered.">            if (sm != null) {</span>
 <span class="pc bpc" id="L2910" title="3 of 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
 <span class="fc" id="L2911">                    sm.cascadeDelete(call);</span>
                 }
             }
             else
-<span class="nc" id="L2915">                cascadeTransient(OpCallbacks.OP_DELETE, obj, call, &quot;delete&quot;);</span>
+<span class="fc" id="L2915">                cascadeTransient(OpCallbacks.OP_DELETE, obj, call, &quot;delete&quot;);</span>
 <span class="fc" id="L2916">            return;</span>
         }
 
         // ACT_RUN
-<span class="pc bpc" id="L2920" title="1 of 2 branches missed.">        if (sm != null) {</span>
-<span class="pc bpc" id="L2921" title="1 of 2 branches missed.">            if (sm.isDetached())</span>
+<span class="fc bfc" id="L2920" title="All 2 branches covered.">        if (sm != null) {</span>
+<span class="fc bfc" id="L2921" title="All 2 branches covered.">            if (sm.isDetached())</span>
 <span class="nc" id="L2922">                throw newDetachedException(obj, &quot;delete&quot;);</span>
 <span class="fc bfc" id="L2923" title="All 2 branches covered.">            if ((action &amp; OpCallbacks.ACT_CASCADE) != 0) {</span>
 <span class="pc bpc" id="L2924" title="3 of 4 branches missed.">                if (!sm.isEmbedded() || !sm.getDereferencedEmbedDependent()) {</span>
@@ -2937,7 +2937,7 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
                 }
             }
 <span class="fc" id="L2939">            sm.delete();</span>
-<span class="nc bnc" id="L2940" title="All 2 branches missed.">        } else if (assertPersistenceCapable(obj).pcIsDetached() == Boolean.TRUE)</span>
+<span class="pc bpc" id="L2940" title="1 of 2 branches missed.">        } else if (assertPersistenceCapable(obj).pcIsDetached() == Boolean.TRUE)</span>
 <span class="nc" id="L2941">            throw newDetachedException(obj, &quot;delete&quot;);</span>
 <span class="fc" id="L2942">    }</span>
 
@@ -2947,8 +2947,8 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
      */
     private OpenJPAException newDetachedException(Object obj,
         String operation) {
-<span class="nc" id="L2950">        throw new UserException(_loc.get(&quot;bad-detached-op&quot;, operation,</span>
-<span class="nc" id="L2951">            Exceptions.toString(obj))).setFailedObject(obj);</span>
+<span class="fc" id="L2950">        throw new UserException(_loc.get(&quot;bad-detached-op&quot;, operation,</span>
+<span class="fc" id="L2951">            Exceptions.toString(obj))).setFailedObject(obj);</span>
     }
 
     @Override
@@ -3569,8 +3569,8 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 <span class="pc bpc" id="L3569" title="1 of 4 branches missed.">            if (flush &amp;&amp; (_flags &amp; FLAG_FLUSH_REQUIRED) != 0)</span>
 <span class="nc" id="L3570">                flush();</span>
 <span class="fc" id="L3571">            detachAllInternal(call);</span>
-<span class="nc" id="L3572">        } catch (OpenJPAException ke) {</span>
-<span class="nc" id="L3573">            throw ke;</span>
+<span class="fc" id="L3572">        } catch (OpenJPAException ke) {</span>
+<span class="fc" id="L3573">            throw ke;</span>
 <span class="nc" id="L3574">        } catch (RuntimeException re) {</span>
 <span class="nc" id="L3575">            throw new GeneralException(re);</span>
         } finally {
@@ -3585,11 +3585,11 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
         }
 <span class="fc" id="L3586">        Collection&lt;StateManagerImpl&gt; states = getManagedStates();</span>
         StateManagerImpl sm;
-<span class="pc bpc" id="L3588" title="1 of 2 branches missed.">        for (Iterator&lt;StateManagerImpl&gt; itr = states.iterator(); itr.hasNext();) {</span>
-<span class="nc" id="L3589">            sm = itr.next();</span>
-<span class="nc bnc" id="L3590" title="All 2 branches missed.">            if (!sm.isPersistent())</span>
+<span class="fc bfc" id="L3588" title="All 2 branches covered.">        for (Iterator&lt;StateManagerImpl&gt; itr = states.iterator(); itr.hasNext();) {</span>
+<span class="fc" id="L3589">            sm = itr.next();</span>
+<span class="pc bpc" id="L3590" title="1 of 2 branches missed.">            if (!sm.isPersistent())</span>
 <span class="nc" id="L3591">                itr.remove();</span>
-<span class="nc bnc" id="L3592" title="All 2 branches missed.">            else if (!sm.getMetaData().isDetachable()) {</span>
+<span class="pc bpc" id="L3592" title="1 of 2 branches missed.">            else if (!sm.getMetaData().isDetachable()) {</span>
 <span class="nc" id="L3593">                sm.release(true);</span>
 <span class="nc" id="L3594">                itr.remove();</span>
             }
@@ -4311,8 +4311,8 @@ import org.apache.openjpa.validation.ValidatingLifecycleEventManager;
 <span class="pc bpc" id="L4311" title="3 of 5 branches missed.">            switch (status) {</span>
                 case STATUS_INIT:
                     // Only reset the flushed flag is this is a new instance.
-<span class="pc bpc" id="L4314" title="1 of 4 branches missed.">                    if (sm.isNew() &amp;&amp; _compat.getResetFlushFlagForCascadePersist()) {// OPENJPA-2051</span>
-<span class="nc" id="L4315">                        _flags &amp;= ~FLAG_FLUSHED;</span>
+<span class="fc bfc" id="L4314" title="All 4 branches covered.">                    if (sm.isNew() &amp;&amp; _compat.getResetFlushFlagForCascadePersist()) {// OPENJPA-2051</span>
+<span class="fc" id="L4315">                        _flags &amp;= ~FLAG_FLUSHED;</span>
                     }
 <span class="fc" id="L4317">                    _cache.add(sm);</span>
 <span class="fc" id="L4318">                    break;</span>

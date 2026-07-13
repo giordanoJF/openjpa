@@ -1,3 +1,5 @@
 stato,fonte_oracolo,oracolo,nota
-nessuna transazione attiva,ipotesi,nessuna eccezione; nessun effetto,"Javadoc: ""Flush all transactional instances to the data store""; senza transazione attiva non c'e' nulla da flushare"
-transazione attiva senza istanze dirty,ipotesi,nessuna eccezione; getRollbackOnly() resta false,nessuna istanza transazionale da flushare
+nessuna transazione attiva,ipotesi,nessuna eccezione,Javadoc diretto
+transazione attiva senza istanze dirty,ipotesi,rollbackOnly false,nulla da flushare
+transazione attiva istanze presenti successo,non implementato,non determinato,assegnazione id store
+transazione attiva istanze presenti fallimento,non implementato,non determinato,mock non basta

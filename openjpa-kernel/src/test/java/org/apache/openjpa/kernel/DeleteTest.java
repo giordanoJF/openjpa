@@ -22,7 +22,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +33,11 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.openjpa.conf.OpenJPAConfiguration;
+import org.apache.openjpa.enhance.PCRegistry;
 import org.apache.openjpa.enhance.PersistenceCapable;
+import org.apache.openjpa.meta.ClassMetaData;
+import org.apache.openjpa.meta.FieldMetaData;
+import org.apache.openjpa.meta.MetaDataRepository;
 import org.apache.openjpa.util.UserException;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,18 +45,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-// Iterazione 2 (nuovo metodo, Capitolo Adeguatezza): delete(Object, OpCallbacks), scelto per
-// significativita' funzionale (una delle 4 operazioni CRUD di base) tra i metodi segnalati da
-// JaCoCo come scoperti. Appendice report/data/delete_combinazioni.csv. Le righe con pc=non
-// gestito e call diverso da "lancia eccezione" hanno oracolo incerto e non sono implementate.
 @RunWith(Parameterized.class)
 public class DeleteTest {
 
     private enum PcKind { NULL, UNMANAGED, MANAGED_NEW, MANAGED_STORED }
 
-    // NONE = call assente; ACTION = processArgument ritorna un codice azione, ipotesi:
-    // equivalenti per design (stessa convenzione usata per lock/detachAll); THROWS = lancia
-    // UserException.
     private enum CallBehavior { NONE, ACT_NONE, ACT_CASCADE, ACT_RUN, THROWS }
 
     private enum ExpectedOutcome { NO_EFFECT, EXCEPTION_PROPAGATED }
@@ -63,6 +63,13 @@ public class DeleteTest {
             {"pc=null,call=azione (ACT_RUN)", PcKind.NULL, CallBehavior.ACT_RUN, ExpectedOutcome.NO_EFFECT},
             {"pc=null,call=lancia eccezione", PcKind.NULL, CallBehavior.THROWS, ExpectedOutcome.NO_EFFECT},
 
+            {"pc=non gestito,call=null", PcKind.UNMANAGED, CallBehavior.NONE, ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_NONE)", PcKind.UNMANAGED, CallBehavior.ACT_NONE,
+                ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_RUN)", PcKind.UNMANAGED, CallBehavior.ACT_RUN,
+                ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_CASCADE)", PcKind.UNMANAGED, CallBehavior.ACT_CASCADE,
+                ExpectedOutcome.NO_EFFECT},
             {"pc=non gestito,call=lancia eccezione", PcKind.UNMANAGED, CallBehavior.THROWS,
                 ExpectedOutcome.EXCEPTION_PROPAGATED},
 
@@ -95,6 +102,7 @@ public class DeleteTest {
     private final ExpectedOutcome expected;
 
     private BrokerImpl broker;
+    private MetaDataRepository repo;
 
     public DeleteTest(String label, PcKind pc, CallBehavior callBehavior, ExpectedOutcome expected) {
         this.pc = pc;
@@ -108,7 +116,10 @@ public class DeleteTest {
         StoreManager storeManager = mock(StoreManager.class, RETURNS_DEEP_STUBS);
         DelegatingStoreManager delegatingStoreManager = new DelegatingStoreManager(storeManager) { };
 
+        repo = mock(MetaDataRepository.class, RETURNS_DEEP_STUBS);
+
         OpenJPAConfiguration conf = mock(OpenJPAConfiguration.class, RETURNS_DEEP_STUBS);
+        when(conf.getMetaDataRepositoryInstance()).thenReturn(repo);
         when(factory.getConfiguration()).thenReturn(conf);
 
         broker = new BrokerImpl();
@@ -123,6 +134,16 @@ public class DeleteTest {
             case UNMANAGED: {
                 PersistenceCapable obj = mock(PersistenceCapable.class);
                 when(obj.pcGetStateManager()).thenReturn(null);
+
+                ClassMetaData meta = mock(ClassMetaData.class, RETURNS_DEEP_STUBS);
+                when(meta.getIdentityType()).thenReturn(ClassMetaData.ID_DATASTORE);
+                when(meta.getFields()).thenReturn(new FieldMetaData[0]);
+                when(meta.getPkAndNonPersistentManagedFmdIndexes()).thenReturn(new int[0]);
+                when(meta.getPCSubclasses()).thenReturn(new Class<?>[0]);
+                doReturn(meta).when(repo).getMetaData(eq(obj.getClass()), any(), anyBoolean());
+                PCRegistry.register(obj.getClass(), new String[0], new Class<?>[0], new byte[0], null,
+                    "DeleteTestUnmanagedMock", obj);
+
                 return obj;
             }
             case MANAGED_NEW:
@@ -166,8 +187,6 @@ public class DeleteTest {
             }
         }
 
-        // pc=null intercettato prima dell'invocazione di processArgument (coerente con lock/detachAll):
-        // l'eccezione del callback non si propaga in quel caso.
         boolean expectPropagation = expected == ExpectedOutcome.EXCEPTION_PROPAGATED && pc != PcKind.NULL;
 
         if (expectPropagation) {
@@ -178,7 +197,6 @@ public class DeleteTest {
                 assertSame(processArgumentException, e);
             }
         } else {
-            // nessuna eccezione attesa (oracolo da Javadoc + analogia con gli altri metodi della classe)
             broker.delete(pcValue, callback);
         }
     }

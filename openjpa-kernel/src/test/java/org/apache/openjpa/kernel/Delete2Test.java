@@ -38,10 +38,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-// Iterazione mutation testing (Capitolo Adeguatezza): nuova categoria per pc in delete(Object,
-// OpCallbacks), "gestito e detached", riusata dalla categoria "detached" gia' stabilita dalla
-// Javadoc di isDetached() (Capitolo 3). Ipotesi non verificata sul codice di delete, solo per
-// convenzione generale JPA. Appendice report/data/delete2_combinazioni.csv.
 @RunWith(Parameterized.class)
 public class Delete2Test {
 
@@ -90,8 +86,6 @@ public class Delete2Test {
             when(callback.processArgument(anyInt(), any(), any())).thenReturn(OpCallbacks.ACT_RUN);
         }
 
-        // ipotesi confermata dall'esecuzione (non dedotta dal codice di delete): UserException
-        // "You cannot perform operation delete on detached object...".
         try {
             broker.delete(pcValue, callback);
             fail("attesa un'eccezione per istanza detached");

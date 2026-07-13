@@ -28,11 +28,6 @@ import org.apache.openjpa.meta.MetaDataRepository;
 import org.junit.Before;
 import org.junit.Test;
 
-// Iterazione mutation testing (Capitolo Adeguatezza): rafforza l'oracolo di newInstance(Class)
-// per il caso "tipo non managed concreto", gia' testato in NewInstanceTest con un'eccezione
-// generica. Javadoc: "@throws IllegalArgumentException if cls is not a managed type or
-// interface" -- oracolo piu' preciso, dedotto dalla stessa Javadoc gia' letta per il capitolo 3,
-// non dal codice. Appendice report/data/newInstance2_combinazioni.csv.
 public class NewInstance2Test {
 
     private static final class UnmanagedConcreteClass2 { }
@@ -61,7 +56,6 @@ public class NewInstance2Test {
             broker.newInstance(UnmanagedConcreteClass2.class);
             fail("attesa IllegalArgumentException");
         } catch (IllegalArgumentException e) {
-            // oracolo confermato: tipo di eccezione dichiarato dalla Javadoc
         }
     }
 }

@@ -40,18 +40,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-// Iterazione di miglioramento su lock(Object, OpCallbacks) (Capitolo Adeguatezza, appendice
-// report/data/lock2_combinazioni.csv). Riusa l'infrastruttura di LockTest, livello di default
-// fissato esplicitamente tramite l'API pubblica FetchConfiguration.setWriteLockLevel. Le 4 righe
-// del CSV con pc=non gestito e call diverso da "lancia eccezione" hanno oracolo incerto (non
-// specificato dalla Javadoc) e non sono implementate qui.
 @RunWith(Parameterized.class)
 public class Lock2Test {
 
     private enum PcKind { NULL, UNMANAGED, MANAGED_NEW, MANAGED_STORED }
 
-    // NONE = call assente; ACTION = processArgument ritorna un codice azione (equivalenti per
-    // design, come in LockTest/DetachAllTest); THROWS = lancia UserException.
     private enum CallBehavior { NONE, ACT_NONE, ACT_CASCADE, ACT_RUN, THROWS }
 
     private enum ExpectedOutcome { NO_EFFECT, POSTCONDITION, EXCEPTION_PROPAGATED }
@@ -65,6 +58,13 @@ public class Lock2Test {
             {"pc=null,call=azione (ACT_RUN)", PcKind.NULL, CallBehavior.ACT_RUN, ExpectedOutcome.NO_EFFECT},
             {"pc=null,call=lancia eccezione", PcKind.NULL, CallBehavior.THROWS, ExpectedOutcome.NO_EFFECT},
 
+            {"pc=non gestito,call=null", PcKind.UNMANAGED, CallBehavior.NONE, ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_NONE)", PcKind.UNMANAGED, CallBehavior.ACT_NONE,
+                ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_CASCADE)", PcKind.UNMANAGED, CallBehavior.ACT_CASCADE,
+                ExpectedOutcome.NO_EFFECT},
+            {"pc=non gestito,call=azione (ACT_RUN)", PcKind.UNMANAGED, CallBehavior.ACT_RUN,
+                ExpectedOutcome.NO_EFFECT},
             {"pc=non gestito,call=lancia eccezione", PcKind.UNMANAGED, CallBehavior.THROWS,
                 ExpectedOutcome.EXCEPTION_PROPAGATED},
 
@@ -124,8 +124,6 @@ public class Lock2Test {
         broker = new BrokerImpl();
         broker.initialize(factory, delegatingStoreManager, false, ConnectionRetainModes.CONN_RETAIN_DEMAND, false);
         broker.begin();
-        // _fc e' un mock (RETURNS_DEEP_STUBS): il setter pubblico non ha effetto reale su un mock,
-        // serve uno stub esplicito sul valore di ritorno del getter per fissare il livello di default.
         FetchConfiguration fc = broker.getFetchConfiguration();
         when(fc.getWriteLockLevel()).thenReturn(LockLevels.LOCK_READ);
     }

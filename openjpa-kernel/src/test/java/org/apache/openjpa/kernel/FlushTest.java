@@ -33,12 +33,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-// Iterazione 2 (nuovo metodo, Capitolo Adeguatezza): flush(), scelto per significativita'
-// funzionale (una delle operazioni JPA fondamentali) tra i metodi segnalati da JaCoCo come
-// scoperti. Appendice report/data/flush_combinazioni.csv. Non copre il ramo di errore dello
-// store (documentato in Javadoc: "may set the rollback only flag... if it encounters an
-// error"): richiederebbe una configurazione dello StoreManager mock non banale, fuori budget
-// per questa iterazione; resta un'estensione futura, non un'assunzione dedotta dal codice.
 @RunWith(Parameterized.class)
 public class FlushTest {
 
@@ -74,7 +68,6 @@ public class FlushTest {
             broker.begin();
         }
 
-        // nessuna eccezione attesa in entrambi i casi (oracolo da Javadoc)
         broker.flush();
         assertFalse(broker.getRollbackOnly());
     }

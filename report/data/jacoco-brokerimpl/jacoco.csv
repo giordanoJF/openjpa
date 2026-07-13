@@ -113,7 +113,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,ENonTransState,45,3,4,0,18,1,12,1,10,1
 OpenJPA Kernel,org.apache.openjpa.kernel,AbstractPCData.ProxyDataList,13,0,0,0,4,0,2,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,StoreQuery.Range,30,0,0,0,9,0,2,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl.TransactionalCache,290,38,73,5,59,12,57,4,19,3
-OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl,6891,2663,1140,290,1764,748,775,222,132,145
+OpenJPA Kernel,org.apache.openjpa.kernel,BrokerImpl,6843,2711,1131,299,1752,760,768,229,131,146
 OpenJPA Kernel,org.apache.openjpa.kernel,FillStrategy.Factory,158,0,12,0,21,0,8,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DistinctResultList,216,0,6,0,63,0,29,0,26,0
 OpenJPA Kernel,org.apache.openjpa.kernel,ECopyState,39,3,0,0,17,1,13,1,13,1
@@ -127,7 +127,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,PNewFlushedDeletedState,46,3,0,0,17,1,1
 OpenJPA Kernel,org.apache.openjpa.kernel,QueryImpl,3479,0,515,0,854,0,371,0,109,0
 OpenJPA Kernel,org.apache.openjpa.kernel,ROPStoreManager,65,0,8,0,20,0,9,0,5,0
 OpenJPA Kernel,org.apache.openjpa.kernel,ObjectIdStateManager,850,0,56,0,235,0,176,0,143,0
-OpenJPA Kernel,org.apache.openjpa.kernel,PCState,172,111,44,0,72,31,49,8,27,8
+OpenJPA Kernel,org.apache.openjpa.kernel,PCState,162,121,44,0,70,33,48,9,26,9
 OpenJPA Kernel,org.apache.openjpa.kernel,FillStrategy.Map,95,0,6,0,15,0,5,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DetachManager.DetachFieldManager,96,40,20,2,20,12,14,2,2,2
 OpenJPA Kernel,org.apache.openjpa.kernel,InMemorySavepointManager,29,0,2,0,10,0,6,0,5,0
@@ -154,7 +154,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,AbstractFieldManager,80,3,0,0,20,1,20,1
 OpenJPA Kernel,org.apache.openjpa.kernel,DetachedStateManager,1630,0,216,0,409,0,240,0,126,0
 OpenJPA Kernel,org.apache.openjpa.kernel,PNewFlushedDeletedFlushedState,7,3,0,0,4,1,3,1,3,1
 OpenJPA Kernel,org.apache.openjpa.kernel,FillStrategy.Assign,21,0,0,0,5,0,2,0,2,0
-OpenJPA Kernel,org.apache.openjpa.kernel,StateManagerImpl,6373,681,1073,84,1466,183,780,55,197,42
+OpenJPA Kernel,org.apache.openjpa.kernel,StateManagerImpl,6362,692,1072,85,1463,186,779,56,196,43
 OpenJPA Kernel,org.apache.openjpa.kernel,DelegatingBrokerFactory,256,0,10,0,88,0,30,0,25,0
 OpenJPA Kernel,org.apache.openjpa.kernel,ExpressionStoreQuery.InMemoryExecutor.AssertNoVariablesExpressionVisitor,23,0,2,0,7,0,3,0,2,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DetachManager,467,389,115,47,114,108,82,14,7,8
@@ -206,7 +206,7 @@ OpenJPA Kernel,org.apache.openjpa.kernel,TCleanState,37,3,4,0,13,1,9,1,7,1
 OpenJPA Kernel,org.apache.openjpa.kernel,QueryImpl.CompilationKey,147,0,32,0,29,0,19,0,3,0
 OpenJPA Kernel,org.apache.openjpa.kernel,DetachManager.InstanceDetachFieldManager,625,65,106,4,143,16,74,3,16,3
 OpenJPA Kernel,org.apache.openjpa.kernel,AttachStrategy,1106,68,223,8,246,17,131,7,12,4
-OpenJPA Kernel,org.apache.openjpa.kernel,ManagedCache,450,180,106,34,92,53,66,16,4,8
+OpenJPA Kernel,org.apache.openjpa.kernel,ManagedCache,399,231,97,43,83,62,63,19,4,8
 OpenJPA Kernel,org.apache.openjpa.kernel,MethodStoreQuery.MethodExecutor,489,0,60,0,109,0,37,0,7,0
 OpenJPA Kernel,org.apache.openjpa.kernel,InverseManager,606,8,149,0,157,2,99,1,20,1
 OpenJPA Kernel,org.apache.openjpa.kernel,ClearFieldManager,22,8,0,0,11,3,11,2,11,2
@@ -386,7 +386,7 @@ OpenJPA Kernel,org.apache.openjpa.ant,MetaDataToolTask.Action,5,0,0,0,2,0,2,0,2,
 OpenJPA Kernel,org.apache.openjpa.ant,ApplicationIdToolTask,73,0,2,0,22,0,10,0,9,0
 OpenJPA Kernel,org.apache.openjpa.ant,MetaDataToolTask,88,0,8,0,21,0,10,0,6,0
 OpenJPA Kernel,org.apache.openjpa.ant,PCEnhancerTask,65,0,2,0,18,0,8,0,7,0
-OpenJPA Kernel,org.apache.openjpa.conf,Compatibility,227,112,6,0,93,38,60,6,57,6
+OpenJPA Kernel,org.apache.openjpa.conf,Compatibility,221,118,6,0,91,40,58,8,55,8
 OpenJPA Kernel,org.apache.openjpa.conf,CacheMarshallersValue,148,0,14,0,39,0,15,0,8,0
 OpenJPA Kernel,org.apache.openjpa.conf,DetachOptions.All,5,0,0,0,2,0,2,0,2,0
 OpenJPA Kernel,org.apache.openjpa.conf,DetachOptions,126,0,16,0,42,0,22,0,14,0
@@ -460,7 +460,7 @@ OpenJPA Kernel,org.apache.openjpa.util,StringId,47,0,4,0,11,0,9,0,7,0
 OpenJPA Kernel,org.apache.openjpa.util,QueryException,70,0,2,0,22,0,10,0,9,0
 OpenJPA Kernel,org.apache.openjpa.util,Proxies,178,0,46,0,45,0,30,0,7,0
 OpenJPA Kernel,org.apache.openjpa.util,java.sql.Time.proxy,103,0,0,0,0,0,18,0,18,0
-OpenJPA Kernel,org.apache.openjpa.util,Exceptions.new OutputStream() {...},4,0,0,0,2,0,2,0,2,0
+OpenJPA Kernel,org.apache.openjpa.util,Exceptions.new OutputStream() {...},1,3,0,0,1,1,1,1,1,1
 OpenJPA Kernel,org.apache.openjpa.util,java.sql.Date.proxy,103,0,0,0,0,0,18,0,18,0
 OpenJPA Kernel,org.apache.openjpa.util,StoreFacadeTypeRegistry.Key,39,0,6,0,9,0,6,0,3,0
 OpenJPA Kernel,org.apache.openjpa.util,FloatId,61,0,6,0,15,0,12,0,9,0
@@ -490,7 +490,7 @@ OpenJPA Kernel,org.apache.openjpa.util,GeneratedClasses,70,0,10,0,23,0,9,0,4,0
 OpenJPA Kernel,org.apache.openjpa.util,ObjectId,52,0,6,0,13,0,10,0,7,0
 OpenJPA Kernel,org.apache.openjpa.util,InvalidStateException,10,4,0,0,4,2,2,1,2,1
 OpenJPA Kernel,org.apache.openjpa.util,java.util.LinkedHashMap.proxy,169,0,2,0,0,0,25,0,24,0
-OpenJPA Kernel,org.apache.openjpa.util,Exceptions,418,0,82,0,109,0,54,0,13,0
+OpenJPA Kernel,org.apache.openjpa.util,Exceptions,373,45,76,6,96,13,51,3,10,3
 OpenJPA Kernel,org.apache.openjpa.util,java.util.Date.proxy,123,0,0,0,0,0,21,0,21,0
 OpenJPA Kernel,org.apache.openjpa.util,OpenJPAId,179,0,26,0,45,0,25,0,12,0
 OpenJPA Kernel,org.apache.openjpa.util,WrappedException,26,0,0,0,11,0,6,0,6,0
@@ -539,8 +539,8 @@ OpenJPA Kernel,org.apache.openjpa.util,MetaDataException,26,8,0,0,10,3,4,1,4,1
 OpenJPA Kernel,org.apache.openjpa.util,ProxyManagerImpl,4896,0,414,0,1084,0,280,0,73,0
 OpenJPA Kernel,org.apache.openjpa.util,java.util.Properties.proxy,189,0,2,0,0,0,26,0,25,0
 OpenJPA Kernel,org.apache.openjpa.util,java.util.Vector.proxy,246,0,2,0,0,0,35,0,34,0
-OpenJPA Kernel,org.apache.openjpa.util,ImplHelper,344,37,79,7,94,8,55,6,11,4
-OpenJPA Kernel,org.apache.openjpa.util,OpenJPAException,113,81,7,3,31,21,18,8,13,8
+OpenJPA Kernel,org.apache.openjpa.util,ImplHelper,337,44,78,8,92,10,54,7,10,5
+OpenJPA Kernel,org.apache.openjpa.util,OpenJPAException,108,86,7,3,29,23,17,9,12,9
 OpenJPA Kernel,org.apache.openjpa.util,ApplicationIds.PrimaryKeyFieldManager,183,0,8,0,49,0,30,0,26,0
 OpenJPA Kernel,org.apache.openjpa.util,ShortId,59,0,6,0,15,0,12,0,9,0
 OpenJPA Kernel,org.apache.openjpa.util,CacheMap,692,0,74,0,169,0,76,0,39,0

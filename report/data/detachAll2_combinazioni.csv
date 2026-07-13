@@ -1,9 +1,12 @@
-call,flush,transazione,fonte_oracolo,oracolo,nota
-null,true,non attiva,ipotesi,nessuna eccezione; nessuna istanza gestita quindi nessun effetto osservabile,"broker senza istanze gestite: caso base per isolare l'effetto di flush e transazione"
-null,true,attiva,ipotesi,nessuna eccezione; nessun effetto,"idem, con broker.begin() esplicito"
-null,false,non attiva,ipotesi,nessuna eccezione; nessun effetto,idem con flush=false
-null,false,attiva,ipotesi,nessuna eccezione; nessun effetto,idem
-non null,true,non attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,"ipotesi iniziale da Javadoc (""option of performing a flush before doing the detachment""), confermata dall'esecuzione: nessuna istanza gestita su cui operare"
-non null,true,attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem
-non null,false,non attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem con flush=false
-non null,false,attiva,osservazione,nessuna eccezione; verificato con verify(never()) che il callback non viene invocato,idem
+stato_broker,call,flush,transazione,fonte_oracolo,oracolo,nota
+senza istanze gestite,null,true,non attiva,ipotesi,nessun effetto,caso base
+senza istanze gestite,null,true,attiva,ipotesi,nessun effetto,transazione esplicita
+senza istanze gestite,null,false,non attiva,ipotesi,nessun effetto,idem
+senza istanze gestite,null,false,attiva,ipotesi,nessun effetto,idem
+senza istanze gestite,non null,true,non attiva,osservazione,callback mai invocato,nessuna istanza tracciata
+senza istanze gestite,non null,true,attiva,osservazione,callback mai invocato,idem
+senza istanze gestite,non null,false,non attiva,osservazione,callback mai invocato,idem
+senza istanze gestite,non null,false,attiva,osservazione,callback mai invocato,idem
+con istanza gestita,null,false,attiva,osservazione,InvalidStateException PNew,istanza mai flushata
+con istanza gestita,non null,false,attiva,osservazione,InvalidStateException PNew,callback mai invocato
+con istanza gestita,null/non null,true,attiva,non implementato,non determinato,tuple non distinte
