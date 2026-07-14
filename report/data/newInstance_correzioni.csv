@@ -2,7 +2,7 @@ cls,fonte_oracolo,oracolo,nota
 null,ipotesi,eccezione (tipo non specificato),cls null: eccezione assunta
 interfaccia con metodi JavaBeans,diretto,istanza non-null (implementazione concreta generata dai metadati),documentato: ramo JavaBeans
 interfaccia senza metodi JavaBeans,ipotesi,"eccezione (tipo non specificato, possibile IllegalArgumentException)",ambiguita' doc (@throws esenta 'interface' senza ripetere il vincolo JavaBeans): eccezione assunta
-classe astratta con metodi JavaBeans,osservazione,eccezione (UnsupportedOperationException),"corretto: BrokerImpl.newInstance rifiuta qualunque classe astratta (non interfaccia) prima di consultare metadati o registro, indipendentemente dalla convenzione JavaBeans"
+classe astratta con metodi JavaBeans,osservazione,eccezione (tipo non specificato),"corretto: rifiutata come le altre classi astratte, indipendentemente dalla convenzione JavaBeans; il test verifica un'eccezione generica, non uno specifico tipo"
 classe astratta senza JavaBeans,ipotesi,"eccezione (tipo non specificato, possibile IllegalArgumentException)",ambiguita' doc (il ramo tipo managed non esclude le astratte; non sono pero' istanziabili direttamente): eccezione assunta
 tipo managed concreto,diretto,istanza non-null del tipo specificato,documentato: ramo tipo managed
 tipo non managed concreto,diretto,lancia IllegalArgumentException,documentato: @throws esplicito

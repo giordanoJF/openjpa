@@ -2077,6 +2077,30 @@ java -Xmx3000m -cp tools/randoop-all-4.3.3.jar:openjpa-kernel/target/classes:<co
   --junit-output-dir=report/data/randoop-brokerimpl
 \end{lstlisting}
 
+\paragraph*{Comando di generazione Randoop, \texttt{LoginDialog}.}
+\label{cmd:randoop-logindialog}
+\begin{lstlisting}
+mvn -f openjpa-examples/opentrader/pom.xml compile
+mvn -f openjpa-examples/opentrader/pom.xml dependency:build-classpath \
+  -Dmdep.outputFile=opentrader-cp.txt
+
+java -Xmx3000m -cp tools/randoop-all-4.3.3.jar:openjpa-examples/opentrader/target/classes:\
+<contenuto-di-opentrader-cp.txt> \
+  randoop.main.Main gentests \
+  --testclass=org.apache.openjpa.trader.client.LoginDialog \
+  --output-limit=100 \
+  --junit-output-dir=report/data/randoop-logindialog
+\end{lstlisting}
+Esito, in \texttt{report/data/randoop-logindialog/randoop-log.txt}:
+\begin{lstlisting}
+Could not load class org.apache.openjpa.trader.client.LoginDialog: Unable to load class
+"org.apache.openjpa.trader.client.LoginDialog" due to exception:
+java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in client code!
+It cannot be called, for example, from server code. If you are running a unit test, check
+that your test case extends GWTTestCase and that GWT.create() is not called from within an
+initializer or constructor.
+\end{lstlisting}
+
 \paragraph*{Comando di generazione EvoSuite.}
 \label{cmd:evosuite-brokerimpl-gen}
 \begin{lstlisting}
@@ -2173,6 +2197,52 @@ FAILURES!!!
 Tests run: 456,  Failures: 4
 \end{lstlisting}
 
+\paragraph*{Comando di generazione EvoSuite, \texttt{LoginDialog}.}
+\label{cmd:evosuite-logindialog}
+\begin{lstlisting}
+mvn -f openjpa-examples/opentrader/pom.xml compile
+mvn -f openjpa-examples/opentrader/pom.xml dependency:build-classpath \
+  -Dmdep.outputFile=opentrader-cp-compile.txt -DincludeScope=compile
+
+java -Xmx2000m -Djava.awt.headless=true \
+  -cp tools/evosuite-1.2.0.jar:openjpa-examples/opentrader/target/classes:\
+<contenuto-di-opentrader-cp-compile.txt> \
+  org.evosuite.EvoSuite \
+  -class org.apache.openjpa.trader.client.LoginDialog \
+  -projectCP openjpa-examples/opentrader/target/classes:\
+<contenuto-di-opentrader-cp-compile.txt> \
+  -Dsearch_budget=60 \
+  -Dtest_dir=report/data/evosuite-logindialog \
+  -Dreport_dir=report/data/evosuite-logindialog/evosuite-report
+\end{lstlisting}
+Esito, unico test generato (\texttt{LoginDialog\_ESTest.java}):
+\begin{lstlisting}
+@Test(timeout = 4000)
+public void test0() throws Throwable {
+    String string0 = "org.apache.openjpa.trader.client.LoginDialog";
+    Thread thread0 = Thread.currentThread();
+    ClassLoader classLoader0 = thread0.getContextClassLoader();
+    boolean boolean0 = true;
+    // Undeclared exception!
+    try {
+      Class.forName(string0, boolean0, classLoader0);
+      fail("Expecting exception: NoClassDefFoundError");
+    } catch(NoClassDefFoundError e) {
+    }
+}
+\end{lstlisting}
+Causa riportata nel log (\texttt{report/data/evosuite-logindialog/evosuite-log.txt}):
+\begin{lstlisting}
+java.lang.ExceptionInInitializerError: null
+  ...
+Caused by: java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in
+client code! It cannot be called, for example, from server code. If you are running a unit
+test, check that your test case extends GWTTestCase and that GWT.create() is not called
+from within an initializer or constructor.
+	at com.google.gwt.core.client.GWT.create(GWT.java:92)
+	at com.google.gwt.user.client.ui.UIObject.<clinit>(UIObject.java)
+\end{lstlisting}
+
 \paragraph*{Comando JaCoCo (BB, Randoop, LLM).}
 \label{cmd:jacoco-brokerimpl}
 \begin{lstlisting}
@@ -2254,6 +2324,16 @@ transazione & \{non attiva\} -- \{attiva, senza istanze\} -- \{attiva, istanze p
 \label{tab:flush-classi}
 \end{table}
 
+\paragraph*{Comando PITest.}
+\label{cmd:pitest-brokerimpl}
+\begin{lstlisting}
+mvn -pl openjpa-kernel \
+  org.pitest:pitest-maven:1.5.1:mutationCoverage \
+  -DtargetClasses=org.apache.openjpa.kernel.BrokerImpl \
+  -DtargetTests=org.apache.openjpa.kernel.* \
+  -DoutputFormats=CSV,HTML
+\end{lstlisting}
+
 \begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
@@ -2282,13 +2362,3 @@ Parametro & Classi di equivalenza \\
 rispetto a Tabella~\ref{tab:newinstance-classi}.}
 \label{tab:newinstance2-classi}
 \end{table}
-
-\paragraph*{Comando PITest.}
-\label{cmd:pitest-brokerimpl}
-\begin{lstlisting}
-mvn -pl openjpa-kernel \
-  org.pitest:pitest-maven:1.5.1:mutationCoverage \
-  -DtargetClasses=org.apache.openjpa.kernel.BrokerImpl \
-  -DtargetTests=org.apache.openjpa.kernel.* \
-  -DoutputFormats=CSV,HTML
-\end{lstlisting}

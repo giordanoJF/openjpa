@@ -1,0 +1,35 @@
+* EvoSuite 1.2.0
+* Going to generate test cases for class: org.apache.openjpa.trader.client.LoginDialog
+* Starting Client-0
+* Connecting to master process on port 9147
+* Analyzing classpath: 
+  - openjpa-examples/opentrader/target/classes
+  - /home/jokey/.m2/repository/com/google/gwt/gwt-user/2.0.4/gwt-user-2.0.4.jar
+  - /home/jokey/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.0.0/jakarta.persistence-api-3.0.0.jar
+* Writing JUnit test case 'LoginDialog_ESTest' to report/data/evosuite-logindialog
+* Error while initializing target class: java.lang.ExceptionInInitializerError
+[MASTER] 19:42:08.230 [logback-2] ERROR TestSuiteGenerator - Problem for org.apache.openjpa.trader.client.LoginDialog. Full stack:
+java.lang.ExceptionInInitializerError: null
+	at java.base/java.lang.Class.forName0(Native Method)
+	at java.base/java.lang.Class.forName(Class.java:398)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.evosuite.testcase.statements.MethodStatement$1.execute(MethodStatement.java:256)
+	at org.evosuite.testcase.statements.AbstractStatement.exceptionHandler(AbstractStatement.java:165)
+	at org.evosuite.testcase.statements.MethodStatement.execute(MethodStatement.java:219)
+	at org.evosuite.testcase.execution.TestRunnable.executeStatements(TestRunnable.java:286)
+	at org.evosuite.testcase.execution.TestRunnable.call(TestRunnable.java:192)
+	at org.evosuite.testcase.execution.TestRunnable.call(TestRunnable.java:49)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+Caused by: java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in client code!  It cannot be called, for example, from server code.  If you are running a unit test, check that your test case extends GWTTestCase and that GWT.create() is not called from within an initializer or constructor.
+	at com.google.gwt.core.client.GWT.create(GWT.java:92)
+	at com.google.gwt.user.client.ui.UIObject.<clinit>(UIObject.java)
+	... 16 common frames omitted
+* Computation finished
+[MASTER] 19:42:08.346 [main] ERROR SearchStatistics - No statistics has been saved because EvoSuite failed to generate any test case
+[MASTER] 19:42:08.448 [main] ERROR TestGeneration - failed to write statistics data

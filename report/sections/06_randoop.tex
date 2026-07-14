@@ -31,3 +31,13 @@ causa: \texttt{new BrokerImpl()} lascia diversi campi collaboratori a \texttt{nu
 \texttt{\_log} tra quelli coinvolti), impostati solo da \texttt{initialize(...)}.
 
 \subsection{LoginDialog}
+
+Stesso setup usato per \texttt{BrokerImpl}, comando in
+\hyperref[cmd:randoop-logindialog]{Appendice}. Randoop non riesce a caricare la classe:
+\texttt{UnsupportedOperationException}, ``GWT.create() is only usable in client code'', prima
+ancora di generare una sequenza. Log completo in
+\texttt{report/data/randoop-logindialog/randoop-log.txt}.
+
+La causa è la stessa già discussa per l'infrastruttura di test (Sezione~\ref{sec:ambiente}):
+\texttt{LoginDialog} eredita da \texttt{PopupPanel} e richiede l'ambiente simulato di GWT per
+essere costruita. Randoop lavora su una JVM ordinaria e non è quindi utilizzabile su \texttt{LoginDialog}.

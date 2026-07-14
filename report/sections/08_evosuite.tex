@@ -38,4 +38,14 @@ cascata per lo stesso motivo. \texttt{test000} e \texttt{test137} falliscono ent
 eccezione (\texttt{GeneralException: Mock call to processArgument...}).
 
 \subsection{LoginDialog}
-% non affrontato in questo giro, per decisione presa in Sezione~\ref{sec:randoop}
+
+Stesso esito di Randoop, comando
+in \hyperref[cmd:evosuite-logindialog]{Appendice}. EvoSuite scrive un file di
+test (\texttt{LoginDialog\_ESTest.java}), ma con un solo caso generato, che non esercita nessun
+comportamento della classe: si limita a verificare che caricarla sollevi
+\texttt{NoClassDefFoundError}. Il log riporta la causa sotto: un
+\texttt{ExceptionInInitializerError}, causato a sua volta da \texttt{UnsupportedOperationException:
+GWT.create() is only usable in client code}, la stessa eccezione già incontrata con Randoop. Log completo in
+\texttt{report/data/evosuite-logindialog/evosuite-log.txt}. EvoSuite non è quindi utilizzabile
+su \texttt{LoginDialog}, per lo stesso motivo di Randoop: l'ambiente simulato di GWT, richiesto
+per costruire la classe, non esiste in una JVM ordinaria.

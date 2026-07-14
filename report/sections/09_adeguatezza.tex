@@ -134,13 +134,16 @@ Simulato un fallimento facendo restituire a \texttt{storeManager.flush()} una
 lista con un'eccezione. Ipotesi, da Javadoc: \texttt{BrokerImpl}, vedendo quella lista non vuota,
 imposta \texttt{rollbackOnly} a true. Osservato invece: \texttt{rollbackOnly} resta false, nessuna
 eccezione lanciata, test senza errori. A differenza del caso di successo, qui non c'è uno stack
-trace che indichi cosa manca al mock: non sappiamo se \texttt{BrokerImpl} ha davvero ispezionato
-quella lista nel nostro scenario o l'ha ignorata, e senza un errore da diagnosticare non c'è modo
+trace che indichi cosa manca al mock: non è possibile stabilire se \texttt{BrokerImpl} abbia davvero ispezionato
+quella lista in questo scenario o l'abbia ignorata, e senza un errore da diagnosticare non c'è modo
 di saperlo senza leggere il codice. Implementazione non proseguita. In totale 2/4 categorie
 implementate, i 2 test corrispondenti passano.
 
 Risultato: branch decision coverage 20,91\% (299/1430), statement coverage 30,25\% (760/2512), da
-17,69\% (253/1430) e 27,07\% (680/2512) di partenza: +3,22pp branch, +3,18pp statement.
+17,69\% (253/1430) e 27,07\% (680/2512) di partenza: +3,22pp branch, +3,18pp statement. Questo
+numero finale è misurato sulla suite dopo entrambe le iterazioni: include quindi anche il piccolo
+contributo di \texttt{delete2}/\texttt{newinstance2} (sottosezione successiva), selezionati
+dall'analisi dei mutanti sopravvissuti e non da questa misura di copertura.
 
 Un'analisi white-box dei rami scoperti alzerebbe questi numeri più rapidamente, ma sposterebbe
 l'obiettivo dalla verifica delle funzionalità documentate al solo inseguimento della copertura:

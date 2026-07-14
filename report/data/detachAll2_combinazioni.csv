@@ -7,6 +7,6 @@ senza istanze gestite,non null,true,non attiva,osservazione,callback mai invocat
 senza istanze gestite,non null,true,attiva,osservazione,callback mai invocato,idem
 senza istanze gestite,non null,false,non attiva,osservazione,callback mai invocato,idem
 senza istanze gestite,non null,false,attiva,osservazione,callback mai invocato,idem
-con istanza gestita,null,false,attiva,osservazione,InvalidStateException PNew,istanza mai flushata
-con istanza gestita,non null,false,attiva,osservazione,InvalidStateException PNew,callback mai invocato
+con istanza gestita,null,false,attiva,osservazione,InvalidStateException,istanza mai flushata
+con istanza gestita,non null,false,attiva,osservazione,InvalidStateException,callback mai invocato
 con istanza gestita,null/non null,true,attiva,non implementato,non determinato,tuple non distinte

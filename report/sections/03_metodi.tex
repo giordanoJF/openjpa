@@ -19,7 +19,7 @@ oracolo completo). I metodi selezionati sono in Tabella~\ref{tab:brokerimpl-meto
 \subsubsection{Documentazione}
 \label{sec:brokerimpl-analisi-doc}
 
-\textbf{\texttt{find(Object oid, boolean validate, FindCallbacks call)}}\\[6pt]
+\texttt{find(Object oid, boolean validate, FindCallbacks call)}\\[6pt]
 Restituisce l'istanza persistente associata all'\texttt{oid}. Con \texttt{validate=true}:
 \texttt{null} se assente, non-null se presente. Con \texttt{validate=false}: mai \texttt{null},
 tentando cache, poi un'istanza hollow, poi \texttt{ObjectNotFoundException}. Il parametro
@@ -27,7 +27,7 @@ tentando cache, poi un'istanza hollow, poi \texttt{ObjectNotFoundException}. Il 
 l'\texttt{oid}, o lancia eccezione) e \texttt{processReturn} (determina il valore restituito).
 
 \bigskip
-\textbf{\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}}\\[6pt]
+\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}\\[6pt]
 Blocca l'istanza al livello richiesto. Il Javadoc documenta solo \texttt{timeout}
 (\texttt{-1} = attesa illimitata); i livelli ammessi sono le costanti di \texttt{LockLevels}
 (\texttt{LOCK\_NONE}/\texttt{LOCK\_READ}/\texttt{LOCK\_WRITE}), la postcondizione è verificabile
@@ -36,34 +36,34 @@ rifiutare l'argomento o restituire un codice azione, senza effetto documentato s
 \texttt{lock}.
 
 \bigskip
-\textbf{\texttt{detachAll(Collection objs, OpCallbacks call)}}\\[6pt]
+\texttt{detachAll(Collection objs, OpCallbacks call)}\\[6pt]
 Stacca dal broker le istanze indicate, producendo copie non gestite; attraversa solo i campi
 della \texttt{FetchConfiguration} corrente. Il Javadoc di \texttt{isDetached} definisce
 ``detached'': ogni istanza restituita lo soddisfa. Il parametro \texttt{call} è
 \texttt{OpCallbacks}, come per \texttt{lock}.
 
 \bigskip
-\textbf{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}\\[6pt]
+\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}\\[6pt]
 Importa nel broker le istanze indicate: se precedentemente staccate, le modifiche vengono
 unite (merge) nell'istanza persistente esistente; se nuove, vengono persistite, con
 \texttt{copyNew} che controlla se copiarle. Il caso non documentato di un'istanza già gestita
 dallo stesso broker non rientra in nessuno dei due rami.
 
 \bigskip
-\textbf{\texttt{newInstance(Class cls)}}\\[6pt]
+\texttt{newInstance(Class cls)}\\[6pt]
 Crea una nuova istanza di \texttt{cls}. Se \texttt{cls} è un'interfaccia o una classe astratta
 con metodi JavaBeans, genera un'implementazione concreta; se è già un tipo managed concreto, ne
 restituisce direttamente un'istanza; altrimenti lancia \texttt{IllegalArgumentException}.
 
 \bigskip
-\textbf{\texttt{isDetached(Object obj, boolean find)}}\\[6pt]
+\texttt{isDetached(Object obj, boolean find)}\\[6pt]
 Verifica se l'oggetto è staccato. Con \texttt{find=true}, come ultima risorsa verifica anche
 l'esistenza nel datastore. La distinzione gestito/non gestito è fondata su
 \texttt{StoreContext.getStateManager(Object obj)}; ``detached'' è definito dal Javadoc
 dell'overload a un parametro come un'istanza riagganciabile tramite \texttt{Broker\#attach}.
 
 \bigskip
-\textbf{\texttt{persist(Object pc, Object id, OpCallbacks call)}}\\[6pt]
+\texttt{persist(Object pc, Object id, OpCallbacks call)}\\[6pt]
 Rende persistente l'istanza data, restituendo lo state manager assegnato; \texttt{id} è
 opzionale (\texttt{null} assegna un identificativo di default); non effettua cascata immediata
 sui campi marcati \texttt{CASCADE\_IMMEDIATE}. Il parametro \texttt{call} è \texttt{OpCallbacks}.

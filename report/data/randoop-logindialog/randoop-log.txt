@@ -1,0 +1,22 @@
+Randoop for Java version "4.3.3, local changes, branch master, commit 8f08f5b, 2024-05-02".
+
+Could not load class org.apache.openjpa.trader.client.LoginDialog: Unable to load class "org.apache.openjpa.trader.client.LoginDialog" due to exception: java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in client code!  It cannot be called, for example, from server code.  If you are running a unit test, check that your test case extends GWTTestCase and that GWT.create() is not called from within an initializer or constructor.
+Classpath:
+tools/randoop-all-4.3.3.jar
+openjpa-examples/opentrader/target/classes
+/home/jokey/.m2/repository/com/google/gwt/gwt-user/2.0.4/gwt-user-2.0.4.jar
+/home/jokey/.m2/repository/com/google/gwt/gwt-dev/2.0.4/gwt-dev-2.0.4.jar
+/home/jokey/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.0.0/jakarta.persistence-api-3.0.0.jar
+/home/jokey/.m2/repository/junit/junit/4.11/junit-4.11.jar
+/home/jokey/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+/home/jokey/.m2/repository/org/mockito/mockito-core/3.3.3/mockito-core-3.3.3.jar
+/home/jokey/.m2/repository/net/bytebuddy/byte-buddy/1.10.5/byte-buddy-1.10.5.jar
+/home/jokey/.m2/repository/net/bytebuddy/byte-buddy-agent/1.10.5/byte-buddy-agent-1.10.5.jar
+/home/jokey/.m2/repository/org/objenesis/objenesis/2.6/objenesis-2.6.jar
+/home/jokey/.m2/repository/org/apache/commons/commons-dbcp2/2.13.0/commons-dbcp2-2.13.0.jar
+/home/jokey/.m2/repository/org/apache/commons/commons-pool2/2.12.1/commons-pool2-2.12.1.jar
+/home/jokey/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar
+/home/jokey/.m2/repository/jakarta/transaction/jakarta.transaction-api/2.0.1/jakarta.transaction-api-2.0.1.jar
+/home/jokey/.m2/repository/org/apache/derby/derby/10.15.2.0/derby-10.15.2.0.jar
+/home/jokey/.m2/repository/org/apache/derby/derbyshared/10.15.2.0/derbyshared-10.15.2.0.jar
+/home/jokey/.m2/repository/org/apache/derby/derbytools/10.15.2.0/derbytools-10.15.2.0.jar
