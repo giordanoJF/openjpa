@@ -1,0 +1,11 @@
+proprieta,valore,fonte_oracolo,oracolo,nota
+Modal,true,diretto,isModal()==true,Javadoc GWT PopupPanel
+Modal,false,diretto,isModal()==false,Javadoc GWT PopupPanel
+AnimationEnabled,true,diretto,isAnimationEnabled()==true,Javadoc GWT PopupPanel
+AnimationEnabled,false,diretto,isAnimationEnabled()==false,Javadoc GWT PopupPanel
+AutoHideEnabled,true,diretto,isAutoHideEnabled()==true,Javadoc GWT PopupPanel
+AutoHideEnabled,false,diretto,isAutoHideEnabled()==false,Javadoc GWT PopupPanel
+GlassEnabled,true,diretto,isGlassEnabled()==true,Javadoc GWT PopupPanel
+GlassEnabled,false,diretto,isGlassEnabled()==false,Javadoc GWT PopupPanel
+Visible,true,diretto,isVisible()==true,indipendente da isShowing()
+Visible,false,diretto,isVisible()==false,indipendente da isShowing()

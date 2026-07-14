@@ -234,6 +234,118 @@ call)} (confronto con Tabella~\ref{tab:persist-classi}). * non si applica per \t
 \label{tab:persist-classi-corrette}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{session} & \{null\} -- \{valida\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per il costruttore \texttt{LoginDialog(OpenTrader session)}.}
+\label{tab:logindialog-costruttore-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{left} & \{negativo\} -- \{zero\} -- \{positivo\} \\
+\texttt{top} & \{negativo\} -- \{zero\} -- \{positivo\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{setPopupPosition(int left, int top)} (ereditato da
+\texttt{PopupPanel}).}
+\label{tab:logindialog-posizione-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{title} & \{null\} -- \{vuota\} -- \{valida\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{setTitle(String title)} (ereditato da
+\texttt{PopupPanel}).}
+\label{tab:logindialog-title-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Proprietà & Classi di equivalenza \\
+\midrule
+\texttt{Modal} & \{impostato a \texttt{true}\} -- \{impostato a \texttt{false}\} \\
+\texttt{AnimationEnabled} & \{impostato a \texttt{true}\} -- \{impostato a \texttt{false}\} \\
+\texttt{AutoHideEnabled} & \{impostato a \texttt{true}\} -- \{impostato a \texttt{false}\} \\
+\texttt{GlassEnabled} & \{impostato a \texttt{true}\} -- \{impostato a \texttt{false}\} \\
+\texttt{Visible} & \{impostato a \texttt{true}\} -- \{impostato a \texttt{false}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per le proprietà booleane ereditate da \texttt{PopupPanel}
+(\texttt{setModal}/\texttt{isModal}, \texttt{setAnimationEnabled}/\texttt{isAnimationEnabled},
+\texttt{setAutoHideEnabled}/\texttt{isAutoHideEnabled}, \texttt{setGlassEnabled}/
+\texttt{isGlassEnabled}, \texttt{setVisible}/\texttt{isVisible}).}
+\label{tab:logindialog-boolprop-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.38\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Parametro & Classi di equivalenza \\
+\midrule
+\texttt{stato\_precedente} & \{non mostrato\} -- \{mostrato\} \\
+\texttt{operazione} & \{\texttt{show()}\} -- \{\texttt{hide()}\} -- \{\texttt{hide(true)}\} --
+\{\texttt{center()}\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per il ciclo di vita \texttt{show}/\texttt{hide}/\texttt{center}/
+\texttt{isShowing} (ereditato da \texttt{PopupPanel}).}
+\label{tab:logindialog-lifecycle-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{0.28\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Metodo & Parametro & Classi di equivalenza \\
+\midrule
+\texttt{onFailure} & \texttt{caught} & \{istanza qualunque di \texttt{Throwable}\} \\
+\midrule
+\texttt{onSuccess} & \texttt{uri}, formato & \{null\} -- \{vuota\} -- \{non valida\} --
+\{valida\} \\
+\texttt{onSuccess} & \texttt{uri}, raggiungibilità* & \{corretta\} -- \{non corretta\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{GetServerURI} (\texttt{AsyncCallback<String>}).
+* richiede formato di \texttt{uri}=\{valida\}.}
+\label{tab:logindialog-getserveruri-classi}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{0.28\textwidth} >{\raggedright\arraybackslash}X}
+\toprule
+Metodo & Parametro & Classi di equivalenza \\
+\midrule
+\texttt{onFailure} & \texttt{caught} & \{istanza qualunque di \texttt{Throwable}\} \\
+\midrule
+\texttt{onSuccess} & \texttt{stocks} & \{null\} -- \{vuota\} -- \{con elementi\} \\
+\bottomrule
+\end{tabularx}
+\caption{Classi di equivalenza per \texttt{InitializeStocks}
+(\texttt{AsyncCallback<List<Stock>>}).}
+\label{tab:logindialog-initializestocks-classi}
+\end{table}
+
 % Tabelle esaustive combinazioni+oracolo, tutte in lavorazione come CSV, da inserire
 % qui solo dopo revisione:
 % find       -> report/data/find_combinazioni.csv        (84 righe)

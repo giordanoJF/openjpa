@@ -355,4 +355,183 @@ Tuple complete per tutti i metodi in \texttt{report/data/}.
 
 \subsection{LoginDialog}
 
-% analisi da svolgere
+A differenza di \texttt{BrokerImpl}, \texttt{LoginDialog} non ha metodi pubblici propri con
+Javadoc: un costruttore a corpo non ispezionato e tre classi interne di callback RPC, ed
+eredita per intero l'API pubblica di \texttt{PopupPanel} (documentata da GWT). Le firme
+vengono da \texttt{javap} sul \texttt{gwt-user-2.0.4.jar} (nessun sorgente disponibile per
+questa libreria), le descrizioni dalla Javadoc ufficiale online
+(\url{https://www.gwtproject.org/javadoc/latest/com/google/gwt/user/client/ui/PopupPanel.html};
+GWT non pubblica più una pagina per la versione 2.0.4 specifica, solo l'ultima), incrociata con
+le firme reali estratte da \texttt{javap} per scartare metodi di versioni successive alla 2.0.4.
+Il capitolo copre il costruttore, il comportamento ereditato da \texttt{PopupPanel}, e due delle
+tre classi di callback (\texttt{GetServerURI}, \texttt{InitializeStocks}). La terza,
+\texttt{LoginCallback}, richiederebbe un sostituto scritto a mano aggiuntivo per
+\texttt{TradingServiceAdapterAsync}, non disponibile nell'infrastruttura di test attuale, ed è
+esclusa dallo scope della campagna di test.
+
+\subsubsection{Costruttore}
+
+\textit{Categorie e partizioni:} firma \texttt{LoginDialog(OpenTrader session)}.
+\texttt{session}: \{null\}, \{non valida\}, \{valida\} (istanza non-null). Classi in
+Tabella~\ref{tab:logindialog-costruttore-classi} (Appendice). \{non valida\} eliminata per
+assenza di definizione applicabile.
+
+\textit{Ipotesi sull'oracolo:} \texttt{LoginDialog} dichiara un solo metodo, il costruttore:
+ogni logica propria della classe vive lì. \texttt{session} è l'unico collaboratore dichiarato:
+si ipotizza che \{null\} causi un errore quando il costruttore la usa. Per \{valida\}:
+\texttt{LoginDialog} estende \texttt{PopupPanel}, che estende \texttt{SimplePanel}, la quale
+dichiara \texttt{setWidget}/\texttt{getWidget} come unico modo di gestire il contenuto; poiché
+il costruttore è l'unico posto dove \texttt{setWidget(...)} potrebbe essere chiamato, si deduce
+\texttt{getWidget()!=null} dopo la costruzione. Per convenzione GWT un popup non si mostra da
+solo alla costruzione: si ipotizza anche \texttt{isShowing()==false}.
+
+\textit{Combinazioni:} $3$. \textit{Eliminazioni:} \{non valida\}.
+
+\textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
+
+\textit{Oracolo:} \{null\} ipotizzata. \{valida\} ipotizzata nel complesso
+(\texttt{getWidget()!=null} dedotto, \texttt{isShowing()==false} ipotizzato).
+
+\subsubsection{Posizione del popup}
+
+\textit{Categorie e partizioni:} \texttt{setPopupPosition(int left, int top)},
+\texttt{getPopupLeft()}, \texttt{getPopupTop()}, ereditati da \texttt{PopupPanel}.
+\texttt{left}/\texttt{top}: \{negativo\} ($<0$), \{zero\} ($=0$), \{positivo\} ($>0$), solo il
+segno, nessun vincolo oltre al tipo \texttt{int}. Classi in
+Tabella~\ref{tab:logindialog-posizione-classi} (Appendice).
+
+\textit{Ipotesi sull'oracolo:} dichiarato: il getter restituisce lo stesso valore passato al
+setter.
+
+\textit{Combinazioni:} $3\times3=9$. \textit{Eliminazioni:} nessuna.
+
+\textit{Boundary Value Analysis:} confine a $0$ per entrambi, rappresentanti $-1,0,1$.
+
+\textit{Oracolo:} tutte e 9 dichiarate.
+
+\subsubsection{Titolo del popup}
+
+\textit{Categorie e partizioni:} \texttt{setTitle(String title)}, \texttt{getTitle()},
+ereditati da \texttt{PopupPanel}. \texttt{title}: \{null\}, \{vuota\} (\texttt{""}), \{valida\}
+(non-null e non vuota). Classi in Tabella~\ref{tab:logindialog-title-classi} (Appendice).
+
+\textit{Ipotesi sull'oracolo:} dichiarato per \{vuota\}/\{valida\}: il getter restituisce lo
+stesso valore. Per \{null\}, nessuna eccezione dichiarata: si ipotizza che valga lo stesso.
+
+\textit{Combinazioni:} $3$. \textit{Eliminazioni:} nessuna.
+
+\textit{Boundary Value Analysis:} non applicabile; \{vuota\} copre il confine di lunghezza
+minima; \{valida\} rappresentata da una stringa arbitraria non vuota.
+
+\textit{Oracolo:} 2 dichiarate, 1 ipotizzata (\texttt{null}).
+
+\subsubsection{Proprietà booleane ereditate}
+
+Cinque coppie setter/getter ereditate da \texttt{PopupPanel}: \texttt{setModal}/
+\texttt{isModal}, \texttt{setAnimationEnabled}/\texttt{isAnimationEnabled},
+\texttt{setAutoHideEnabled}/\texttt{isAutoHideEnabled}, \texttt{setGlassEnabled}/
+\texttt{isGlassEnabled}, \texttt{setVisible}/\texttt{isVisible}.
+
+\textit{Categorie e partizioni:} per proprietà, \texttt{stato}: \{impostato a \texttt{true}\},
+\{impostato a \texttt{false}\}. Classi in Tabella~\ref{tab:logindialog-boolprop-classi}
+(Appendice). Il valore iniziale (prima di ogni \texttt{set}) non è testato: dipende da quale
+costruttore di \texttt{PopupPanel} invoca \texttt{super(...)}, non determinabile senza leggere
+il corpo. \{mai impostato esplicitamente\} è quindi esclusa dal design.
+
+\textit{Ipotesi sull'oracolo:} dichiarato: il getter restituisce lo stesso valore passato al
+setter.
+
+\textit{Combinazioni:} $2\times5=10$. \textit{Eliminazioni:} nessuna.
+
+\textit{Boundary Value Analysis:} non applicabile, le classi coincidono coi due valori
+booleani.
+
+\textit{Oracolo:} tutte dichiarate.
+
+\subsubsection{Ciclo di vita}
+
+\textit{Categorie e partizioni:} \texttt{show()}, \texttt{hide()}, \texttt{hide(boolean)},
+\texttt{center()}, \texttt{isShowing()}, ereditati da \texttt{PopupPanel}.
+\texttt{stato\_precedente}: \{non mostrato\} (\texttt{isShowing()==false}), \{mostrato\}
+(\texttt{isShowing()==true}). \texttt{operazione}: \{\texttt{show()}\}, \{\texttt{hide()}\},
+\{\texttt{hide(true)}\}, \{\texttt{center()}\}. Classi in
+Tabella~\ref{tab:logindialog-lifecycle-classi} (Appendice).
+
+\textit{Ipotesi sull'oracolo:} da \{non mostrato\}: \texttt{show()} e \texttt{center()}
+portano a \texttt{isShowing()==true} (dichiarato); \texttt{hide()} e \texttt{hide(true)}
+lasciano \texttt{isShowing()==false} (dichiarato per entrambi: la Javadoc di
+\texttt{hide(boolean)} ripete testualmente quella di \texttt{hide()}). Da \{mostrato\}:
+\texttt{center()} resta \texttt{true} (dichiarato), \texttt{show()} è ipotizzato lasciare
+\texttt{true} (idempotente, nessun testo per questo caso); \texttt{hide()} e \texttt{hide(true)}
+portano a \texttt{false} (dichiarato per entrambi).
+
+\textit{Combinazioni:} $2\times4=8$. \textit{Eliminazioni:} nessuna.
+
+\textit{Boundary Value Analysis:} non applicabile.
+
+\textit{Oracolo:} 7 dichiarate, 1 ipotizzata.
+
+\subsubsection{Classe GetServerURI}
+
+\textit{Categorie e partizioni:} \texttt{onFailure(Throwable caught)}: \texttt{caught}
+\{istanza qualunque\}. \texttt{onSuccess(String uri)}: due categorie sullo stesso parametro.
+Formato: \{null\}, \{vuota\}, \{non valida\}, \{valida\}. Raggiungibilità (solo se
+formato=\{valida\}): \{corretta\}, \{non corretta\} (server non risponde). Classi in
+Tabella~\ref{tab:logindialog-getserveruri-classi} (Appendice).
+
+\textit{Ipotesi sull'oracolo:} il valore passato a \texttt{onFailure} è scelto dal test, non
+osservato; \texttt{RuntimeException} è dedotto da \texttt{TradingServiceAdapter.getServiceURI()
+throws RuntimeException}. Il metodo restituisce \texttt{void}: l'oracolo
+è l'effetto collaterale ipotizzato, \texttt{session.handleError(caught)}.
+
+Per \texttt{onSuccess} \{null\}/\{vuota\}/\{non valida\}: ipotizzato che sollevi
+un'eccezione. Per \{valida\}, corretta o meno:
+dedotto che \texttt{uri} venga memorizzato e la catena prosegua verso
+\texttt{InitializeStocks}. La differenza emerge lì: per \{corretta\},
+\texttt{InitializeStocks.onSuccess} e \texttt{session.init(...)} con lo stesso \texttt{uri}; per \{non corretta\}, ipotizzato \texttt{InitializeStocks.onFailure}, quindi
+\texttt{handleError(...)} invece di \texttt{init(...)}. La tupla di test per questi due casi
+include quindi l'invocazione accoppiata di \texttt{InitializeStocks}.
+
+\textit{Combinazioni:} \texttt{onFailure} 1, \texttt{onSuccess} $4\times2=8$, totale 9.
+\textit{Eliminazioni:} la raggiungibilità non si applica per \{null, vuota, non valida\}: le 6
+combinazioni corrispondenti (3 formati $\times$ 2 raggiungibilità) collassano in 3 classi
+singole. \texttt{onSuccess} valide: 3 (formati non validi, raggiungibilità non tracciata) + 2
+(\{valida\} $\times$ raggiungibilità) = 5. Totale combinazioni valide: 6.
+
+\textit{Boundary Value Analysis:} non applicabile. \texttt{caught}: \texttt{RuntimeException}
+arbitraria. \{non valida\}: stringa non parsabile. \{valida\}:
+stringa con formato corretto (es. \texttt{"http://localhost:8080/opentrader"}). La
+raggiungibilità è uno stato simulato nel test.
+
+\textit{Oracolo:} \texttt{onFailure} ipotizzata (reazione non osservabile da specifica); tra le
+5 classi di \texttt{onSuccess}, 1 dedotta (\{valida, corretta\}) e 4 ipotizzate (\{null\},
+\{vuota\}, \{non valida\}, \{valida, non corretta\}). Totale: 1 dedotta, 5 ipotizzate.
+
+\subsubsection{Classe InitializeStocks}
+\label{sec:logindialog-initializestocks-oracolo}
+
+Classe interna pubblica, implementa \texttt{AsyncCallback<List<Stock>>}.
+
+\textit{Categorie e partizioni:} \texttt{onFailure}: stessa categoria di
+\texttt{GetServerURI.onFailure}. \texttt{onSuccess(List<Stock> stocks)}: \texttt{stocks}
+\{null\}, \{vuota\}, \{con elementi\} (almeno uno). Classi in
+Tabella~\ref{tab:logindialog-initializestocks-classi} (Appendice).
+
+\textit{Ipotesi sull'oracolo:} \texttt{onFailure}: stessa deduzione di \texttt{GetServerURI} e stessa ipotesi di
+reazione. \texttt{onSuccess}: il Javadoc di classe dichiara che il widget ottiene gli stock e
+passa i dati raccolti all'app tramite \texttt{OpenTrader\#init(Trader, List)}; il ruolo
+dichiarato di questa classe ("Initializes the tradable stocks followed by the main
+application") coincide con l'ultimo passo. E' dedotto dalla combinazione delle due fonti che
+\texttt{onSuccess} chiami \texttt{session.init(trader, serverURI, stocks)} con lo stesso
+\texttt{stocks}.
+
+\textit{Combinazioni:} \texttt{onFailure} 1, \texttt{onSuccess} 3, totale 4.
+\textit{Eliminazioni:} nessuna.
+
+\textit{Boundary Value Analysis:} non applicabile. \texttt{caught}: \texttt{RuntimeException}
+arbitraria. \{con elementi\}: lista con un \texttt{Stock} arbitrario.
+
+\textit{Oracolo:} 3 dedotte, 1 ipotizzata (\texttt{onFailure}).
+
+Tuple complete per le sette sottosezioni con classi di equivalenza proprie in
+\texttt{report/data/logindialog/}.

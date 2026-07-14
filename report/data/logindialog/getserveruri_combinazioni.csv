@@ -1,0 +1,7 @@
+metodo,parametro,fonte_oracolo,oracolo,nota
+onFailure,throwable qualunque,ipotizzato,handleError(caught) invocato,throws RuntimeException dichiarato
+onSuccess,null,ipotizzato,eccezione sincrona,formato URI non valido
+onSuccess,vuota,ipotizzato,eccezione sincrona,formato URI non valido
+onSuccess,non valida,ipotizzato,eccezione sincrona,formato URI non valido
+onSuccess,valida e corretta,dedotto,onSuccess propaga uri a init,propagazione via InitializeStocks
+onSuccess,valida ma non corretta,ipotizzato,onFailure invece di onSuccess,server non raggiungibile

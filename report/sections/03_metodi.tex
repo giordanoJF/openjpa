@@ -70,4 +70,10 @@ sui campi marcati \texttt{CASCADE\_IMMEDIATE}. Il parametro \texttt{call} è \te
 
 \subsection{LoginDialog}
 
-% analisi da svolgere
+A differenza di \texttt{BrokerImpl}, \texttt{LoginDialog} non ha metodi pubblici propri con
+Javadoc per parametro: la documentazione consultata è il Javadoc di classe di
+\texttt{LoginDialog}, la Javadoc GWT di \texttt{PopupPanel} (superclasse, la cui API pubblica è
+ereditata per intero) e le interfacce dichiarate dei collaboratori (\texttt{OpenTrader},
+\texttt{TradingServiceAdapter}). La selezione copre quindi il costruttore, le proprietà
+ereditate da \texttt{PopupPanel} e le tre classi interne di callback RPC, al posto di metodi
+propri praticamente assenti.

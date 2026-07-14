@@ -1,0 +1,1 @@
+/home/jokey/uniprojects/openjpa/openjpa-examples/opentrader/src/main/java/org/apache/openjpa/trader/client/ui/MessageBox.java

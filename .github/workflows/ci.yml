@@ -7,10 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Java JDK
+      - name: Setup Java JDKs
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: |
+            8
+            17
       - name: Build with Maven
         run: mvn -B install
+      - name: Test LoginDialog (GWTTestCase)
+        run: mvn -f openjpa-examples/opentrader/pom.xml -B test
+        env:
+          JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}

@@ -30,3 +30,74 @@ In tutti i casi, l'intervento è limitato al blocco \texttt{<execution>}
 del \texttt{pom.xml} del modulo interessato, lasciando invariata la
 restante configurazione dei plugin responsabili dell'esecuzione
 dei test.
+
+\subsection{Ambiente di test per LoginDialog}
+\label{sec:ambiente-logindialog}
+
+\texttt{LoginDialog} estende \texttt{PopupPanel}, una classe GWT il cui
+static initializer invoca \texttt{GWT.create()}. Fuori da un ambiente
+GWT, questa chiamata lancia
+\texttt{UnsupportedOperationException} prima ancora che il costruttore
+di \texttt{LoginDialog} venga eseguito: nessuna istanza della classe è
+costruibile in JUnit ordinario. Lo strumento
+GWT per testare widget di questo tipo è \texttt{GWTTestCase}, che estende
+\texttt{junit.framework.TestCase} ed esegue i test in modalità headless,
+senza browser né display.
+
+L'adozione di \texttt{GWTTestCase} ha richiesto di risolvere dei
+vincoli tecnici:
+
+\begin{itemize}
+\item Il compilatore invocato da \texttt{GWTTestCase}
+ad ogni esecuzione non si avvia sotto JDK 11 o successivi, mentre l'intero progetto
+li richiede. La soluzione adottata
+esegue Maven con JDK 17 e configura Surefire
+per avviare la JVM di test con un eseguibile JDK 8 indicato dalla variabile
+d'ambiente \texttt{JAVA8\_HOME}.
+\item Le classi di dominio usano annotazioni \texttt{jakarta.persistence}.
+La versione 3.1.0, usata altrove nel modulo \texttt{opentrader}, è compilata
+per bytecode Java 11 e non è caricabile dal compilatore GWT in esecuzione
+su JDK 8. La versione 3.0.0 usa lo stesso namespace \texttt{jakarta.persistence}
+con bytecode Java 8 ed è stata usata al suo posto per questo modulo.
+\item I metodi di test di \texttt{GWTTestCase} vengono tradotti in
+JavaScript dal compilatore GWT. Mockito non è traducibile. Il collaboratore \texttt{OpenTrader} richiesto dal costruttore
+di \texttt{LoginDialog} è quindi sostituito da una classe scritta a mano
+che ne imita il comportamento, non da Mockito.
+\item La classe reale \texttt{OpenTrader} dipende da
+\texttt{org.cobogw.gwt}, non pubblicato su Maven Central, e non è compilabile.
+\texttt{LoginDialog} ne usa solo tre metodi (\texttt{getService},
+\texttt{handleError}, \texttt{init}): la classe scritta a mano che lo
+sostituisce implementa solo questa superficie.
+\end{itemize}
+
+Il modulo Maven \texttt{openjpa-examples/opentrader} compila un
+sottoinsieme mirato dell'albero sorgente, raggiunto tramite collegamenti simbolici,
+escludendo deliberatamente il vero \texttt{OpenTrader.java}: il
+compilatore Java risolve i tipi referenziati cercando in tutto il
+sourcepath, quindi la sola esclusione dalla lista dei file da non compilare
+non basta a evitare l'errore di importazione mancante. Il compilatore
+dev-mode di GWT richiede inoltre il testo sorgente \texttt{.java}, non
+solo le classi compilate: il
+\texttt{pom.xml} espone quindi i sorgenti come risorse accanto alle
+classi compilate.
+
+Il modulo non partecipa al passo
+\texttt{mvn install} principale della CI. La CI installa comunque un
+secondo JDK 8 accanto al 17 ed esegue un passo
+dedicato che invoca Maven sul \texttt{pom.xml} di \texttt{opentrader}
+con la variabile \texttt{JAVA8\_HOME} impostata su quel secondo JDK,
+così che l'esecuzione dei test di \texttt{LoginDialog} resti coperta
+dalla CI pur restando fuori dalla build principale.
+
+L'oggetto sotto test è \texttt{LoginDialog}; \texttt{OpenTrader} è un
+collaboratore controllato dal test. La superficie di metodi che \texttt{LoginDialog} invoca su
+\texttt{OpenTrader} è nota per intero, perché il compilatore Java la
+vincola: \texttt{LoginDialog.java} non può referenziare alcun metodo
+assente dalla classe che lo sostituisce senza fallire in compilazione.
+I campi che questa classe usa per registrare lo stato osservato non sono invece definitivi
+al momento della loro prima scrittura: vengono estesi durante
+l'implementazione dei singoli casi di test, quando l'esecuzione di un
+test rivela tramite eccezione o stack trace che un'osservazione
+ulteriore è necessaria. La lettura del sorgente di \texttt{LoginDialog}
+qui serve a costruire l'infrastruttura di test, non a derivare
+la progettazione dei casi di test.

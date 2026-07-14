@@ -1,0 +1,3 @@
+session,fonte_oracolo,oracolo,nota
+null,ipotizzato,eccezione (dereferenziazione),session unico collaboratore
+valida,ipotizzato,getWidget()!=null e isShowing()==false,setWidget unico meccanismo

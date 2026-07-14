@@ -1,0 +1,10 @@
+left,top,fonte_oracolo,oracolo,nota
+negativo,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+negativo,zero,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+negativo,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+zero,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+zero,zero,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+zero,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+positivo,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+positivo,zero,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
+positivo,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,Javadoc GWT PopupPanel
