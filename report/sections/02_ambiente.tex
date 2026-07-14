@@ -71,11 +71,16 @@ sostituisce implementa solo questa superficie.
 \end{itemize}
 
 Il modulo Maven \texttt{openjpa-examples/opentrader} compila un
-sottoinsieme mirato dell'albero sorgente, raggiunto tramite collegamenti simbolici,
+sottoinsieme mirato dell'albero sorgente, copiato in una cartella separata
+(\texttt{src/main/java-logindialog-sources}),
 escludendo deliberatamente il vero \texttt{OpenTrader.java}: il
 compilatore Java risolve i tipi referenziati cercando in tutto il
 sourcepath, quindi la sola esclusione dalla lista dei file da non compilare
-non basta a evitare l'errore di importazione mancante. Il compilatore
+non basta a evitare l'errore di importazione mancante. Questi file erano
+inizialmente collegamenti simbolici al sorgente reale, sostituiti con copie
+identiche perché un collegamento simbolico con percorso assoluto funziona solo su questa
+macchina: nella build CI, eseguita su un percorso diverso, il collegamento risultava
+rotto. Il compilatore
 dev-mode di GWT richiede inoltre il testo sorgente \texttt{.java}, non
 solo le classi compilate: il
 \texttt{pom.xml} espone quindi i sorgenti come risorse accanto alle

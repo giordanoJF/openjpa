@@ -212,3 +212,25 @@ Il valore non è un'asserzione di correttezza di \texttt{BrokerImpl}: è una sti
 relativa a questo campione di esecuzioni, al profilo operazionale uniforme assunto e
 ad una suite che esercita 11 dei circa 250 metodi della classe, overload inclusi: 9 metodi
 distinti, di cui \texttt{lock} e \texttt{detachAll} con due overload ciascuno.
+
+\subsection{LoginDialog}
+
+\subsubsection{Coverage (JaCoCo)}
+
+Comando in \hyperref[cmd:jacoco-logindialog]{Appendice}, stesso approccio (agent allegato a
+mano al comando di test) già usato per \texttt{BrokerImpl}. Con l'agent attivo, i 102 test del
+modulo passano regolarmente; JaCoCo produce un file \texttt{.exec} di dimensione plausibile
+(1,9 MB) e analizza le 26 classi del modulo senza segnalare nessuna incompatibilità. Il report
+generato mostra però $0\%$ di copertura su tutte e 26, incluso \texttt{LoginDialog}, nonostante
+i test siano effettivamente passati. Questo scarto tra esecuzione osservata e misura riportata è
+un segnale di malfunzionamento dello strumento in questo ambiente; la causa precisa non è stata
+determinata.
+
+\subsubsection{Mutation testing (PITest)}
+
+Comando in \hyperref[cmd:pitest-logindialog]{Appendice}. PITest esegue prima un controllo di
+base con un proprio motore di test, indipendente dalla configurazione Surefire del modulo (JVM
+forkata su JDK 8, moduli GWT esposti come risorse): in quell'ambiente diverso tutti e 102 i test
+falliscono, e PITest si ferma con l'errore \textit{``102 tests did not pass without mutation when
+calculating line coverage. Mutation testing requires a green suite.''} PITest non è quindi
+utilizzabile su \texttt{LoginDialog} con questa configurazione.

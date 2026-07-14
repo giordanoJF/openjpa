@@ -3824,3 +3824,33 @@ Parametro & Classi di equivalenza \\
 rispetto a Tabella~\ref{tab:newinstance-classi}.}
 \label{tab:newinstance2-classi}
 \end{table}
+
+\paragraph*{Comando JaCoCo, \texttt{LoginDialog}.}
+\label{cmd:jacoco-logindialog}
+\begin{lstlisting}
+AGENT_JAR=~/.m2/repository/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar
+export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+mvn -f openjpa-examples/opentrader/pom.xml \
+  "-Dsurefire.jvm.args=-javaagent:${AGENT_JAR}=destfile=$(pwd)/openjpa-examples/opentrader/target/jacoco.exec -Xmx1024m" \
+  clean test \
+  org.jacoco:jacoco-maven-plugin:0.8.11:report
+\end{lstlisting}
+
+\paragraph*{Comando PITest, \texttt{LoginDialog}.}
+\label{cmd:pitest-logindialog}
+\begin{lstlisting}
+export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+mvn -f openjpa-examples/opentrader/pom.xml \
+  org.pitest:pitest-maven:1.5.1:mutationCoverage \
+  -DtargetClasses=org.apache.openjpa.trader.client.LoginDialog \
+  -DtargetTests=org.apache.openjpa.trader.client.* \
+  -DoutputFormats=CSV,HTML
+\end{lstlisting}
+Esito:
+\begin{lstlisting}
+Execution default-cli of goal org.pitest:pitest-maven:1.5.1:mutationCoverage failed: 102 tests
+did not pass without mutation when calculating line coverage. Mutation testing requires a green
+suite.
+\end{lstlisting}
