@@ -1,0 +1,14 @@
+The test file you generated compiles, but all 10 tests fail with the same error. Representative
+failure:
+
+java.lang.ExceptionInInitializerError
+  ...
+Caused by: java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in
+client code! It cannot be called, for example, from server code. If you are running a unit
+test, check that your test case extends GWTTestCase and that GWT.create() is not called from
+within an initializer or constructor.
+	at com.google.gwt.core.client.GWT.create(GWT.java:92)
+	at com.google.gwt.user.client.ui.UIObject.<clinit>(UIObject.java:179)
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.

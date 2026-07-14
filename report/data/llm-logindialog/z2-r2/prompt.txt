@@ -1,0 +1,7 @@
+The test file you generated compiles, but 1 of 10 tests fails:
+
+junit.framework.AssertionFailedError: expected an exception when session is null
+	at org.apache.openjpa.trader.client.LoginDialogTest.testConstructorWithNullSessionThrows
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.

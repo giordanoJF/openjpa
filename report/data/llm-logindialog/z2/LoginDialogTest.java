@@ -1,0 +1,79 @@
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithNullSessionThrows() {
+        try {
+            new LoginDialog(null);
+            fail("expected an exception when session is null");
+        } catch (RuntimeException expected) {
+            // a null collaborator should not be silently accepted
+        }
+    }
+
+    public void testConstructorWithValidSessionBuildsWidget() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testSetTitleNullIsRejectedOrNormalized() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testSetTitleValidValue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle("Login");
+        assertEquals("Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionRequiresAttach() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(5, 7);
+        assertEquals(5, dialog.getPopupLeft());
+        assertEquals(7, dialog.getPopupTop());
+    }
+
+    public void testShowThenIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideThenIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetAutoHideEnabledTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setAutoHideEnabled(true);
+        assertTrue(dialog.isAutoHideEnabled());
+    }
+
+    public void testSetVisibleFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testGetServerURIOnFailureRecordsError() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException failure = new RuntimeException("service unavailable");
+        callback.onFailure(failure);
+        assertSame(failure, session.lastError);
+    }
+}

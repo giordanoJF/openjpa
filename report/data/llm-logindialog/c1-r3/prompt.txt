@@ -1,0 +1,8 @@
+It compiles now, but 1 of 10 tests fails:
+
+junit.framework.AssertionFailedError
+	at junit.framework.Assert.assertNull(Assert.java:163)
+	at org.apache.openjpa.trader.client.LoginDialogTest.testSetTitleNull
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.

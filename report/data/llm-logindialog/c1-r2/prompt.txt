@@ -1,0 +1,11 @@
+The test file you generated does not compile:
+
+Validating newly compiled units
+   [ERROR] Line 94: The method onSuccess(List<Stock>) in the type LoginDialog.InitializeStocks
+   is not applicable for the arguments (List<Object>)
+com.google.gwt.junit.JUnitFatalLaunchException: The test class had compile errors
+
+Direction: this is specific to how the GWT compiler infers the type parameter of a generic
+method call passed directly as an argument, which differs from a modern JDK's own inference in
+this position. Please fix the test file so it compiles and passes. Your output file must start
+with ###Test START## and finish with ###Test END##.

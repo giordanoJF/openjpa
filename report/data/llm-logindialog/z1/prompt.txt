@@ -1,0 +1,4 @@
+As a professional software tester who writes Java test methods, generate a complete JUnit 4 test
+file (LoginDialogTest.java) that covers 10 methods of your choice in the following class named
+LoginDialog, using at most 20 @Test-annotated methods in total. Your output file must start with
+###Test START## and finish with ###Test END##. The source code is attached.

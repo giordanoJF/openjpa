@@ -63,4 +63,46 @@ chiamata, confermando che \texttt{\_cacheFinderQuery} resta \texttt{true} mentre
 \texttt{\_cachePreparedQuery} diventa \texttt{false}.
 
 \subsection{LoginDialog}
-% non affrontato in questo giro, per decisione presa in Sezione~\ref{sec:randoop}
+
+Compilazione ed esecuzione con il comando in \hyperref[cmd:test-logindialog]{Appendice} (JVM di
+test forkata su JDK 8, richiesta dal compilatore dev-mode di GWT 2.0.4).
+
+\subsubsection{Z1 (\hyperref[prompt:ld-z1]{Appendice}).}
+Senza sapere di \texttt{GWTTestCase}, sceglie Mockito per il collaboratore \texttt{OpenTrader} e
+scrive una classe JUnit 4 comune. Compila, ma nessuno dei 10 test passa: costruire
+\texttt{LoginDialog} fuori dall'ambiente GWT lancia \texttt{UnsupportedOperationException}
+(\texttt{GWT.create()}), la stessa causa già vista con Randoop ed EvoSuite
+(Sezioni~\ref{sec:randoop},~\ref{sec:evosuite}). Il messaggio d'errore stesso indica di estendere
+\texttt{GWTTestCase}, cosa fatta al round 2. Ma \texttt{GWTTestCase} obbliga a implementare anche
+\texttt{getModuleName()}, un metodo astratto che deve restituire il nome del file di
+configurazione GWT (\texttt{.gwt.xml}) da usare; nessun prompt aveva mai detto quale fosse questo
+file o dove si trovasse, quindi il round 2 lo indovina in base al nome della classe, sbagliando.
+Stesso problema, nuovo tentativo al round 3, ancora sbagliato. Solo al round 4, dopo due errori
+``modulo non trovato'' diversi, indovina il nome giusto: 10/10 passano.
+
+\subsubsection{Z2 (\hyperref[prompt:ld-z2]{Appendice}).}
+Con la nota sull'ambiente, estende \texttt{GWTTestCase} correttamente. 10 test. Un'ipotesi
+sbagliata: \texttt{session=\{null\}} nel costruttore doveva lanciare eccezione, non la lancia.
+Corretto in 1 round (\hyperref[prompt:ld-z2-r2]{Appendice}), 10/10 passano.
+
+\subsubsection{F1 (\hyperref[prompt:ld-f1]{Appendice}).}
+10 test, compila ed esegue senza correzioni.
+
+\subsubsection{F2 (\hyperref[prompt:ld-f2]{Appendice}).}
+10 test. Un'ipotesi sbagliata: un uri vuoto passato a \texttt{GetServerURI.onSuccess} doveva
+lanciare eccezione, non la lancia (stessa scoperta già fatta nel
+Capitolo~\ref{sec:implementazione}). Corretto in 1 round
+(\hyperref[prompt:ld-f2-r2]{Appendice}), 10/10 passano.
+
+\subsubsection{C1 (\hyperref[prompt:ld-c1]{Appendice}).}
+Il ragionamento è visibile nel testo, coerente col codice. 10 test, due problemi distinti,
+corretti in 2 round. Round 2 (\hyperref[prompt:ld-c1-r2]{Appendice}): non compila,
+\texttt{Collections.emptyList()} passato come argomento senza tipo esplicito compila con
+\texttt{javac} ma il compilatore interno di GWT lo rifiuta all'avvio del test; corretto con un
+tipo esplicito. Round 3 (\hyperref[prompt:ld-c1-r3]{Appendice}): un'ipotesi sbagliata, la stessa
+di Z2 in un'altra forma, \texttt{setTitle(null)} doveva produrre \texttt{getTitle()==null},
+produce \texttt{""}. 10/10 passano.
+
+\subsubsection{C2 (\hyperref[prompt:ld-c2]{Appendice}).}
+Stesso schema di C1, selezione di metodi in parte diversa. 10 test, compila ed esegue senza
+correzioni.

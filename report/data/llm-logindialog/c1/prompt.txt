@@ -1,0 +1,26 @@
+You are a professional software tester. Before writing any code, think step by step:
+1. Choose 10 methods of the following class named LoginDialog that you consider worth testing,
+   and briefly explain why for each one.
+2. For each chosen method, write down what you expect it to do and one edge case or exception
+   that could occur.
+3. Only after completing steps 1 and 2, write a complete JUnit 4 test file (LoginDialogTest.java)
+   using at most 20 test methods in total, one or more per method chosen in step 1, based on what
+   you wrote down in step 2.
+
+Environment note: LoginDialog extends GWT's PopupPanel and can only be constructed and exercised
+inside GWT's simulated test environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI().
+
+Show your reasoning for steps 1 and 2 before the code. Your output file must start with ###Test
+START## and finish with ###Test END##. The Java class is attached.

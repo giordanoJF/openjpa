@@ -1,0 +1,91 @@
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private LoginDialog newDialog() {
+        return new LoginDialog(new OpenTrader());
+    }
+
+    public void testPopupPositionAtZeroBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(0, 0);
+        assertEquals(0, dialog.getPopupLeft());
+        assertEquals(0, dialog.getPopupTop());
+    }
+
+    public void testPopupPositionNegativeValue() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(-1, -1);
+        assertEquals(-1, dialog.getPopupLeft());
+        assertEquals(-1, dialog.getPopupTop());
+    }
+
+    public void testTitleEmptyStringBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.setTitle("");
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testGetServerURIOnSuccessWithEmptyUriThrows() {
+        OpenTrader session = new OpenTrader();
+        session.setService(new NoOpServiceAsync());
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        try {
+            callback.onSuccess("");
+            fail("expected an exception for an empty server uri");
+        } catch (RuntimeException expected) {
+            // an empty uri is not a usable server address
+        }
+    }
+
+    public void testGetServerURIOnFailurePropagatesToSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertEquals(1, session.errorCount);
+    }
+
+    public void testInitializeStocksOnFailureDoesNotCallInit() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onFailure(new RuntimeException());
+        assertFalse(session.initCalled);
+    }
+
+    public void testHideTrueBehavesLikeHide() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.hide(true);
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testAutoHideEnabledBoundaryFalse() {
+        LoginDialog dialog = newDialog();
+        dialog.setAutoHideEnabled(false);
+        assertFalse(dialog.isAutoHideEnabled());
+    }
+
+    public void testModalBoundaryTrue() {
+        LoginDialog dialog = newDialog();
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testConstructorBuildsWidget() {
+        LoginDialog dialog = newDialog();
+        assertNotNull(dialog.getWidget());
+    }
+}

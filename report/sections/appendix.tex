@@ -2064,6 +2064,1468 @@ public class BrokerImplTest {
 ###Test END##
 \end{lstlisting}
 
+\paragraph*{Comando di compilazione ed esecuzione, Test LLM \texttt{LoginDialog}.}
+\label{cmd:test-logindialog}
+\begin{lstlisting}
+export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+mvn -f openjpa-examples/opentrader/pom.xml clean test
+\end{lstlisting}
+Stesso comando usato per tutte le sottosezioni precedenti su \texttt{LoginDialog}
+(Sezioni~\ref{sec:cp},~\ref{sec:randoop},~\ref{sec:evosuite}); \texttt{-Dtest=NomeClasse} per una
+singola variante durante un round di correzione.
+
+\paragraph*{Prompt Z1 (LoginDialog).}
+\label{prompt:ld-z1}
+\begin{lstlisting}
+As a professional software tester who writes Java test methods, generate a complete JUnit 4 test
+file (LoginDialogTest.java) that covers 10 methods of your choice in the following class named
+LoginDialog, using at most 20 @Test-annotated methods in total. Your output file must start with
+###Test START## and finish with ###Test END##. The source code is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta Z1 (LoginDialog).}
+\label{risposta:ld-z1}
+\begin{lstlisting}
+LoginDialog's constructor requires an OpenTrader collaborator not included in the attached
+source. Since only its usage (getService()) is visible from LoginDialog's own code, I mock it
+with Mockito rather than guessing its full API. 10 @Test methods covering the constructor,
+show/hide/center, setTitle/getTitle, setPopupPosition/getters, and three boolean properties
+(modal, animation, glass).
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class LoginDialogTest {
+
+    private OpenTrader session;
+    private LoginDialog dialog;
+
+    @Before
+    public void setUp() {
+        session = mock(OpenTrader.class);
+        dialog = new LoginDialog(session);
+    }
+
+    @Test
+    public void testConstructorBuildsAWidget() {
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    @Test
+    public void testDialogIsNotShowingAfterConstruction() {
+        assertFalse(dialog.isShowing());
+    }
+
+    @Test
+    public void testShowMakesDialogVisible() {
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    @Test
+    public void testHideMakesDialogInvisible() {
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    @Test
+    public void testSetTitleAndGetTitleRoundTrip() {
+        dialog.setTitle("OpenTrader Login");
+        assertEquals("OpenTrader Login", dialog.getTitle());
+    }
+
+    @Test
+    public void testSetPopupPositionAndGetters() {
+        dialog.setPopupPosition(10, 20);
+        assertEquals(10, dialog.getPopupLeft());
+        assertEquals(20, dialog.getPopupTop());
+    }
+
+    @Test
+    public void testSetModalTrue() {
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    @Test
+    public void testSetAnimationEnabledFalse() {
+        dialog.setAnimationEnabled(false);
+        assertFalse(dialog.isAnimationEnabled());
+    }
+
+    @Test
+    public void testSetGlassEnabledTrue() {
+        dialog.setGlassEnabled(true);
+        assertTrue(dialog.isGlassEnabled());
+    }
+
+    @Test
+    public void testCenterShowsDialog() {
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt Z1, round 2 (LoginDialog).}
+\label{prompt:ld-z1-r2}
+\begin{lstlisting}
+The test file you generated compiles, but all 10 tests fail with the same error. Representative
+failure:
+
+java.lang.ExceptionInInitializerError
+  ...
+Caused by: java.lang.UnsupportedOperationException: ERROR: GWT.create() is only usable in
+client code! It cannot be called, for example, from server code. If you are running a unit
+test, check that your test case extends GWTTestCase and that GWT.create() is not called from
+within an initializer or constructor.
+	at com.google.gwt.core.client.GWT.create(GWT.java:92)
+	at com.google.gwt.user.client.ui.UIObject.<clinit>(UIObject.java:179)
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta Z1, round 2 (LoginDialog).}
+\label{risposta:ld-z1-r2}
+\begin{lstlisting}
+The exception message says to check that the test case extends GWTTestCase and does not call
+GWT.create() from an initializer or constructor. Rewriting as a GWTTestCase: JUnit 3 style
+(GWTTestCase extends junit.framework.TestCase), so @Test/@Before become plain testXxx() methods
+and a gwtSetUp() override. getModuleName() must return the GWT module owning this class; based
+on the package (org.apache.openjpa.trader.client), assuming the module is
+org.apache.openjpa.trader.client.LoginDialog.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.client.LoginDialog";
+    }
+
+    private OpenTrader session;
+    private LoginDialog dialog;
+
+    @Override
+    protected void gwtSetUp() throws Exception {
+        session = new OpenTrader();
+        dialog = new LoginDialog(session);
+    }
+
+    public void testConstructorBuildsAWidget() {
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testDialogIsNotShowingAfterConstruction() {
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testShowMakesDialogVisible() {
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideMakesDialogInvisible() {
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetTitleAndGetTitleRoundTrip() {
+        dialog.setTitle("OpenTrader Login");
+        assertEquals("OpenTrader Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionAndGetters() {
+        dialog.show();
+        dialog.setPopupPosition(10, 20);
+        assertEquals(10, dialog.getPopupLeft());
+        assertEquals(20, dialog.getPopupTop());
+    }
+
+    public void testSetModalTrue() {
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetAnimationEnabledFalse() {
+        dialog.setAnimationEnabled(false);
+        assertFalse(dialog.isAnimationEnabled());
+    }
+
+    public void testSetGlassEnabledTrue() {
+        dialog.setGlassEnabled(true);
+        assertTrue(dialog.isGlassEnabled());
+    }
+
+    public void testCenterShowsDialog() {
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt Z1, round 3 (LoginDialog).}
+\label{prompt:ld-z1-r3}
+\begin{lstlisting}
+Still fails, now with a different error, the same on all 10 tests:
+
+Loading inherited module 'org.apache.openjpa.trader.client.LoginDialog'
+   [ERROR] Unable to find 'org/apache/openjpa/trader/client/LoginDialog.gwt.xml' on your
+   classpath; could be a typo, or maybe you forgot to include a classpath entry for source?
+com.google.gwt.core.ext.UnableToCompleteException: (see previous log entries)
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta Z1, round 3 (LoginDialog).}
+\label{risposta:ld-z1-r3}
+\begin{lstlisting}
+The module name I guessed does not have a matching .gwt.xml file. A common GWT convention puts
+the module definition one level above the client package. Trying
+org.apache.openjpa.trader.LoginDialog instead.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+/**
+ * Revised after the reported failure: every test threw UnsupportedOperationException from
+ * GWT.create(), and the exception message itself says to check that the test case extends
+ * GWTTestCase and does not call GWT.create() from an initializer or constructor. Converted to
+ * GWTTestCase accordingly; GWTTestCase extends junit.framework.TestCase (JUnit 3), so the
+ * @Test/@Before annotations are replaced with plain testXxx() methods and a constructor-time
+ * setUp() override. getModuleName() must return the GWT module that owns this class; based on
+ * the package (org.apache.openjpa.trader.client), the module is assumed to be
+ * org.apache.openjpa.trader.client.LoginDialog.
+ */
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialog";
+    }
+
+    private OpenTrader session;
+    private LoginDialog dialog;
+
+    @Override
+    protected void gwtSetUp() throws Exception {
+        session = new OpenTrader();
+        dialog = new LoginDialog(session);
+    }
+
+    public void testConstructorBuildsAWidget() {
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testDialogIsNotShowingAfterConstruction() {
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testShowMakesDialogVisible() {
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideMakesDialogInvisible() {
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetTitleAndGetTitleRoundTrip() {
+        dialog.setTitle("OpenTrader Login");
+        assertEquals("OpenTrader Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionAndGetters() {
+        dialog.show();
+        dialog.setPopupPosition(10, 20);
+        assertEquals(10, dialog.getPopupLeft());
+        assertEquals(20, dialog.getPopupTop());
+    }
+
+    public void testSetModalTrue() {
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetAnimationEnabledFalse() {
+        dialog.setAnimationEnabled(false);
+        assertFalse(dialog.isAnimationEnabled());
+    }
+
+    public void testSetGlassEnabledTrue() {
+        dialog.setGlassEnabled(true);
+        assertTrue(dialog.isGlassEnabled());
+    }
+
+    public void testCenterShowsDialog() {
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt Z1, round 4 (LoginDialog).}
+\label{prompt:ld-z1-r4}
+\begin{lstlisting}
+Still the same kind of error:
+
+Loading inherited module 'org.apache.openjpa.trader.LoginDialog'
+   [ERROR] Unable to find 'org/apache/openjpa/trader/LoginDialog.gwt.xml' on your classpath;
+   could be a typo, or maybe you forgot to include a classpath entry for source?
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta Z1, round 4 (LoginDialog).}
+\label{risposta:ld-z1-r4}
+\begin{lstlisting}
+Two guesses based on the class's own name have both failed. Test-only GWT modules are
+conventionally named after the class under test with a Test suffix, distinct from the
+production module. Trying org.apache.openjpa.trader.LoginDialogTest.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+/**
+ * Revised after the reported failure: every test threw UnsupportedOperationException from
+ * GWT.create(), and the exception message itself says to check that the test case extends
+ * GWTTestCase and does not call GWT.create() from an initializer or constructor. Converted to
+ * GWTTestCase accordingly; GWTTestCase extends junit.framework.TestCase (JUnit 3), so the
+ * @Test/@Before annotations are replaced with plain testXxx() methods and a constructor-time
+ * setUp() override. getModuleName() must return the GWT module that owns this class; based on
+ * the package (org.apache.openjpa.trader.client), the module is assumed to be
+ * org.apache.openjpa.trader.client.LoginDialog.
+ */
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private OpenTrader session;
+    private LoginDialog dialog;
+
+    @Override
+    protected void gwtSetUp() throws Exception {
+        session = new OpenTrader();
+        dialog = new LoginDialog(session);
+    }
+
+    public void testConstructorBuildsAWidget() {
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testDialogIsNotShowingAfterConstruction() {
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testShowMakesDialogVisible() {
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideMakesDialogInvisible() {
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetTitleAndGetTitleRoundTrip() {
+        dialog.setTitle("OpenTrader Login");
+        assertEquals("OpenTrader Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionAndGetters() {
+        dialog.show();
+        dialog.setPopupPosition(10, 20);
+        assertEquals(10, dialog.getPopupLeft());
+        assertEquals(20, dialog.getPopupTop());
+    }
+
+    public void testSetModalTrue() {
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetAnimationEnabledFalse() {
+        dialog.setAnimationEnabled(false);
+        assertFalse(dialog.isAnimationEnabled());
+    }
+
+    public void testSetGlassEnabledTrue() {
+        dialog.setGlassEnabled(true);
+        assertTrue(dialog.isGlassEnabled());
+    }
+
+    public void testCenterShowsDialog() {
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt Z2 (LoginDialog).}
+\label{prompt:ld-z2}
+\begin{lstlisting}
+As a professional software tester who writes Java test methods, generate a complete JUnit 4 test
+file (LoginDialogTest.java) that covers 10 methods of your choice in the following class named
+LoginDialog, using at most 20 test methods in total. Focus specifically on functional, black-box
+test cases based on the documented and expected behavior of each method (including edge cases and
+exception handling), not on internal implementation details. Environment note: LoginDialog
+extends GWT's PopupPanel and can only be constructed and exercised inside GWT's simulated test
+environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI(). Your output file must start with ###Test START## and finish with
+###Test END##. The source code is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta Z2 (LoginDialog).}
+\label{risposta:ld-z2}
+\begin{lstlisting}
+10 test methods extending GWTTestCase as instructed, using OpenTrader directly (no Mockito).
+Covers the constructor (including a null session, whose documented behavior is unclear),
+setTitle/getTitle, setPopupPosition/getters, show/hide, setAutoHideEnabled, setVisible, and
+GetServerURI.onFailure.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithNullSessionThrows() {
+        try {
+            new LoginDialog(null);
+            fail("expected an exception when session is null");
+        } catch (RuntimeException expected) {
+            // a null collaborator should not be silently accepted
+        }
+    }
+
+    public void testConstructorWithValidSessionBuildsWidget() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testSetTitleNullIsRejectedOrNormalized() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testSetTitleValidValue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle("Login");
+        assertEquals("Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionRequiresAttach() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(5, 7);
+        assertEquals(5, dialog.getPopupLeft());
+        assertEquals(7, dialog.getPopupTop());
+    }
+
+    public void testShowThenIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideThenIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetAutoHideEnabledTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setAutoHideEnabled(true);
+        assertTrue(dialog.isAutoHideEnabled());
+    }
+
+    public void testSetVisibleFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testGetServerURIOnFailureRecordsError() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException failure = new RuntimeException("service unavailable");
+        callback.onFailure(failure);
+        assertSame(failure, session.lastError);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt Z2, round 2 (LoginDialog).}
+\label{prompt:ld-z2-r2}
+\begin{lstlisting}
+The test file you generated compiles, but 1 of 10 tests fails:
+
+junit.framework.AssertionFailedError: expected an exception when session is null
+	at org.apache.openjpa.trader.client.LoginDialogTest.testConstructorWithNullSessionThrows
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta Z2, round 2 (LoginDialog).}
+\label{risposta:ld-z2-r2}
+\begin{lstlisting}
+The assumption that a null session throws was wrong. Replacing it with an assertion on the
+actually observed behavior: the widget still gets built.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithNullSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(null);
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testConstructorWithValidSessionBuildsWidget() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testSetTitleNullIsRejectedOrNormalized() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testSetTitleValidValue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle("Login");
+        assertEquals("Login", dialog.getTitle());
+    }
+
+    public void testSetPopupPositionRequiresAttach() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(5, 7);
+        assertEquals(5, dialog.getPopupLeft());
+        assertEquals(7, dialog.getPopupTop());
+    }
+
+    public void testShowThenIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideThenIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testSetAutoHideEnabledTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setAutoHideEnabled(true);
+        assertTrue(dialog.isAutoHideEnabled());
+    }
+
+    public void testSetVisibleFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testGetServerURIOnFailureRecordsError() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException failure = new RuntimeException("service unavailable");
+        callback.onFailure(failure);
+        assertSame(failure, session.lastError);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt F1 (LoginDialog).}
+\label{prompt:ld-f1}
+\begin{lstlisting}
+As a professional software tester who writes Java test methods, consider the attached example.
+Now, generate JUnit 4 test cases that cover 10 methods of your choice in the following class
+named LoginDialog, using at most 20 test methods in total. Environment note: LoginDialog extends
+GWT's PopupPanel and can only be constructed and exercised inside GWT's simulated test
+environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI(). Your output file must start with ###Test START## and finish with
+###Test END##. The source code is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta F1 (LoginDialog).}
+\label{risposta:ld-f1}
+\begin{lstlisting}
+Following the attached example's construct-act-assertEquals style, 10 test methods covering
+getPopupLeft/getPopupTop, getTitle, isModal, isAnimationEnabled, isGlassEnabled, isVisible,
+isShowing (after show and after center), and InitializeStocks.onSuccess.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private LoginDialog newDialog() {
+        return new LoginDialog(new OpenTrader());
+    }
+
+    public void testGetPopupLeftMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(42, 0);
+        assertEquals(42, dialog.getPopupLeft());
+    }
+
+    public void testGetPopupTopMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(0, 99);
+        assertEquals(99, dialog.getPopupTop());
+    }
+
+    public void testGetTitleMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.setTitle("test title");
+        assertEquals("test title", dialog.getTitle());
+    }
+
+    public void testIsModalMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.setModal(false);
+        assertFalse(dialog.isModal());
+    }
+
+    public void testIsAnimationEnabledMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.setAnimationEnabled(true);
+        assertTrue(dialog.isAnimationEnabled());
+    }
+
+    public void testIsGlassEnabledMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.setGlassEnabled(true);
+        assertTrue(dialog.isGlassEnabled());
+    }
+
+    public void testIsVisibleMatchesSetValue() {
+        LoginDialog dialog = newDialog();
+        dialog.setVisible(true);
+        assertTrue(dialog.isVisible());
+    }
+
+    public void testIsShowingAfterShow() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testIsShowingAfterCenter() {
+        LoginDialog dialog = newDialog();
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testInitializeStocksOnSuccessCallsInit() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onSuccess(null);
+        assertTrue(session.initCalled);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt F2 (LoginDialog).}
+\label{prompt:ld-f2}
+\begin{lstlisting}
+As a professional software tester who writes Java test methods, consider the two attached
+examples of well-written JUnit 4 test cases, one with a boundary value and one that expects an
+exception. Now, generate JUnit 4 test cases that cover 10 methods of your choice in the following
+class named LoginDialog, using at most 20 test methods in total. Environment note: LoginDialog
+extends GWT's PopupPanel and can only be constructed and exercised inside GWT's simulated test
+environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI(). Your output file must start with ###Test START## and finish with
+###Test END##. The source code is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta F2 (LoginDialog).}
+\label{risposta:ld-f2}
+\begin{lstlisting}
+Following the two attached examples, a boundary-value case (position at zero, at -1) and an
+exception case for each behavior tested. 10 test methods.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private LoginDialog newDialog() {
+        return new LoginDialog(new OpenTrader());
+    }
+
+    public void testPopupPositionAtZeroBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(0, 0);
+        assertEquals(0, dialog.getPopupLeft());
+        assertEquals(0, dialog.getPopupTop());
+    }
+
+    public void testPopupPositionNegativeValue() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(-1, -1);
+        assertEquals(-1, dialog.getPopupLeft());
+        assertEquals(-1, dialog.getPopupTop());
+    }
+
+    public void testTitleEmptyStringBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.setTitle("");
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testGetServerURIOnSuccessWithEmptyUriThrows() {
+        OpenTrader session = new OpenTrader();
+        session.setService(new NoOpServiceAsync());
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        try {
+            callback.onSuccess("");
+            fail("expected an exception for an empty server uri");
+        } catch (RuntimeException expected) {
+            // an empty uri is not a usable server address
+        }
+    }
+
+    public void testGetServerURIOnFailurePropagatesToSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertEquals(1, session.errorCount);
+    }
+
+    public void testInitializeStocksOnFailureDoesNotCallInit() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onFailure(new RuntimeException());
+        assertFalse(session.initCalled);
+    }
+
+    public void testHideTrueBehavesLikeHide() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.hide(true);
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testAutoHideEnabledBoundaryFalse() {
+        LoginDialog dialog = newDialog();
+        dialog.setAutoHideEnabled(false);
+        assertFalse(dialog.isAutoHideEnabled());
+    }
+
+    public void testModalBoundaryTrue() {
+        LoginDialog dialog = newDialog();
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testConstructorBuildsWidget() {
+        LoginDialog dialog = newDialog();
+        assertNotNull(dialog.getWidget());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt F2, round 2 (LoginDialog).}
+\label{prompt:ld-f2-r2}
+\begin{lstlisting}
+The test file you generated compiles, but 1 of 10 tests fails:
+
+junit.framework.AssertionFailedError: expected an exception for an empty server uri
+	at org.apache.openjpa.trader.client.LoginDialogTest.testGetServerURIOnSuccessWithEmptyUriThrows
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta F2, round 2 (LoginDialog).}
+\label{risposta:ld-f2-r2}
+\begin{lstlisting}
+The assumption that an empty uri throws was wrong. Replacing it with an assertion on the
+actually observed behavior: no error is recorded.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private LoginDialog newDialog() {
+        return new LoginDialog(new OpenTrader());
+    }
+
+    public void testPopupPositionAtZeroBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(0, 0);
+        assertEquals(0, dialog.getPopupLeft());
+        assertEquals(0, dialog.getPopupTop());
+    }
+
+    public void testPopupPositionNegativeValue() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(-1, -1);
+        assertEquals(-1, dialog.getPopupLeft());
+        assertEquals(-1, dialog.getPopupTop());
+    }
+
+    public void testTitleEmptyStringBoundary() {
+        LoginDialog dialog = newDialog();
+        dialog.setTitle("");
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testGetServerURIOnSuccessWithEmptyUriDoesNotThrow() {
+        OpenTrader session = new OpenTrader();
+        session.setService(new NoOpServiceAsync());
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        callback.onSuccess("");
+        assertEquals(0, session.errorCount);
+    }
+
+    public void testGetServerURIOnFailurePropagatesToSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertEquals(1, session.errorCount);
+    }
+
+    public void testInitializeStocksOnFailureDoesNotCallInit() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onFailure(new RuntimeException());
+        assertFalse(session.initCalled);
+    }
+
+    public void testHideTrueBehavesLikeHide() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.hide(true);
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testAutoHideEnabledBoundaryFalse() {
+        LoginDialog dialog = newDialog();
+        dialog.setAutoHideEnabled(false);
+        assertFalse(dialog.isAutoHideEnabled());
+    }
+
+    public void testModalBoundaryTrue() {
+        LoginDialog dialog = newDialog();
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testConstructorBuildsWidget() {
+        LoginDialog dialog = newDialog();
+        assertNotNull(dialog.getWidget());
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt C1 (LoginDialog).}
+\label{prompt:ld-c1}
+\begin{lstlisting}
+You are a professional software tester. Before writing any code, think step by step:
+1. Choose 10 methods of the following class named LoginDialog that you consider worth testing,
+   and briefly explain why for each one.
+2. For each chosen method, write down what you expect it to do and one edge case or exception
+   that could occur.
+3. Only after completing steps 1 and 2, write a complete JUnit 4 test file (LoginDialogTest.java)
+   using at most 20 test methods in total, one or more per method chosen in step 1, based on what
+   you wrote down in step 2.
+
+Environment note: LoginDialog extends GWT's PopupPanel and can only be constructed and exercised
+inside GWT's simulated test environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI().
+
+Show your reasoning for steps 1 and 2 before the code. Your output file must start with ###Test
+START## and finish with ###Test END##. The Java class is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta C1 (LoginDialog).}
+\label{risposta:ld-c1}
+\begin{lstlisting}
+Methods chosen and why: constructor (only method LoginDialog declares itself); setPopupPosition/
+getPopupLeft/getPopupTop (round-trip); setTitle/getTitle (round-trip, null case unclear from
+Javadoc); setModal/isModal, setVisible/isVisible (boolean properties); show/hide/isShowing
+(lifecycle); GetServerURI.onFailure (reacts to a failed RPC); InitializeStocks.onSuccess (reacts
+to a successful RPC).
+
+Expected behavior and edge cases: constructor should not throw for a valid session; a null
+session is an edge case whose outcome isn't documented, worth checking directly. setPopupPosition:
+getters should return exactly what was set. setTitle(null): unclear, test directly. show/hide:
+isShowing() should flip accordingly. GetServerURI.onFailure/InitializeStocks.onSuccess: check the
+effect via the session's own recorded state rather than assume a specific method call.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import java.util.Collections;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithValidSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertNotNull(dialog);
+    }
+
+    public void testConstructorWithNullSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(null);
+        assertNotNull(dialog);
+    }
+
+    public void testSetPopupPositionRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(3, 4);
+        assertEquals(3, dialog.getPopupLeft());
+        assertEquals(4, dialog.getPopupTop());
+    }
+
+    public void testSetTitleNull() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertNull(dialog.getTitle());
+    }
+
+    public void testSetModalRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetVisibleRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testShowSetsIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideSetsIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testGetServerURIOnFailureRecordsErrorOnSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertSame(cause, session.lastError);
+    }
+
+    public void testInitializeStocksOnSuccessNotifiesSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onSuccess(Collections.emptyList());
+        assertTrue(session.initCalled);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt C1, round 2 (LoginDialog).}
+\label{prompt:ld-c1-r2}
+\begin{lstlisting}
+The test file you generated does not compile:
+
+Validating newly compiled units
+   [ERROR] Line 94: The method onSuccess(List<Stock>) in the type LoginDialog.InitializeStocks
+   is not applicable for the arguments (List<Object>)
+com.google.gwt.junit.JUnitFatalLaunchException: The test class had compile errors
+
+Direction: this is specific to how the GWT compiler infers the type parameter of a generic
+method call passed directly as an argument, which differs from a modern JDK's own inference in
+this position. Please fix the test file so it compiles and passes. Your output file must start
+with ###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta C1, round 2 (LoginDialog).}
+\label{risposta:ld-c1-r2}
+\begin{lstlisting}
+The compiler cannot infer the type of Collections.emptyList() from the argument position alone.
+Adding an explicit type witness so the intended type is unambiguous.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import java.util.Collections;
+
+import org.apache.openjpa.trader.domain.Stock;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithValidSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertNotNull(dialog);
+    }
+
+    public void testConstructorWithNullSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(null);
+        assertNotNull(dialog);
+    }
+
+    public void testSetPopupPositionRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(3, 4);
+        assertEquals(3, dialog.getPopupLeft());
+        assertEquals(4, dialog.getPopupTop());
+    }
+
+    public void testSetTitleNull() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertNull(dialog.getTitle());
+    }
+
+    public void testSetModalRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetVisibleRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testShowSetsIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideSetsIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testGetServerURIOnFailureRecordsErrorOnSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertSame(cause, session.lastError);
+    }
+
+    public void testInitializeStocksOnSuccessNotifiesSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onSuccess(Collections.<Stock>emptyList());
+        assertTrue(session.initCalled);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt C1, round 3 (LoginDialog).}
+\label{prompt:ld-c1-r3}
+\begin{lstlisting}
+It compiles now, but 1 of 10 tests fails:
+
+junit.framework.AssertionFailedError
+	at junit.framework.Assert.assertNull(Assert.java:163)
+	at org.apache.openjpa.trader.client.LoginDialogTest.testSetTitleNull
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
+\end{lstlisting}
+
+\paragraph*{Risposta C1, round 3 (LoginDialog).}
+\label{risposta:ld-c1-r3}
+\begin{lstlisting}
+assertNull was wrong: the title is evidently not null after setTitle(null). GWT text-bearing
+widget properties commonly normalize a null argument to an empty string; trying that instead.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import java.util.Collections;
+
+import org.apache.openjpa.trader.domain.Stock;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    public void testConstructorWithValidSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        assertNotNull(dialog);
+    }
+
+    public void testConstructorWithNullSessionDoesNotThrow() {
+        LoginDialog dialog = new LoginDialog(null);
+        assertNotNull(dialog);
+    }
+
+    public void testSetPopupPositionRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.setPopupPosition(3, 4);
+        assertEquals(3, dialog.getPopupLeft());
+        assertEquals(4, dialog.getPopupTop());
+    }
+
+    public void testSetTitleNull() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setTitle(null);
+        assertEquals("", dialog.getTitle());
+    }
+
+    public void testSetModalRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setModal(true);
+        assertTrue(dialog.isModal());
+    }
+
+    public void testSetVisibleRoundTrip() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.setVisible(false);
+        assertFalse(dialog.isVisible());
+    }
+
+    public void testShowSetsIsShowingTrue() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideSetsIsShowingFalse() {
+        LoginDialog dialog = new LoginDialog(new OpenTrader());
+        dialog.show();
+        dialog.hide();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testGetServerURIOnFailureRecordsErrorOnSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertSame(cause, session.lastError);
+    }
+
+    public void testInitializeStocksOnSuccessNotifiesSession() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        callback.onSuccess(Collections.<Stock>emptyList());
+        assertTrue(session.initCalled);
+    }
+}
+###Test END##
+\end{lstlisting}
+
+\paragraph*{Prompt C2 (LoginDialog).}
+\label{prompt:ld-c2}
+\begin{lstlisting}
+You are a professional software tester. An example of a well-written JUnit 4 test case is
+attached as a style reference. Before writing any code, think step by step:
+1. Choose 10 methods of the following class named LoginDialog that you consider worth testing,
+   and briefly explain why for each one.
+2. For each chosen method, write down what you expect it to do and one edge case or exception
+   that could occur.
+3. Only after completing steps 1 and 2, write a complete JUnit 4 test file (LoginDialogTest.java)
+   using at most 20 test methods in total, one or more per method chosen in step 1, based on what
+   you wrote down in step 2.
+
+Environment note: LoginDialog extends GWT's PopupPanel and can only be constructed and exercised
+inside GWT's simulated test environment, not in a plain JUnit runner. The test class must extend
+com.google.gwt.junit.client.GWTTestCase (not use @Test annotations) and override
+public String getModuleName() to return "org.apache.openjpa.trader.LoginDialogTest". Test methods
+are plain no-argument public void methods named testXxx() (JUnit 3 style: this version of GWT
+predates JUnit 4 annotation support). Mockito cannot be used inside these test methods, since GWT
+compiles them to JavaScript. Two hand-written substitute classes are already on the classpath:
+OpenTrader, with public fields initCalled, initTrader, initServerURI, initStocks, lastError,
+errorCount and methods getService()/setService(TradingServiceAdapterAsync), stands in for the
+real collaborator LoginDialog's constructor requires; NoOpServiceAsync implements
+TradingServiceAdapterAsync, with only getStocks(AsyncCallback) as a no-op and every other method
+throwing UnsupportedOperationException. GetServerURI and InitializeStocks are public non-static
+inner classes of LoginDialog, and can be instantiated directly from a test as
+dialog.new GetServerURI().
+
+Show your reasoning for steps 1 and 2 before the code. Your output file must start with ###Test
+START## and finish with ###Test END##. The Java class is attached.
+\end{lstlisting}
+
+\paragraph*{Risposta C2 (LoginDialog).}
+\label{risposta:ld-c2}
+\begin{lstlisting}
+Same reasoning approach as C1, applied independently with a partly different method selection:
+constructor, isShowing right after construction, getTitle after setTitle, getPopupLeft/Top,
+isAutoHideEnabled, center, hide(true), InitializeStocks.onSuccess with a real Stock, and
+InitializeStocks.onFailure. Also GetServerURI.onSuccess with a plausible-looking uri, as a check
+that a well-formed uri does not itself trigger an error.
+
+###Test START##
+package org.apache.openjpa.trader.client;
+
+import com.google.gwt.junit.client.GWTTestCase;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.openjpa.trader.domain.Sector;
+import org.apache.openjpa.trader.domain.Stock;
+
+public class LoginDialogTest extends GWTTestCase {
+
+    @Override
+    public String getModuleName() {
+        return "org.apache.openjpa.trader.LoginDialogTest";
+    }
+
+    private LoginDialog newDialog() {
+        return new LoginDialog(new OpenTrader());
+    }
+
+    public void testConstructorBuildsWidgetImmediately() {
+        LoginDialog dialog = newDialog();
+        assertTrue(dialog.getWidget() != null);
+    }
+
+    public void testDialogNotShowingRightAfterConstruction() {
+        LoginDialog dialog = newDialog();
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testGetTitleAfterSetTitle() {
+        LoginDialog dialog = newDialog();
+        dialog.setTitle("OpenTrader");
+        assertEquals("OpenTrader", dialog.getTitle());
+    }
+
+    public void testGetPopupLeftAndTopAfterSet() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.setPopupPosition(1, 2);
+        assertEquals(1, dialog.getPopupLeft());
+        assertEquals(2, dialog.getPopupTop());
+    }
+
+    public void testAutoHideEnabledAfterSetTrue() {
+        LoginDialog dialog = newDialog();
+        dialog.setAutoHideEnabled(true);
+        assertTrue(dialog.isAutoHideEnabled());
+    }
+
+    public void testCenterMakesDialogVisible() {
+        LoginDialog dialog = newDialog();
+        dialog.center();
+        assertTrue(dialog.isShowing());
+    }
+
+    public void testHideWithTrueArgumentAlsoHidesDialog() {
+        LoginDialog dialog = newDialog();
+        dialog.show();
+        dialog.hide(true);
+        assertFalse(dialog.isShowing());
+    }
+
+    public void testInitializeStocksOnSuccessPassesStocksListThrough() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        List<Stock> stocks = new ArrayList<Stock>();
+        stocks.add(new Stock("ACME", "Acme Corp", Sector.INFRASTRUCTURE, 10.0));
+        callback.onSuccess(stocks);
+        assertTrue(session.initCalled);
+        assertEquals(1, session.initStocks.size());
+    }
+
+    public void testInitializeStocksOnFailureRecordsError() {
+        OpenTrader session = new OpenTrader();
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.InitializeStocks callback = dialog.new InitializeStocks();
+        RuntimeException cause = new RuntimeException();
+        callback.onFailure(cause);
+        assertSame(cause, session.lastError);
+    }
+
+    public void testGetServerURIOnSuccessDoesNotThrowForPlausibleUri() {
+        OpenTrader session = new OpenTrader();
+        session.setService(new NoOpServiceAsync());
+        LoginDialog dialog = new LoginDialog(session);
+        LoginDialog.GetServerURI callback = dialog.new GetServerURI();
+        callback.onSuccess("http://localhost:8080/opentrader");
+        assertEquals(0, session.errorCount);
+    }
+}
+###Test END##
+\end{lstlisting}
+
 \paragraph*{Comando di generazione Randoop.}
 \label{cmd:randoop-brokerimpl}
 \begin{lstlisting}

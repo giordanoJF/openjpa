@@ -1,0 +1,9 @@
+Still fails, now with a different error, the same on all 10 tests:
+
+Loading inherited module 'org.apache.openjpa.trader.client.LoginDialog'
+   [ERROR] Unable to find 'org/apache/openjpa/trader/client/LoginDialog.gwt.xml' on your
+   classpath; could be a typo, or maybe you forgot to include a classpath entry for source?
+com.google.gwt.core.ext.UnableToCompleteException: (see previous log entries)
+
+Please fix the test file so it compiles and passes. Your output file must start with
+###Test START## and finish with ###Test END##.
