@@ -93,14 +93,26 @@ del metodo senza bisogno di leggere altro. Per
 \texttt{oid} non valido, \texttt{repo.getMetaData} è stubbato per lanciare
 \texttt{MetaDataException}.
 
-L'esecuzione ha rivelato tre casi in cui l'oracolo di design non regge: (1) \texttt{oid=null}
-con \texttt{validate=false} ritorna \texttt{null} anziché lanciare eccezione; (2) \texttt{oid}
-non valido lancia sempre eccezione, indipendentemente da \texttt{validate}; (3) un \texttt{processReturn} che ritorna
-\texttt{null} produce \texttt{null} anche con \texttt{validate=false}: la garanzia ``mai null''
-non prevale, un comportamento osservato che devia da quanto dichiarato nel Javadoc senza che sia possibile stabilire con certezza se rifletta un
-fault nell'implementazione o un'interazione con \texttt{processReturn} non prevista dalla
-garanzia stessa. Tutte le correzioni sono in \texttt{find\_correzioni.csv}, Tuple corrette in
-Tabella~\ref{tab:find-tuple-corrette} (Appendice). Le due tuple con
+L'esecuzione ha rivelato che l'oracolo di design non regge in quattro pattern distinti, tutti
+sul caso base senza callback o con \texttt{processArgument}/\texttt{processReturn} che
+intervengono sull'esito. Nel caso base (\texttt{call=null}), l'esito per \texttt{oid=null} è
+invertito rispetto al design su entrambi i valori di \texttt{validate}: \texttt{validate=true}
+lancia un'eccezione (\texttt{ObjectNotFoundException}) invece di ritornare \texttt{null},
+\texttt{validate=false} ritorna \texttt{null} invece di lanciare un'eccezione; per \texttt{oid}
+non valido lo stesso caso base è confermato per \texttt{validate=false} (eccezione, come da
+design) ma corretto per \texttt{validate=true}, che ora lancia anch'esso un'eccezione
+(\texttt{MetaDataException}) invece di ritornare \texttt{null}. Quando \texttt{processArgument}
+stesso ignora l'argomento e ritorna \texttt{null} (nessun id effettivo) con
+\texttt{validate=true}, l'esito è sempre un'eccezione (\texttt{ObjectNotFoundException}),
+indipendentemente da \texttt{oid} e da cosa \texttt{processReturn} avrebbe restituito:
+\texttt{processReturn} non viene raggiunto. Quando invece \texttt{validate=false} e
+\texttt{processReturn} ritorna \texttt{null} dopo che \texttt{processArgument} ha sostituito con
+successo l'id, la garanzia ``mai null'' non prevale: \texttt{find} ritorna \texttt{null}, un
+comportamento osservato che devia da quanto dichiarato nel Javadoc senza che sia possibile
+stabilire con certezza se rifletta un fault nell'implementazione o un'interazione con
+\texttt{processReturn} non prevista dalla garanzia stessa. Tutte le correzioni sono in
+\texttt{find\_correzioni.csv}, Tuple corrette in Tabella~\ref{tab:find-tuple-corrette}
+(Appendice). Le due tuple con
 \texttt{oid} valido, \texttt{validate=true} e \texttt{store} assente hanno richiesto uno stub
 aggiuntivo, applicato solo a questa combinazione: \texttt{broker.getFetchConfiguration().}
 \texttt{requiresLoad()} forzato a \texttt{true}, per costringere \texttt{find} a eseguire davvero
@@ -127,8 +139,8 @@ va invece fissato: \texttt{lock()} non consulta mai \texttt{getPCState()}, quind
 \textit{Correzioni d'oracolo.} Nei 66 casi in cui il design assumeva un'eccezione o una
 postcondizione con codice azione, il comportamento osservato è lo stesso: \texttt{lock} ritorna
 senza applicare il lock. Fa eccezione un sottoinsieme di 10 tuple (\texttt{pc} gestito,
-\texttt{call=null}, \texttt{level}/\texttt{timeout} non validi) dove il lock viene comunque
-applicato. Tutte le correzioni sono in \texttt{lock\_correzioni.csv}. Tuple corrette in
+\texttt{call=null}, con \texttt{level} non valido oppure, a \texttt{level} valido,
+\texttt{timeout} non valido) dove il lock viene comunque applicato. Tutte le correzioni sono in \texttt{lock\_correzioni.csv}. Tuple corrette in
 Tabella~\ref{tab:lock-tuple-corrette} (Appendice).
 
 \textit{Approfondimento sulla classe ``azione''.} Il design unisce
@@ -169,14 +181,17 @@ non è un oracolo affidabile per questo test. Si verifica quindi direttamente qu
 Javadoc di \texttt{detachAll} (``unmanaged copies''): l'oggetto restituito deve avere identità
 diversa e nessuno \texttt{StateManager} attivo.
 
-\textit{Correzioni d'oracolo.} Tutte le ipotesi ``eccezione'' del design erano sbagliate:
-\texttt{objs=null} ritorna \texttt{null} direttamente; \texttt{objs} vuota ritorna sempre un
-array vuoto, anche nelle tuple dove \texttt{processArgument} è configurato per lanciare
-\texttt{OpenJPAException} (non viene mai invocato su una collezione vuota, quindi l'eccezione
-configurata non ha effetto); un elemento non gestito viene restituito invariato; gli elementi
-misti sono processati indipendentemente, senza atomicità. Fa eccezione il caso in cui
-\texttt{processArgument} lancia davvero \texttt{OpenJPAException} (su una collezione non vuota),
-che si propaga correttamente anche su un elemento non gestito. Tutte le correzioni sono in
+\textit{Correzioni d'oracolo.} Le ipotesi ``eccezione'' del design non reggono per
+\texttt{objs=null} (ritorna \texttt{null} direttamente: il metodo ritorna prima di consultare
+\texttt{call}, l'eccezione non viene mai lanciata), per un elemento non gestito (restituito
+invariato) e per gli elementi misti (processati indipendentemente, senza atomicità); fa
+eccezione, in questi ultimi due casi, la sola tupla in cui \texttt{processArgument} lancia
+davvero \texttt{OpenJPAException}, che si propaga correttamente. \texttt{objs} vuota conferma
+invece l'ipotesi di design (array vuoto), anche nelle tuple dove \texttt{processArgument} è
+configurato per lanciare \texttt{OpenJPAException}: su una collezione vuota non viene mai
+invocato, quindi l'eccezione configurata non ha effetto. Anche l'ipotesi su un elemento gestito
+con callback configurato (azione rappresentativa) non regge: si assumeva un detach riuscito
+(\texttt{isDetached(elemento)==true}), l'elemento risulta invece invariato. Tutte le correzioni sono in
 \texttt{detachAll\_correzioni.csv}. Tuple corrette in Tabella~\ref{tab:detachall-tuple-corrette}
 (Appendice).
 
@@ -204,8 +219,12 @@ servono per \{all old\}; costruirlo richiede in più che \texttt{pcGetDetachedSt
 \texttt{DetachedStateAttachStrategy}.
 
 \textit{Correzioni d'oracolo.} Come per \texttt{detachAll}, \texttt{objs=null} ritorna
-\texttt{null} direttamente. La correzione più rilevante riguarda \{all attached\}: l'ipotesi di
-no-op non regge, un'istanza già gestita viene trattata esattamente come \{all new\}. Per le
+\texttt{null} direttamente. Con callback configurato (azione rappresentativa), l'ipotesi che il
+codice azione non avesse effetto documentato non regge per nessuna classe non vuota: l'elemento
+resta invariato, nessun attach viene eseguito, sia per \{all new\}/\{all old\} sia per le due
+classi miste. La correzione più rilevante riguarda \{all attached\}: l'ipotesi di
+no-op non regge, un'istanza già gestita viene trattata esattamente come \{all new\} sia con
+\texttt{call=null} sia con callback configurato. Per le
 classi miste dove \texttt{processArgument} lancia
 \texttt{OpenJPAException}, \texttt{AttachManager} accumula un'eccezione per elemento e le avvolge in un'unica
 \texttt{UserException} quando sono più di una. Tutte le correzioni sono in
@@ -311,14 +330,16 @@ doveva produrre \texttt{getTitle()==null}, produce invece \texttt{getTitle()==""
 in Tabella~\ref{tab:logindialog-title-tuple-corrette}, Appendice). Nella
 \texttt{Posizione del popup}, 8 test su 9 sono falliti: senza chiamare prima \texttt{show()},
 \texttt{getPopupLeft()}/\texttt{getPopupTop()} restituiscono sempre $0$, indipendentemente dal
-valore impostato con \texttt{setPopupPosition} (Tuple corrette in
-Tabella~\ref{tab:logindialog-posizione-tuple-corrette}, Appendice). Nella classe
+valore impostato con \texttt{setPopupPosition}. Qui l'oracolo di design era corretto: a mancare
+era la chiamata a \texttt{show()} nel test, aggiunta di conseguenza; \texttt{posizione\_correzioni.csv}
+documenta la correzione solo nella nota, l'oracolo resta invariato. Nella classe
 \texttt{GetServerURI}, 2 test sono falliti: un uri di formato non valido e un uri valido ma non
 raggiungibile dovevano produrre un esito diverso da un uri valido e raggiungibile, producono
 invece lo stesso identico esito (chiamano sempre \texttt{getStocks()}) (Tuple corrette in
-Tabella~\ref{tab:logindialog-getserveruri-tuple-corrette}, Appendice). Ogni fallimento osservato
-ha portato a correggere l'oracolo nel file \texttt{*\_correzioni.csv} corrispondente e a
-riscrivere l'assert del test di conseguenza. Le altre tre sottosezioni (\texttt{Proprietà
+Tabella~\ref{tab:logindialog-getserveruri-tuple-corrette}, Appendice). Tranne che per
+\texttt{Posizione del popup}, ogni fallimento osservato ha portato a correggere l'oracolo nel
+file \texttt{*\_correzioni.csv} corrispondente e a riscrivere l'assert del test di conseguenza.
+Le altre tre sottosezioni (\texttt{Proprietà
 booleane}, \texttt{Ciclo di vita}, \texttt{InitializeStocks}) non hanno prodotto nessun
 fallimento: l'oracolo di design era già corretto. Dopo le correzioni, tutti i 42 test sono
 passati.

@@ -6,11 +6,13 @@
 \usepackage{helvet}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{microtype}
+\usepackage[htt]{hyphenat}
+\emergencystretch=3em
 \usepackage{setspace}
 \singlespacing
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{7pt plus 1pt minus 1pt}
-\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\setlength{\parskip}{4pt plus 1pt minus 1pt}
+\usepackage[top=2cm, bottom=2cm, left=2.2cm, right=2.2cm]{geometry}
 \usepackage{enumitem}
 \setlist{noitemsep, topsep=4pt, partopsep=0pt}
 \usepackage{booktabs}
@@ -26,7 +28,10 @@
 \setcounter{secnumdepth}{4}
 \setcounter{tocdepth}{4}
 \titleformat{\paragraph}{\normalfont\bfseries}{\theparagraph}{1em}{}
-\titlespacing*{\paragraph}{0pt}{2.5ex plus 1ex minus .2ex}{1em}
+\titlespacing*{\paragraph}{0pt}{1.8ex plus .5ex minus .2ex}{0.8em}
+\titlespacing*{\section}{0pt}{2ex plus .5ex minus .2ex}{1ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{1.5ex plus .4ex minus .2ex}{0.6ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{1.2ex plus .3ex minus .2ex}{0.4ex plus .2ex}
 
 \hypersetup{
     colorlinks=true,

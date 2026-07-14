@@ -45,30 +45,26 @@ GWT per testare widget di questo tipo è \texttt{GWTTestCase}, che estende
 senza browser né display.
 
 L'adozione di \texttt{GWTTestCase} ha richiesto di risolvere dei
-vincoli tecnici:
-
-\begin{itemize}
-\item Il compilatore invocato da \texttt{GWTTestCase}
+vincoli tecnici. Il compilatore invocato da \texttt{GWTTestCase}
 ad ogni esecuzione non si avvia sotto JDK 11 o successivi, mentre l'intero progetto
 li richiede. La soluzione adottata
 esegue Maven con JDK 17 e configura Surefire
 per avviare la JVM di test con un eseguibile JDK 8 indicato dalla variabile
 d'ambiente \texttt{JAVA8\_HOME}.
-\item Le classi di dominio usano annotazioni \texttt{jakarta.persistence}.
+Le classi di dominio usano annotazioni \texttt{jakarta.persistence}.
 La versione 3.1.0, usata altrove nel modulo \texttt{opentrader}, è compilata
 per bytecode Java 11 e non è caricabile dal compilatore GWT in esecuzione
 su JDK 8. La versione 3.0.0 usa lo stesso namespace \texttt{jakarta.persistence}
 con bytecode Java 8 ed è stata usata al suo posto per questo modulo.
-\item I metodi di test di \texttt{GWTTestCase} vengono tradotti in
+I metodi di test di \texttt{GWTTestCase} vengono tradotti in
 JavaScript dal compilatore GWT. Mockito non è traducibile. Il collaboratore \texttt{OpenTrader} richiesto dal costruttore
 di \texttt{LoginDialog} è quindi sostituito da una classe scritta a mano
 che ne imita il comportamento, non da Mockito.
-\item La classe reale \texttt{OpenTrader} dipende da
+La classe reale \texttt{OpenTrader} dipende da
 \texttt{org.cobogw.gwt}, non pubblicato su Maven Central, e non è compilabile.
 \texttt{LoginDialog} ne usa solo tre metodi (\texttt{getService},
 \texttt{handleError}, \texttt{init}): la classe scritta a mano che lo
 sostituisce implementa solo questa superficie.
-\end{itemize}
 
 Il modulo Maven \texttt{openjpa-examples/opentrader} compila un
 sottoinsieme mirato dell'albero sorgente, copiato in una cartella separata
