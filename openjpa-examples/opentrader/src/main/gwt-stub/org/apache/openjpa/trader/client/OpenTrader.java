@@ -24,14 +24,6 @@ import java.util.List;
 import org.apache.openjpa.trader.domain.Stock;
 import org.apache.openjpa.trader.domain.Trader;
 
-/**
- * Test double for the real {@code OpenTrader} entry point, limited to the surface
- * {@link LoginDialog} calls: {@link #getService()}, {@link #init(Trader, String, List)},
- * {@link #handleError(Throwable)}. The real class depends on org.cobogw.gwt, which is not
- * resolvable from Maven Central, so it cannot be compiled as part of this module. Records
- * every call it receives so tests can verify interactions without Mockito, which cannot be
- * used inside GWTTestCase test methods (they are translated to JavaScript by the GWT compiler).
- */
 public class OpenTrader {
 
     private TradingServiceAdapterAsync service;

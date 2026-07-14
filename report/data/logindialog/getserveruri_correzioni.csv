@@ -1,0 +1,7 @@
+metodo,parametro,fonte_oracolo,oracolo,nota
+onFailure,throwable qualunque,ipotizzato,handleError(caught) invocato,RuntimeException dichiarato
+onSuccess,null,ipotizzato,getStocks() sempre invocato,ipotesi errata
+onSuccess,vuota,ipotizzato,getStocks() sempre invocato,ipotesi errata
+onSuccess,non valida,ipotizzato,getStocks() sempre invocato,ipotesi errata
+onSuccess,valida e corretta,dedotto,getStocks() sempre invocato,confermato
+onSuccess,valida ma non corretta,ipotizzato,getStocks() sempre invocato,ipotesi errata

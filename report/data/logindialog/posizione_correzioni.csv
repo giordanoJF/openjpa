@@ -1,0 +1,10 @@
+left,top,fonte_oracolo,oracolo,nota
+negativo,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+negativo,zero,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+negativo,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+zero,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+zero,zero,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+zero,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+positivo,negativo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+positivo,zero,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima
+positivo,positivo,diretto,getPopupLeft()==left e getPopupTop()==top,richiede show() prima

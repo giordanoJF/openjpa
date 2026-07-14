@@ -1,4 +1,4 @@
 title,fonte_oracolo,oracolo,nota
-null,ipotizzato,getTitle()==null,non documentato
+null,ipotizzato,getTitle()=="",ipotesi errata
 vuota,diretto,getTitle()=="",Javadoc GWT PopupPanel
 valida,diretto,getTitle()==title,Javadoc GWT PopupPanel

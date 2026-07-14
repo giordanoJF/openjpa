@@ -277,4 +277,38 @@ Le 30 tuple del CSV diventano 30 test di unità dopo le correzioni d'oracolo; al
 aggiungono in questa fase di approfondimento, per 38 totali.
 
 \subsection{LoginDialog}
-% analisi da svolgere
+
+Le sette sottosezioni di design sono implementate come altrettante classi
+\texttt{com.google.gwt.junit.client.GWTTestCase}. Questa versione di GWT precede il supporto
+alle annotazioni JUnit 4 in dev-mode: le classi usano quindi metodi \texttt{testXxx()} senza
+annotazioni. Il costruttore di \texttt{LoginDialog} richiede un solo collaboratore, un'istanza
+di \texttt{OpenTrader}: si riusa il sostituto scritto a mano già esistente per quella classe.
+\texttt{GetServerURI} e \texttt{InitializeStocks} sono classi interne pubbliche di
+\texttt{LoginDialog}, quindi ogni test le crea direttamente e chiama \texttt{onSuccess}/\texttt{onFailure} a mano,
+senza passare da una vera chiamata di rete.
+
+Nei test di \texttt{GetServerURI} serve però un secondo sostituto. Il corpo di
+\texttt{onSuccess} chiama a sua volta \texttt{session.getService().getStocks(...)}; se
+\texttt{getService()} restituisce \texttt{null} questa riga lancia una \texttt{NullPointerException} che non c'entra con quello che si vuole
+verificare. Serve quindi un oggetto finto da restituire al posto di \texttt{null}: è lo stesso
+ruolo che avrebbe un \texttt{mock(TradingServiceAdapterAsync.class)} di Mockito, ma Mockito non
+è utilizzabile dentro un metodo di test \texttt{GWTTestCase}. Si scrive quindi a mano una classe,
+\texttt{NoOpServiceAsync}, che implementa l'interfaccia e non fa nulla: il suo unico scopo è
+non lanciare l'eccezione ed eventualmente registrare che è stata chiamata.
+
+Le sette sottosezioni contano 42 tuple, una per metodo di test. Eseguendo per primi i test con
+l'oracolo di design originale, 4 sottosezioni hanno prodotto test falliti. Nel
+\texttt{Costruttore}, 1 test è fallito: \texttt{session=\{null\}} doveva lanciare un'eccezione,
+non l'ha lanciata. Nel \texttt{Titolo del popup}, 1 test è fallito: \texttt{setTitle(null)}
+doveva produrre \texttt{getTitle()==null}, produce invece \texttt{getTitle()==""}. Nella
+\texttt{Posizione del popup}, 8 test su 9 sono falliti: senza chiamare prima \texttt{show()},
+\texttt{getPopupLeft()}/\texttt{getPopupTop()} restituiscono sempre $0$, indipendentemente dal
+valore impostato con \texttt{setPopupPosition}. Nella classe \texttt{GetServerURI}, 2 test sono
+falliti: un uri di formato non valido e un uri valido ma non raggiungibile dovevano produrre un
+esito diverso da un uri valido e raggiungibile, producono invece lo stesso identico esito
+(chiamano sempre \texttt{getStocks()}). Ogni fallimento osservato ha portato a correggere
+l'oracolo nel file \texttt{*\_correzioni.csv} corrispondente, in
+\texttt{report/data/logindialog/}, e a riscrivere l'assert del test di conseguenza. Le altre tre
+sottosezioni (\texttt{Proprietà booleane}, \texttt{Ciclo di vita}, \texttt{InitializeStocks})
+non hanno prodotto nessun fallimento: l'oracolo di design era già corretto. Dopo le correzioni,
+tutti i 42 test sono passati.

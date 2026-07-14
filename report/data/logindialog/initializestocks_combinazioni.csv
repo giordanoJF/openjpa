@@ -1,5 +1,5 @@
 metodo,parametro,fonte_oracolo,oracolo,nota
 onFailure,throwable qualunque,ipotizzato,handleError(caught) invocato,throws RuntimeException dichiarato
-onSuccess,null,dedotto,init(...) invocato con stocks,Javadoc classe LoginDialog
-onSuccess,vuota,dedotto,init(...) invocato con stocks,Javadoc classe LoginDialog
-onSuccess,con elementi,dedotto,init(...) invocato con stocks,Javadoc classe LoginDialog
+onSuccess,null,dedotto,chiama init(...),Javadoc classe LoginDialog
+onSuccess,vuota,dedotto,chiama init(...),Javadoc classe LoginDialog
+onSuccess,con elementi,dedotto,chiama init(...),Javadoc classe LoginDialog

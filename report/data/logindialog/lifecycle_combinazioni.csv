@@ -1,9 +1,9 @@
 stato_precedente,operazione,fonte_oracolo,oracolo,nota
-non mostrato,show(),diretto,isShowing()==true,Javadoc: mostra e attacca
-non mostrato,hide(),diretto,isShowing()==false,nessun effetto se assente
-non mostrato,hide(true),diretto,isShowing()==false,Javadoc identica a hide()
-non mostrato,center(),diretto,isShowing()==true,Javadoc: centra e mostra
-mostrato,show(),ipotizzato,isShowing()==true,assunto idempotente
+non mostrato,show(),diretto,isShowing()==true,mostra e attacca
+non mostrato,hide(),diretto,isShowing()==false,nessun effetto
+non mostrato,hide(true),diretto,isShowing()==false,uguale a hide()
+non mostrato,center(),diretto,isShowing()==true,centra e mostra
+mostrato,show(),ipotizzato,isShowing()==true,show() ripetuto
 mostrato,hide(),diretto,isShowing()==false,Javadoc diretto
-mostrato,hide(true),diretto,isShowing()==false,Javadoc identica a hide()
-mostrato,center(),diretto,isShowing()==true,gia' mostrato: ricentrato
+mostrato,hide(true),diretto,isShowing()==false,uguale a hide()
+mostrato,center(),diretto,isShowing()==true,si ricentra

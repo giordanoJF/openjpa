@@ -38,27 +38,6 @@
     <name>OpenJPA Examples - OpenTrader</name>
     <description>Apache OpenJPA Examples - OpenTrader (LoginDialog testing only)</description>
 
-    <!--
-        This module is not listed in openjpa-examples/pom.xml's <modules> and does not
-        participate in the root "mvn install" build that CI runs under JDK 17. It compiles
-        only the subset of OpenTrader's GWT client code that LoginDialog depends on: the real
-        OpenTrader.java pulls in org.cobogw.gwt, an artifact not published to Maven Central.
-        src/main/java-logindialog-sources holds symlinks to exactly those real files (domain
-        classes, TradingServiceAdapterAsync, the client/ui package, LoginDialog itself), not
-        copies, and deliberately excludes client/OpenTrader.java: javac resolves referenced
-        types via its whole sourcepath directory regardless of any <includes> filter, so the
-        real OpenTrader.java has to be physically absent from the compiled tree, not just
-        unlisted, or its cobogw import would still break the build.
-
-        Running its tests requires Maven itself to be invoked with a JDK 11+ JVM (root
-        enforcer rule), while Surefire forks the actual test JVM under JDK 8: the GWT 2.0.4
-        dev-mode compiler that GWTTestCase drives fails to start under JDK 11+
-        ("Unable to find type 'java.lang.Object'"). Example:
-
-            export JAVA8_HOME=/path/to/jdk8
-            mvn -f openjpa-examples/opentrader/pom.xml test
-    -->
-
     <properties>
         <checkstyle.suppressions.location>${project.basedir}${file.separator}..${file.separator}..${file.separator}openjpa-project${file.separator}suppressions.xml</checkstyle.suppressions.location>
         <gwt.version>2.0.4</gwt.version>
@@ -102,9 +81,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!-- both source roots compiled together in one javac invocation, so
-                             cross-references (LoginDialog needs OpenTrader, OpenTrader needs
-                             the domain classes) resolve within a single pass -->
                         <id>default-compile</id>
                         <configuration>
                             <release>8</release>
@@ -114,15 +90,6 @@
                             </compileSourceRoots>
                         </configuration>
                     </execution>
-                    <!--
-                        The parent pom binds its own extra "test-source-compile" execution
-                        (process-test-sources, release 11) on top of the implicit
-                        default-testCompile execution. Both would otherwise recompile this
-                        module's tests, and whichever runs last silently overwrites the other's
-                        release-8 output with release-11 class files GWTTestCase's JDK 8 JVM
-                        can't load. Overriding both ids to release 8 here neutralizes the
-                        inherited one.
-                    -->
                     <execution>
                         <id>default-testCompile</id>
                         <configuration>
@@ -152,38 +119,15 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!--
-                        Maven itself must run under JDK 11+ (root enforcer rule), but the GWT
-                        2.0.4 dev-mode compiler that GWTTestCase drives needs an actual JDK 8
-                        JVM to execute the tests: it fails to start under JDK 11+ with
-                        "Unable to find type 'java.lang.Object'". The JAVA8_HOME environment
-                        variable, set by whoever runs the tests, points Surefire at a JDK 8
-                        java executable without hardcoding an OS-specific path in this file.
-
-                            export JAVA8_HOME=/path/to/jdk8
-                            mvn -f openjpa-examples/opentrader/pom.xml test
-                    -->
                     <jvm>${env.JAVA8_HOME}/bin/java</jvm>
-                    <!--
-                        Surefire otherwise collapses the classpath into a synthetic
-                        manifest-only jar to shorten the command line. GWT 2.0.4's own
-                        classpath scanner (JUnitShell/ModuleDef) reads java.class.path
-                        directly to find translatable source directories and does not
-                        unwrap that jar's Class-Path manifest attribute, so it sees no
-                        source path entries at all ("Unable to find type 'java.lang.Object'").
-                    -->
                     <useManifestOnlyJar>false</useManifestOnlyJar>
                     <excludes>
                         <exclude>org/apache/openjpa/**/*$*.class</exclude>
                     </excludes>
+                    <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
         </plugins>
-        <!--
-            GWT's dev-mode compiler translates client code to JavaScript at test time and
-            needs the actual .java text, not just .class files, on the classpath: these
-            resources put the source alongside the compiled classes in target/classes.
-        -->
         <resources>
             <resource>
                 <directory>src/main/java-logindialog-sources</directory>
@@ -202,9 +146,6 @@
             <testResource>
                 <directory>src/test/resources</directory>
             </testResource>
-            <!-- GWTTestCase test classes are translated to JavaScript too, same as
-                 the client code they exercise: their .java text has to be on the
-                 classpath as well, not just the compiled .class. -->
             <testResource>
                 <directory>src/test/java</directory>
                 <includes>
