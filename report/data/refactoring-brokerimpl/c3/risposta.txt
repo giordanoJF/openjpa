@@ -1,0 +1,6 @@
+With flush() now among the tests to preserve (FlushTest), I scaled back further: only the
+hasFlag(int) extraction for the bitwise status-flag checks, which is a pure syntactic
+substitution with identical semantics and does not change the behavior of flush() or any other
+method. I did not touch the accessor methods or split flush(int) this time, to minimize the
+surface that could interact with the larger attached test set. Full refactored class:
+report/data/refactoring-brokerimpl/c3/BrokerImpl.java.

@@ -1,0 +1,5 @@
+With the widest test set attached, I made the most conservative change: the hasFlag(int)
+extraction only (same as the C3 variant, pure syntactic substitution), plus Javadoc for two
+previously undocumented public accessor methods, getAllowReferenceToSiblingContext/
+setAllowReferenceToSiblingContext, which carries no behavioral risk. Full refactored class:
+report/data/refactoring-brokerimpl/c4/BrokerImpl.java.

@@ -79,8 +79,7 @@ sourcepath, quindi la sola esclusione dalla lista dei file da non compilare
 non basta a evitare l'errore di importazione mancante. Questi file erano
 inizialmente collegamenti simbolici al sorgente reale, sostituiti con copie
 identiche perché un collegamento simbolico con percorso assoluto funziona solo su questa
-macchina: nella build CI, eseguita su un percorso diverso, il collegamento risultava
-rotto. Il compilatore
+macchina. Il compilatore
 dev-mode di GWT richiede inoltre il testo sorgente \texttt{.java}, non
 solo le classi compilate: il
 \texttt{pom.xml} espone quindi i sorgenti come risorse accanto alle
@@ -103,6 +102,4 @@ I campi che questa classe usa per registrare lo stato osservato non sono invece 
 al momento della loro prima scrittura: vengono estesi durante
 l'implementazione dei singoli casi di test, quando l'esecuzione di un
 test rivela tramite eccezione o stack trace che un'osservazione
-ulteriore è necessaria. La lettura del sorgente di \texttt{LoginDialog}
-qui serve a costruire l'infrastruttura di test, non a derivare
-la progettazione dei casi di test.
+ulteriore è necessaria.

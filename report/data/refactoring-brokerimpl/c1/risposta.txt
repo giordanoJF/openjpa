@@ -1,0 +1,10 @@
+With no tests to preserve, I took the broadest approach: extracted the bitwise status-flag
+checks (_flags & FLAG_X) scattered through the class into a single hasFlag(int) helper, applied
+throughout; extracted a Supplier/Runnable-based wrapper (guarded/withOperation) for the
+beginOperation()/try/catch/finally and beginOperation()/try/finally patterns repeated across
+dozens of methods, and applied it to the simplest, lowest-risk call sites (getUserObject,
+putUserObject, isActive, isStoreActive, getManagedObjects, getTransactionalObjects,
+getPendingTransactionalObjects, getDirtyObjects, getObjectIdType); and split the long flush(int)
+method into two extracted steps, firePreStoreCallbacks(...) and markStatesFlushed(...), keeping
+the original control flow and flag bookkeeping in flush(int) itself. No other behavior was
+touched. Full refactored class: report/data/refactoring-brokerimpl/c1/BrokerImpl.java.

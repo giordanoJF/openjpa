@@ -3,16 +3,6 @@
 \label{sec:cp}
 % ============================================================
 
-\textit{Category Partition} è applicato come tecnica di progettazione
-black-box: le classi di equivalenza derivano da documentazione pubblica
-e conoscenza di dominio.
-
-Per ogni classe di equivalenza, l'oracolo è \textit{documentazione esplicita} quando il
-comportamento è dichiarato testualmente nel Javadoc; è \textit{dedotto} quando deriva dalla
-combinazione di più fonti documentate o da un fatto strutturale non specifico al metodo (ad
-esempio la propagazione di un'eccezione); è \textit{ipotizzato} quando nessuna fonte documenta
-l'esito e si assume un comportamento plausibile.
-
 \subsection{BrokerImpl}
 
 \subsubsection{\texttt{find(Object oid, boolean validate, FindCallbacks call)}}
@@ -357,17 +347,9 @@ Tuple complete per tutti i metodi in \texttt{report/data/}.
 
 A differenza di \texttt{BrokerImpl}, \texttt{LoginDialog} non ha metodi pubblici propri con
 Javadoc: un costruttore a corpo non ispezionato e tre classi interne di callback RPC, ed
-eredita per intero l'API pubblica di \texttt{PopupPanel} (documentata da GWT). Le firme
-vengono da \texttt{javap} sul \texttt{gwt-user-2.0.4.jar} (nessun sorgente disponibile per
-questa libreria), le descrizioni dalla Javadoc ufficiale online
-(\url{https://www.gwtproject.org/javadoc/latest/com/google/gwt/user/client/ui/PopupPanel.html};
-GWT non pubblica più una pagina per la versione 2.0.4 specifica, solo l'ultima), incrociata con
-le firme reali estratte da \texttt{javap} per scartare metodi di versioni successive alla 2.0.4.
-Il capitolo copre il costruttore, il comportamento ereditato da \texttt{PopupPanel}, e due delle
-tre classi di callback (\texttt{GetServerURI}, \texttt{InitializeStocks}). La terza,
-\texttt{LoginCallback}, richiederebbe un sostituto scritto a mano aggiuntivo per
-\texttt{TradingServiceAdapterAsync}, non disponibile nell'infrastruttura di test attuale, ed è
-esclusa dallo scope della campagna di test.
+eredita per intero l'API pubblica di \texttt{PopupPanel}. Le firme
+vengono da \texttt{javap} sul \texttt{gwt-user-2.0.4.jar}, le descrizioni dalla Javadoc ufficiale online
+(\url{https://www.gwtproject.org/javadoc/latest/com/google/gwt/user/client/ui/PopupPanel.html}).
 
 \subsubsection{Costruttore}
 

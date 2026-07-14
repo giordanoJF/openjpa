@@ -4,17 +4,8 @@
 
 \subsection{BrokerImpl}
 
-Il Javadoc di \texttt{BrokerImpl} separa le responsabilità: gestisce il comportamento a
-livello di oggetto, delegando allo \texttt{StoreManager} l'interazione con lo store.
-
-La documentazione consultata è quella della classe target e delle interfacce che implementa
-direttamente (\texttt{Broker}, \texttt{StoreContext}), oltre agli attributi per identificare i
-parametri di stato del SUT. Il manuale OpenJPA non aggiunge informazioni sul comportamento dei
-singoli metodi.
-
 La scelta dei metodi da testare bilancia \textbf{parametri di input}, \textbf{significatività
-funzionale} e disponibilità di \textbf{documentazione} (non sempre è possibile disporre di un
-oracolo completo). I metodi selezionati sono in Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
+funzionale} e disponibilità di \textbf{documentazione}. I metodi selezionati sono in Tabella~\ref{tab:brokerimpl-metodi} (Appendice).
 
 \subsubsection{Documentazione}
 \label{sec:brokerimpl-analisi-doc}
@@ -70,10 +61,7 @@ sui campi marcati \texttt{CASCADE\_IMMEDIATE}. Il parametro \texttt{call} è \te
 
 \subsection{LoginDialog}
 
-A differenza di \texttt{BrokerImpl}, \texttt{LoginDialog} non ha metodi pubblici propri con
+\texttt{LoginDialog} non ha metodi pubblici propri con
 Javadoc per parametro: la documentazione consultata è il Javadoc di classe di
-\texttt{LoginDialog}, la Javadoc GWT di \texttt{PopupPanel} (superclasse, la cui API pubblica è
-ereditata per intero) e le interfacce dichiarate dei collaboratori (\texttt{OpenTrader},
-\texttt{TradingServiceAdapter}). La selezione copre quindi il costruttore, le proprietà
-ereditate da \texttt{PopupPanel} e le tre classi interne di callback RPC, al posto di metodi
-propri praticamente assenti.
+\texttt{LoginDialog}, la Javadoc GWT di \texttt{PopupPanel} e le interfacce dichiarate dei collaboratori (\texttt{OpenTrader},
+\texttt{TradingServiceAdapter}).

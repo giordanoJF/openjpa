@@ -1,0 +1,18 @@
+You are an expert Java developer. I want to improve the maintainability of the attached
+BrokerImpl class, a core class of the Apache OpenJPA persistence framework.
+
+Create a refactored version without changing BrokerImpl's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached: FindTest,
+LockTest, DetachAllTest, AttachAllTest, NewInstanceTest, IsDetachedTest, PersistTest.
+
+Do not include changes different from what I asked. The refactored class should replace
+BrokerImpl and work with other components exactly as BrokerImpl currently does: same package
+(org.apache.openjpa.kernel), same class name, same public and protected API other classes in
+this project depend on.
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.

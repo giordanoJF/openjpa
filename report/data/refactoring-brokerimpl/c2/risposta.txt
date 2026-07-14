@@ -1,0 +1,9 @@
+With find/lock/detachAll/attachAll/newInstance/isDetached/persist under test, I kept the two
+changes that don't touch any of those methods' logic: the hasFlag(int) extraction for the
+bitwise status-flag checks (pure syntactic substitution, same semantics), and the
+guarded/withOperation wrapper applied to the same set of simple, unrelated accessor methods as
+before (getUserObject, putUserObject, isActive, isStoreActive, getManagedObjects,
+getTransactionalObjects, getPendingTransactionalObjects, getDirtyObjects). I left flush(int)
+untouched this time to keep the overall change surface smaller, even though none of the attached
+tests exercise it directly. Full refactored class:
+report/data/refactoring-brokerimpl/c2/BrokerImpl.java.

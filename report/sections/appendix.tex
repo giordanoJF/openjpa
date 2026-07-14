@@ -3854,3 +3854,104 @@ Execution default-cli of goal org.pitest:pitest-maven:1.5.1:mutationCoverage fai
 did not pass without mutation when calculating line coverage. Mutation testing requires a green
 suite.
 \end{lstlisting}
+
+\paragraph*{Prompt C1 (BrokerImpl, refactoring).}
+\label{prompt:refactor-c1}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+BrokerImpl class, a core class of the Apache OpenJPA persistence framework.
+
+Create a refactored version without changing BrokerImpl's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+No tests are provided for this variant.
+
+Do not include changes different from what I asked. The refactored class should replace
+BrokerImpl and work with other components exactly as BrokerImpl currently does: same package
+(org.apache.openjpa.kernel), same class name, same public and protected API other classes in
+this project depend on.
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code is attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-brokerimpl/c1/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-brokerimpl/c1/BrokerImpl.java}.
+
+\paragraph*{Prompt C2 (BrokerImpl, refactoring).}
+\label{prompt:refactor-c2}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+BrokerImpl class, a core class of the Apache OpenJPA persistence framework.
+
+Create a refactored version without changing BrokerImpl's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached:
+FindTest, LockTest, DetachAllTest, AttachAllTest, NewInstanceTest, IsDetachedTest, PersistTest.
+
+Do not include changes different from what I asked. The refactored class should replace
+BrokerImpl and work with other components exactly as BrokerImpl currently does: same package
+(org.apache.openjpa.kernel), same class name, same public and protected API other classes in
+this project depend on.
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-brokerimpl/c2/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-brokerimpl/c2/BrokerImpl.java}.
+
+\paragraph*{Prompt C3 (BrokerImpl, refactoring).}
+\label{prompt:refactor-c3}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+BrokerImpl class, a core class of the Apache OpenJPA persistence framework.
+
+Create a refactored version without changing BrokerImpl's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached:
+FindTest, LockTest, DetachAllTest, AttachAllTest, NewInstanceTest, IsDetachedTest, PersistTest,
+Lock2Test, DetachAll2Test, DeleteTest, FlushTest.
+
+Do not include changes different from what I asked. The refactored class should replace
+BrokerImpl and work with other components exactly as BrokerImpl currently does: same package
+(org.apache.openjpa.kernel), same class name, same public and protected API other classes in
+this project depend on.
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-brokerimpl/c3/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-brokerimpl/c3/BrokerImpl.java}.
+
+\paragraph*{Prompt C4 (BrokerImpl, refactoring).}
+\label{prompt:refactor-c4}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+BrokerImpl class, a core class of the Apache OpenJPA persistence framework.
+
+Create a refactored version without changing BrokerImpl's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached:
+FindTest, LockTest, DetachAllTest, AttachAllTest, NewInstanceTest, IsDetachedTest, PersistTest,
+Lock2Test, DetachAll2Test, DeleteTest, FlushTest, Delete2Test, NewInstance2Test.
+
+Do not include changes different from what I asked. The refactored class should replace
+BrokerImpl and work with other components exactly as BrokerImpl currently does: same package
+(org.apache.openjpa.kernel), same class name, same public and protected API other classes in
+this project depend on.
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-brokerimpl/c4/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-brokerimpl/c4/BrokerImpl.java}.
