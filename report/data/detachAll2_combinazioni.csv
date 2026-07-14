@@ -9,4 +9,5 @@ senza istanze gestite,non null,false,non attiva,osservazione,callback mai invoca
 senza istanze gestite,non null,false,attiva,osservazione,callback mai invocato,idem
 con istanza gestita,null,false,attiva,osservazione,InvalidStateException,istanza mai flushata
 con istanza gestita,non null,false,attiva,osservazione,InvalidStateException,callback mai invocato
-con istanza gestita,null/non null,true,attiva,non implementato,non determinato,tuple non distinte
+con istanza gestita,null,true,attiva,non implementato,non determinato,non implementato
+con istanza gestita,non null,true,attiva,non implementato,non determinato,non implementato

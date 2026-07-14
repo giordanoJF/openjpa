@@ -1,0 +1,20 @@
+You are an expert Java developer. I want to improve the maintainability of the attached
+LoginDialog class, a GWT dialog widget of the Apache OpenJPA opentrader example module.
+
+Create a refactored version without changing LoginDialog's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached:
+CostruttoreTest, PosizioneTest, TitoloTest, ProprietaBooleaneTest, CicloDiVitaTest,
+GetServerURITest, InitializeStocksTest.
+
+Do not include changes different from what I asked. The refactored class should replace
+LoginDialog and work with other components exactly as LoginDialog currently does: same package
+(org.apache.openjpa.trader.client), same class name, same public and protected API other
+components in this project depend on (including the constructor signature and the public
+GetServerURI and InitializeStocks inner classes).
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.

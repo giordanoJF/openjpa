@@ -1,5 +1,32 @@
 \section*{Appendice}
 
+\paragraph*{Configurazione CI (\texttt{.github/workflows/ci.yml}).}
+\label{cmd:ci-config}
+\begin{lstlisting}
+name: Java CI
+on:
+  push:
+    branches: [ release-4.1.1 ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java JDKs
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            8
+            17
+      - name: Build with Maven
+        run: mvn -B install
+      - name: Test LoginDialog (GWTTestCase)
+        run: mvn -f openjpa-examples/opentrader/pom.xml -B test
+        env:
+          JAVA8_HOME: ${{ env.JAVA_HOME_8_X64 }}
+\end{lstlisting}
+
 \begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{X l}
@@ -3955,3 +3982,1489 @@ The source code and the test files are attached.
 \end{lstlisting}
 Risposta completa in \texttt{report/data/refactoring-brokerimpl/c4/risposta.txt}; classe
 completa in \texttt{report/data/refactoring-brokerimpl/c4/BrokerImpl.java}.
+
+\paragraph*{Prompt C1 (LoginDialog, refactoring).}
+\label{prompt:refactor-ld-c1}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+LoginDialog class, a GWT dialog widget of the Apache OpenJPA opentrader example module.
+
+Create a refactored version without changing LoginDialog's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+No tests are provided for this variant.
+
+Do not include changes different from what I asked. The refactored class should replace
+LoginDialog and work with other components exactly as LoginDialog currently does: same package
+(org.apache.openjpa.trader.client), same class name, same public and protected API other
+components in this project depend on (including the constructor signature and the public
+GetServerURI and InitializeStocks inner classes).
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code is attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-logindialog/c1/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-logindialog/c1/LoginDialog.java}.
+
+\paragraph*{Prompt C2 (LoginDialog, refactoring).}
+\label{prompt:refactor-ld-c2}
+\begin{lstlisting}
+You are an expert Java developer. I want to improve the maintainability of the attached
+LoginDialog class, a GWT dialog widget of the Apache OpenJPA opentrader example module.
+
+Create a refactored version without changing LoginDialog's functionality, improving
+maintainability by reducing common Java code smells (e.g. long methods, high cyclomatic
+complexity, duplicated/near-duplicate code, unclear naming, deep nesting).
+
+Make sure the refactored class keeps passing the tests in the following files, attached:
+CostruttoreTest, PosizioneTest, TitoloTest, ProprietaBooleaneTest, CicloDiVitaTest,
+GetServerURITest, InitializeStocksTest.
+
+Do not include changes different from what I asked. The refactored class should replace
+LoginDialog and work with other components exactly as LoginDialog currently does: same package
+(org.apache.openjpa.trader.client), same class name, same public and protected API other
+components in this project depend on (including the constructor signature and the public
+GetServerURI and InitializeStocks inner classes).
+
+This is an important request; take all the time you need for a complete and accurate answer.
+
+The source code and the test files are attached.
+\end{lstlisting}
+Risposta completa in \texttt{report/data/refactoring-logindialog/c2/risposta.txt}; classe
+completa in \texttt{report/data/refactoring-logindialog/c2/LoginDialog.java}.
+
+\paragraph*{Tuple di progettazione, nota.}
+Le tabelle seguenti riportano, per ciascun metodo, tutte le tuple di Category Partition usate come test: parametri e oracolo atteso. Le colonne di classificazione della fonte dell'oracolo e le note di progettazione sono discusse nel corpo del report (Sezioni \ref{sec:cp} e \ref{sec:implementazione}) e omesse qui per compattezza. Le tabelle ``corrette'' riportano l'oracolo dopo la correzione empirica descritta in Sezione \ref{sec:implementazione}, con le stesse convenzioni di riga del file originale (righe aggiunte o rimosse rispetto alla progettazione sono indicate nel testo del capitolo).
+
+\paragraph*{Tuple di progettazione, \texttt{find(Object oid, boolean validate, FindCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.071\textwidth}>{\raggedright\arraybackslash}p{0.056\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.056\textwidth}>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.297\textwidth}}
+\toprule
+\textbf{oid} & \textbf{validate} & \textbf{cache} & \textbf{store} & \textbf{call} & \textbf{processArgument} & \textbf{processReturn} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{oid} & \textbf{validate} & \textbf{cache} & \textbf{store} & \textbf{call} & \textbf{processArgument} & \textbf{processReturn} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & true & -- & -- & null & -- & -- & null \\
+null & false & -- & -- & null & -- & -- & eccezione (tipo non specificato) \\
+non valido & true & -- & -- & null & -- & -- & null \\
+non valido & false & -- & -- & null & -- & -- & eccezione (tipo non specificato) \\
+valido & true & presente & presente & null & -- & -- & istanza non-null \\
+valido & true & non presente & presente & null & -- & -- & istanza non-null \\
+valido & true & presente & non presente & null & -- & -- & null \\
+valido & true & non presente & non presente & null & -- & -- & null \\
+valido & false & presente & presente & null & -- & -- & istanza in cache \\
+valido & false & non presente & presente & null & -- & -- & istanza hollow non-null \\
+valido & false & presente & non presente & null & -- & -- & istanza in cache \\
+valido & false & non presente & non presente & null & -- & -- & istanza hollow non-null \\
+null & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & presente & presente & non null & ritorna id & ritorna null & null \\
+null & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+null & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+null & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+null & true & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & -- & -- & non null & ritorna null & ritorna null & null \\
+null & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+null & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+null & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+null & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & non presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+null & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+null & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & non presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+null & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & -- & -- & non null & ritorna null & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+null & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+null & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+non valido & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & true & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & -- & -- & non null & ritorna null & ritorna null & null \\
+non valido & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+non valido & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+non valido & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+non valido & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & non presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+non valido & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+non valido & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & non presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+non valido & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & -- & -- & non null & ritorna null & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+non valido & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+non valido & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+valido & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & presente & presente & non null & ritorna id & ritorna null & null \\
+valido & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+valido & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & true & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & -- & -- & non null & ritorna null & ritorna null & null \\
+valido & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+valido & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+valido & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+valido & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & non presente & presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+valido & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+valido & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & non presente & non presente & non null & ritorna id & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+valido & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & -- & -- & non null & ritorna null & ritorna null & istanza non-null (garanzia 'mai null' assunta prevalente sul null di processReturn) \\
+valido & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+valido & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{find(Object oid, boolean validate, FindCallbacks call)}.}
+\label{tab:find-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{find(Object oid, boolean validate, FindCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.071\textwidth}>{\raggedright\arraybackslash}p{0.056\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.085\textwidth}>{\raggedright\arraybackslash}p{0.056\textwidth}>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.297\textwidth}}
+\toprule
+\textbf{oid} & \textbf{validate} & \textbf{cache} & \textbf{store} & \textbf{call} & \textbf{processArgument} & \textbf{processReturn} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{oid} & \textbf{validate} & \textbf{cache} & \textbf{store} & \textbf{call} & \textbf{processArgument} & \textbf{processReturn} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & true & -- & -- & null & -- & -- & eccezione (ObjectNotFoundException) \\
+null & false & -- & -- & null & -- & -- & null \\
+non valido & true & -- & -- & null & -- & -- & eccezione (MetaDataException) \\
+non valido & false & -- & -- & null & -- & -- & eccezione (tipo non specificato) \\
+valido & true & presente & presente & null & -- & -- & istanza non-null \\
+valido & true & non presente & presente & null & -- & -- & istanza non-null \\
+valido & true & presente & non presente & null & -- & -- & null \\
+valido & true & non presente & non presente & null & -- & -- & null \\
+valido & false & presente & presente & null & -- & -- & istanza in cache \\
+valido & false & non presente & presente & null & -- & -- & istanza hollow non-null \\
+valido & false & presente & non presente & null & -- & -- & istanza in cache \\
+valido & false & non presente & non presente & null & -- & -- & istanza hollow non-null \\
+null & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & presente & presente & non null & ritorna id & ritorna null & null \\
+null & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+null & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+null & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+null & true & -- & -- & non null & ritorna null & ritorna oggetto & eccezione (ObjectNotFoundException) \\
+null & true & -- & -- & non null & ritorna null & ritorna null & eccezione (ObjectNotFoundException) \\
+null & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+null & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+null & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & presente & presente & non null & ritorna id & ritorna null & null \\
+null & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & non presente & presente & non null & ritorna id & ritorna null & null \\
+null & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & presente & non presente & non null & ritorna id & ritorna null & null \\
+null & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & non presente & non presente & non null & ritorna id & ritorna null & null \\
+null & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+null & false & -- & -- & non null & ritorna null & ritorna null & null \\
+null & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+null & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+non valido & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & true & -- & -- & non null & ritorna null & ritorna oggetto & eccezione (ObjectNotFoundException) \\
+non valido & true & -- & -- & non null & ritorna null & ritorna null & eccezione (ObjectNotFoundException) \\
+non valido & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+non valido & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+non valido & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & non presente & presente & non null & ritorna id & ritorna null & null \\
+non valido & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & non presente & non presente & non null & ritorna id & ritorna null & null \\
+non valido & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+non valido & false & -- & -- & non null & ritorna null & ritorna null & null \\
+non valido & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+non valido & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+valido & true & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & presente & presente & non null & ritorna id & ritorna null & null \\
+valido & true & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & non presente & presente & non null & ritorna id & ritorna null & null \\
+valido & true & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & true & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & true & non presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & true & -- & -- & non null & ritorna null & ritorna oggetto & eccezione (ObjectNotFoundException) \\
+valido & true & -- & -- & non null & ritorna null & ritorna null & eccezione (ObjectNotFoundException) \\
+valido & true & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+valido & true & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+valido & false & presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & presente & presente & non null & ritorna id & ritorna null & null \\
+valido & false & non presente & presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & non presente & presente & non null & ritorna id & ritorna null & null \\
+valido & false & presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & false & non presente & non presente & non null & ritorna id & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & non presente & non presente & non null & ritorna id & ritorna null & null \\
+valido & false & -- & -- & non null & ritorna null & ritorna oggetto & oggetto ritornato da processReturn (non-null, non ulteriormente specificato) \\
+valido & false & -- & -- & non null & ritorna null & ritorna null & null \\
+valido & false & -- & -- & non null & eccezione & ritorna oggetto & eccezione propagata da find \\
+valido & false & -- & -- & non null & eccezione & ritorna null & eccezione propagata da find \\
+\bottomrule
+\caption{Tuple corrette per \texttt{find(Object oid, boolean validate, FindCallbacks call)}.}
+\label{tab:find-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{lock(Object pc, int level, int timeout, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.179\textwidth}>{\raggedright\arraybackslash}p{0.065\textwidth}>{\raggedright\arraybackslash}p{0.114\textwidth}>{\raggedright\arraybackslash}p{0.065\textwidth}>{\raggedright\arraybackslash}p{0.122\textwidth}>{\raggedright\arraybackslash}p{0.342\textwidth}}
+\toprule
+\textbf{pc} & \textbf{level} & \textbf{timeout} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{level} & \textbf{timeout} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+null & noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+null & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+null & noto & -1 & null & -- & eccezione (tipo non specificato) \\
+null & noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+null & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+null & noto & 0 & null & -- & eccezione (tipo non specificato) \\
+null & noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+null & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+null & noto & positivo & null & -- & eccezione (tipo non specificato) \\
+null & noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+null & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+null & non noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+null & non noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+null & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+null & non noto & -1 & null & -- & eccezione (tipo non specificato) \\
+null & non noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+null & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+null & non noto & 0 & null & -- & eccezione (tipo non specificato) \\
+null & non noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+null & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+null & non noto & positivo & null & -- & eccezione (tipo non specificato) \\
+null & non noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+null & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+non gestito & noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+non gestito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & -1 & null & -- & eccezione (tipo non specificato) \\
+non gestito & noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+non gestito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & 0 & null & -- & eccezione (tipo non specificato) \\
+non gestito & noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+non gestito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & positivo & null & -- & eccezione (tipo non specificato) \\
+non gestito & noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+non gestito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+non gestito & non noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+non gestito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & -1 & null & -- & eccezione (tipo non specificato) \\
+non gestito & non noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+non gestito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & 0 & null & -- & eccezione (tipo non specificato) \\
+non gestito & non noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+non gestito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & positivo & null & -- & eccezione (tipo non specificato) \\
+non gestito & non noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+non gestito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+gestito non persistito & noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+gestito non persistito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & -1 & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & 0 & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & positivo & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & -1 & null & -- & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & 0 & null & -- & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & positivo & null & -- & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+gestito non persistito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+gestito persistito & noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+gestito persistito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & -1 & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & 0 & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & positivo & non null & azione & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & altro negativo & null & -- & eccezione (tipo non specificato) \\
+gestito persistito & non noto & altro negativo & non null & azione & eccezione (tipo non specificato) \\
+gestito persistito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & -1 & null & -- & eccezione (tipo non specificato) \\
+gestito persistito & non noto & -1 & non null & azione & eccezione (tipo non specificato) \\
+gestito persistito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & 0 & null & -- & eccezione (tipo non specificato) \\
+gestito persistito & non noto & 0 & non null & azione & eccezione (tipo non specificato) \\
+gestito persistito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & positivo & null & -- & eccezione (tipo non specificato) \\
+gestito persistito & non noto & positivo & non null & azione & eccezione (tipo non specificato) \\
+gestito persistito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}.}
+\label{tab:lock-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{lock(Object pc, int level, int timeout, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.171\textwidth}>{\raggedright\arraybackslash}p{0.062\textwidth}>{\raggedright\arraybackslash}p{0.109\textwidth}>{\raggedright\arraybackslash}p{0.062\textwidth}>{\raggedright\arraybackslash}p{0.156\textwidth}>{\raggedright\arraybackslash}p{0.327\textwidth}}
+\toprule
+\textbf{pc} & \textbf{level} & \textbf{timeout} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{level} & \textbf{timeout} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & noto & altro negativo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & altro negativo & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & -1 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & -1 & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & 0 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & 0 & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & positivo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & positivo & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & altro negativo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & altro negativo & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & -1 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & -1 & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & 0 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & 0 & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & positivo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & positivo & non null & eccezione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & altro negativo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & -1 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & 0 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+non gestito & noto & positivo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & altro negativo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & -1 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & 0 & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+non gestito & non noto & positivo & null & -- & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & altro negativo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & altro negativo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito non persistito & non noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & altro negativo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & positivo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & altro negativo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & altro negativo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & altro negativo & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & -1 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & -1 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & -1 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & 0 & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & 0 & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & 0 & non null & eccezione & eccezione propagata da lock \\
+gestito persistito & non noto & positivo & null & -- & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & positivo & non null & azione & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & positivo & non null & eccezione & eccezione propagata da lock \\
+null & noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & altro negativo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & -1 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & 0 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & noto & positivo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & altro negativo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & -1 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & 0 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+null & non noto & positivo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & altro negativo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & -1 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & 0 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & noto & positivo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & altro negativo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & -1 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & 0 & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+non gestito & non noto & positivo & non null & azione (ACT\_RUN) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & altro negativo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & -1 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & 0 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & noto & positivo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & altro negativo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & -1 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & 0 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito non persistito & non noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito non persistito & non noto & positivo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & altro negativo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & -1 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & 0 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & noto & positivo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & altro negativo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & altro negativo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & -1 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & -1 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & 0 & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & 0 & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+gestito persistito & non noto & positivo & non null & azione (ACT\_CASCADE) & nessun effetto (nessuna eccezione, getLockLevel(pc) == LOCK\_NONE) \\
+gestito persistito & non noto & positivo & non null & azione (ACT\_RUN) & getLockLevel(pc) == level (postcondizione) \\
+\bottomrule
+\caption{Tuple corrette per \texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}.}
+\label{tab:lock-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{lock(Object pc, int level, int timeout, OpCallbacks call), approfondimento azione} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.314\textwidth}>{\raggedright\arraybackslash}p{0.285\textwidth}>{\raggedright\arraybackslash}p{0.328\textwidth}}
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & nessun effetto \\
+null & azione (ACT\_NONE) & nessun effetto \\
+null & azione (ACT\_CASCADE) & nessun effetto \\
+null & azione (ACT\_RUN) & nessun effetto \\
+null & lancia eccezione & eccezione non propagata \\
+non gestito & null & nessun effetto \\
+non gestito & azione (ACT\_NONE) & nessun effetto \\
+non gestito & azione (ACT\_CASCADE) & nessun effetto \\
+non gestito & azione (ACT\_RUN) & nessun effetto \\
+non gestito & lancia eccezione & eccezione propagata \\
+gestito non persistito & null & lock applicato \\
+gestito non persistito & azione (ACT\_NONE) & nessun effetto \\
+gestito non persistito & azione (ACT\_CASCADE) & nessun effetto \\
+gestito non persistito & azione (ACT\_RUN) & lock applicato \\
+gestito non persistito & lancia eccezione & eccezione propagata \\
+gestito persistito & null & lock applicato \\
+gestito persistito & azione (ACT\_NONE) & nessun effetto \\
+gestito persistito & azione (ACT\_CASCADE) & nessun effetto \\
+gestito persistito & azione (ACT\_RUN) & lock applicato \\
+gestito persistito & lancia eccezione & eccezione propagata \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{lock(Object pc, int level, int timeout, OpCallbacks call), approfondimento azione}.}
+\label{tab:lock2-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{detachAll(Collection objs, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.359\textwidth}>{\raggedright\arraybackslash}p{0.068\textwidth}>{\raggedright\arraybackslash}p{0.128\textwidth}>{\raggedright\arraybackslash}p{0.359\textwidth}}
+\toprule
+\textbf{objs} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{objs} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & -- & eccezione (tipo non specificato) \\
+null & non null & azione & eccezione (tipo non specificato) \\
+null & non null & eccezione & eccezione propagata da detachAll \\
+vuota & null & -- & array vuoto \\
+vuota & non null & azione & array vuoto \\
+vuota & non null & eccezione & eccezione propagata da detachAll \\
+un elemento gestito & null & -- & array con un elemento; isDetached(elemento) == true \\
+un elemento gestito & non null & azione & array con un elemento; isDetached(elemento) == true \\
+un elemento gestito & non null & eccezione & eccezione propagata da detachAll \\
+un elemento non gestito & null & -- & eccezione (tipo non specificato) \\
+un elemento non gestito & non null & azione & eccezione (tipo non specificato) \\
+un elemento non gestito & non null & eccezione & eccezione propagata da detachAll \\
+elementi misti (un gestito e un non gestito) & null & -- & eccezione (tipo non specificato) \\
+elementi misti (un gestito e un non gestito) & non null & azione & eccezione (tipo non specificato) \\
+elementi misti (un gestito e un non gestito) & non null & eccezione & eccezione propagata da detachAll \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{detachAll(Collection objs, OpCallbacks call)}.}
+\label{tab:detachall-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{detachAll(Collection objs, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.343\textwidth}>{\raggedright\arraybackslash}p{0.065\textwidth}>{\raggedright\arraybackslash}p{0.163\textwidth}>{\raggedright\arraybackslash}p{0.343\textwidth}}
+\toprule
+\textbf{objs} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{objs} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & -- & detachAll ritorna null \\
+null & non null & azione & detachAll ritorna null \\
+null & non null & eccezione & detachAll ritorna null \\
+vuota & null & -- & array vuoto \\
+vuota & non null & azione & array vuoto \\
+vuota & non null & eccezione & array vuoto \\
+un elemento gestito & null & -- & array con un elemento; isDetached(elemento) == true \\
+un elemento gestito & non null & azione & array con un elemento; l'elemento e' invariato (stessa istanza, non staccato) \\
+un elemento gestito & non null & eccezione & eccezione propagata da detachAll \\
+un elemento non gestito & null & -- & array con un elemento; l'elemento e' invariato (stessa istanza) \\
+un elemento non gestito & non null & azione & array con un elemento; l'elemento e' invariato (stessa istanza) \\
+un elemento non gestito & non null & eccezione & eccezione propagata da detachAll \\
+elementi misti (un gestito e un non gestito) & null & -- & array di due elementi: il gestito e' una copia scollegata, il non gestito e' invariato \\
+elementi misti (un gestito e un non gestito) & non null & azione & array di due elementi, entrambi invariati (nessun detach applicato) \\
+elementi misti (un gestito e un non gestito) & non null & eccezione & eccezione propagata da detachAll \\
+null & non null & azione (ACT\_CASCADE) & detachAll ritorna null \\
+null & non null & azione (ACT\_RUN) & detachAll ritorna null \\
+vuota & non null & azione (ACT\_CASCADE) & array vuoto \\
+vuota & non null & azione (ACT\_RUN) & array vuoto \\
+un elemento gestito & non null & azione (ACT\_CASCADE) & array con un elemento; l'elemento e' invariato (stessa istanza, non staccato) \\
+un elemento gestito & non null & azione (ACT\_RUN) & array con un elemento; copia scollegata dal broker \\
+un elemento non gestito & non null & azione (ACT\_CASCADE) & array con un elemento; l'elemento e' invariato (stessa istanza) \\
+un elemento non gestito & non null & azione (ACT\_RUN) & array con un elemento; l'elemento e' invariato (stessa istanza) \\
+elementi misti (un gestito e un non gestito) & non null & azione (ACT\_CASCADE) & array di due elementi, entrambi invariati (nessun detach applicato) \\
+elementi misti (un gestito e un non gestito) & non null & azione (ACT\_RUN) & array di due elementi: il gestito e' una copia scollegata, il non gestito e' invariato \\
+\bottomrule
+\caption{Tuple corrette per \texttt{detachAll(Collection objs, OpCallbacks call)}.}
+\label{tab:detachall-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{detachAll(Collection objs, OpCallbacks call), approfondimento azione} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.278\textwidth}>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.093\textwidth}>{\raggedright\arraybackslash}p{0.146\textwidth}>{\raggedright\arraybackslash}p{0.278\textwidth}}
+\toprule
+\textbf{stato\_broker} & \textbf{call} & \textbf{flush} & \textbf{transazione} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{stato\_broker} & \textbf{call} & \textbf{flush} & \textbf{transazione} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+senza istanze gestite & null & true & non attiva & nessun effetto \\
+senza istanze gestite & null & true & attiva & nessun effetto \\
+senza istanze gestite & null & false & non attiva & nessun effetto \\
+senza istanze gestite & null & false & attiva & nessun effetto \\
+senza istanze gestite & non null & true & non attiva & callback mai invocato \\
+senza istanze gestite & non null & true & attiva & callback mai invocato \\
+senza istanze gestite & non null & false & non attiva & callback mai invocato \\
+senza istanze gestite & non null & false & attiva & callback mai invocato \\
+con istanza gestita & null & false & attiva & InvalidStateException \\
+con istanza gestita & non null & false & attiva & InvalidStateException \\
+con istanza gestita & null & true & attiva & non determinato \\
+con istanza gestita & non null & true & attiva & non determinato \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{detachAll(Collection objs, OpCallbacks call), approfondimento azione}.}
+\label{tab:detachall2-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.225\textwidth}>{\raggedright\arraybackslash}p{0.066\textwidth}>{\raggedright\arraybackslash}p{0.075\textwidth}>{\raggedright\arraybackslash}p{0.141\textwidth}>{\raggedright\arraybackslash}p{0.394\textwidth}}
+\toprule
+\textbf{objs} & \textbf{copyNew} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{objs} & \textbf{copyNew} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & true & null & -- & eccezione (tipo non specificato) \\
+null & true & non null & azione & eccezione (tipo non specificato) \\
+null & true & non null & eccezione & eccezione propagata da attachAll \\
+null & false & null & -- & eccezione (tipo non specificato) \\
+null & false & non null & azione & eccezione (tipo non specificato) \\
+null & false & non null & eccezione & eccezione propagata da attachAll \\
+vuota & true & null & -- & array vuoto \\
+vuota & true & non null & azione & array vuoto \\
+vuota & true & non null & eccezione & eccezione propagata da attachAll \\
+vuota & false & null & -- & array vuoto \\
+vuota & false & non null & azione & array vuoto \\
+vuota & false & non null & eccezione & eccezione propagata da attachAll \\
+all new & true & null & -- & istanza persistita come nuova, copia dell'originale \\
+all new & true & non null & azione & istanza persistita come nuova, copia dell'originale \\
+all new & true & non null & eccezione & eccezione propagata da attachAll \\
+all new & false & null & -- & istanza persistita come nuova, non copiata \\
+all new & false & non null & azione & istanza persistita come nuova, non copiata \\
+all new & false & non null & eccezione & eccezione propagata da attachAll \\
+all old & true & null & -- & istanza persistente esistente con le modifiche mergiate \\
+all old & true & non null & azione & istanza persistente esistente con le modifiche mergiate \\
+all old & true & non null & eccezione & eccezione propagata da attachAll \\
+all old & false & null & -- & istanza persistente esistente con le modifiche mergiate \\
+all old & false & non null & azione & istanza persistente esistente con le modifiche mergiate \\
+all old & false & non null & eccezione & eccezione propagata da attachAll \\
+all attached & true & null & -- & nessuna modifica: l'istanza resta quella gia' gestita \\
+all attached & true & non null & azione & nessuna modifica: l'istanza resta quella gia' gestita \\
+all attached & true & non null & eccezione & eccezione propagata da attachAll \\
+all attached & false & null & -- & nessuna modifica: l'istanza resta quella gia' gestita \\
+all attached & false & non null & azione & nessuna modifica: l'istanza resta quella gia' gestita \\
+all attached & false & non null & eccezione & eccezione propagata da attachAll \\
+misti: validi eterogenei & true & null & -- & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & true & non null & azione & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & true & non null & eccezione & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & false & null & -- & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & false & non null & azione & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & false & non null & eccezione & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: almeno 1 invalido & true & null & -- & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & true & non null & azione & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & true & non null & eccezione & eccezione propagata da attachAll \\
+misti: almeno 1 invalido & false & null & -- & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & false & non null & azione & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & false & non null & eccezione & eccezione propagata da attachAll \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}.}
+\label{tab:attachall-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.214\textwidth}>{\raggedright\arraybackslash}p{0.062\textwidth}>{\raggedright\arraybackslash}p{0.071\textwidth}>{\raggedright\arraybackslash}p{0.178\textwidth}>{\raggedright\arraybackslash}p{0.375\textwidth}}
+\toprule
+\textbf{objs} & \textbf{copyNew} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{objs} & \textbf{copyNew} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & true & null & -- & attachAll ritorna null \\
+null & true & non null & azione & attachAll ritorna null \\
+null & true & non null & eccezione & attachAll ritorna null \\
+null & false & null & -- & attachAll ritorna null \\
+null & false & non null & azione & attachAll ritorna null \\
+null & false & non null & eccezione & attachAll ritorna null \\
+vuota & true & null & -- & array vuoto \\
+vuota & true & non null & azione & array vuoto \\
+vuota & true & non null & eccezione & array vuoto \\
+vuota & false & null & -- & array vuoto \\
+vuota & false & non null & azione & array vuoto \\
+vuota & false & non null & eccezione & array vuoto \\
+all new & true & null & -- & istanza persistita come nuova, copia dell'originale \\
+all new & true & non null & azione & elemento invariato (nessun attach eseguito) \\
+all new & true & non null & eccezione & eccezione propagata da attachAll \\
+all new & false & null & -- & istanza persistita come nuova, non copiata \\
+all new & false & non null & azione & elemento invariato (nessun attach eseguito) \\
+all new & false & non null & eccezione & eccezione propagata da attachAll \\
+all old & true & null & -- & istanza persistente esistente con le modifiche mergiate \\
+all old & true & non null & azione & elemento invariato (nessun attach eseguito) \\
+all old & true & non null & eccezione & eccezione propagata da attachAll \\
+all old & false & null & -- & istanza persistente esistente con le modifiche mergiate \\
+all old & false & non null & azione & elemento invariato (nessun attach eseguito) \\
+all old & false & non null & eccezione & eccezione propagata da attachAll \\
+all attached & true & null & -- & istanza persistita come nuova, copia dell'originale \\
+all attached & true & non null & azione & elemento invariato (nessun attach eseguito) \\
+all attached & true & non null & eccezione & eccezione propagata da attachAll \\
+all attached & false & null & -- & istanza persistita come nuova, non copiata \\
+all attached & false & non null & azione & elemento invariato (nessun attach eseguito) \\
+all attached & false & non null & eccezione & eccezione propagata da attachAll \\
+misti: validi eterogenei & true & null & -- & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, copia dell'originale; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & true & non null & azione & entrambi gli elementi invariati (nessun attach eseguito) \\
+misti: validi eterogenei & true & non null & eccezione & UserException con le eccezioni di processArgument (una per elemento) annidate, non la stessa istanza \\
+misti: validi eterogenei & false & null & -- & ogni elemento segue il proprio ramo secondo il tipo: new -> persistito come nuovo, non copiato; old -> istanza persistente aggiornata con le modifiche mergiate; attached -> nessuna modifica \\
+misti: validi eterogenei & false & non null & azione & entrambi gli elementi invariati (nessun attach eseguito) \\
+misti: validi eterogenei & false & non null & eccezione & UserException con le eccezioni di processArgument (una per elemento) annidate, non la stessa istanza \\
+misti: almeno 1 invalido & true & null & -- & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & true & non null & azione & entrambi gli elementi invariati (nessun attach eseguito) \\
+misti: almeno 1 invalido & true & non null & eccezione & UserException con le eccezioni di processArgument (una per elemento) annidate, non la stessa istanza \\
+misti: almeno 1 invalido & false & null & -- & eccezione (tipo non specificato) \\
+misti: almeno 1 invalido & false & non null & azione & entrambi gli elementi invariati (nessun attach eseguito) \\
+misti: almeno 1 invalido & false & non null & eccezione & UserException con le eccezioni di processArgument (una per elemento) annidate, non la stessa istanza \\
+all new & true & non null & azione (ACT\_CASCADE) & eccezione (NullPointerException interno) \\
+all new & true & non null & azione (ACT\_RUN) & istanza persistita come nuova, copia dell'originale \\
+all old & true & non null & azione (ACT\_CASCADE) & eccezione (NullPointerException interno) \\
+all old & true & non null & azione (ACT\_RUN) & istanza persistente esistente con le modifiche mergiate \\
+all attached & true & non null & azione (ACT\_CASCADE) & elemento invariato (nessun attach eseguito) \\
+all attached & true & non null & azione (ACT\_RUN) & istanza persistita come nuova, copia dell'originale \\
+misti: validi eterogenei & true & non null & azione (ACT\_CASCADE) & eccezione (NullPointerException interno) \\
+misti: validi eterogenei & true & non null & azione (ACT\_RUN) & entrambi gli elementi pienamente processati secondo il proprio ramo \\
+misti: almeno 1 invalido & true & non null & azione (ACT\_CASCADE) & eccezione (NullPointerException interno) \\
+misti: almeno 1 invalido & true & non null & azione (ACT\_RUN) & eccezione (tipo non specificato) \\
+\bottomrule
+\caption{Tuple corrette per \texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}.}
+\label{tab:attachall-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{newInstance(Class cls)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.434\textwidth}>{\raggedright\arraybackslash}p{0.507\textwidth}}
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & eccezione (tipo non specificato) \\
+interfaccia con metodi JavaBeans & istanza non-null (implementazione concreta generata dai metadati) \\
+interfaccia senza metodi JavaBeans & eccezione (tipo non specificato, possibile IllegalArgumentException) \\
+classe astratta con metodi JavaBeans & istanza non-null (implementazione concreta generata dai metadati) \\
+classe astratta senza JavaBeans & eccezione (tipo non specificato, possibile IllegalArgumentException) \\
+tipo managed concreto & istanza non-null del tipo specificato \\
+tipo non managed concreto & lancia IllegalArgumentException \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{newInstance(Class cls)}.}
+\label{tab:newinstance-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{newInstance(Class cls)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.434\textwidth}>{\raggedright\arraybackslash}p{0.507\textwidth}}
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & eccezione (tipo non specificato) \\
+interfaccia con metodi JavaBeans & istanza non-null (implementazione concreta generata dai metadati) \\
+interfaccia senza metodi JavaBeans & eccezione (tipo non specificato, possibile IllegalArgumentException) \\
+classe astratta con metodi JavaBeans & eccezione (tipo non specificato) \\
+classe astratta senza JavaBeans & eccezione (tipo non specificato, possibile IllegalArgumentException) \\
+tipo managed concreto & istanza non-null del tipo specificato \\
+tipo non managed concreto & lancia IllegalArgumentException \\
+\bottomrule
+\caption{Tuple corrette per \texttt{newInstance(Class cls)}.}
+\label{tab:newinstance-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{newInstance(Class cls), approfondimento mutation testing} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.480\textwidth}>{\raggedright\arraybackslash}p{0.461\textwidth}}
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{cls} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+tipo non managed concreto & IllegalArgumentException \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{newInstance(Class cls), approfondimento mutation testing}.}
+\label{tab:newinstance2-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{isDetached(Object obj, boolean find)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.272\textwidth}>{\raggedright\arraybackslash}p{0.173\textwidth}>{\raggedright\arraybackslash}p{0.297\textwidth}>{\raggedright\arraybackslash}p{0.173\textwidth}}
+\toprule
+\textbf{obj} & \textbf{find} & \textbf{store} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{obj} & \textbf{find} & \textbf{store} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & true & -- & false \\
+null & false & -- & false \\
+gestito & true & presente & false \\
+gestito & true & non presente & false \\
+gestito & false & presente & false \\
+gestito & false & non presente & false \\
+non gestito & false & presente & false \\
+non gestito & false & non presente & false \\
+non gestito & true & presente & true \\
+non gestito & true & non presente & false \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{isDetached(Object obj, boolean find)}.}
+\label{tab:isdetached-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{persist(Object pc, Object id, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.106\textwidth}>{\raggedright\arraybackslash}p{0.077\textwidth}>{\raggedright\arraybackslash}p{0.077\textwidth}>{\raggedright\arraybackslash}p{0.077\textwidth}>{\raggedright\arraybackslash}p{0.145\textwidth}>{\raggedright\arraybackslash}p{0.405\textwidth}}
+\toprule
+\textbf{pc} & \textbf{id} & \textbf{cascade} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{id} & \textbf{cascade} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & -- & null & -- & eccezione (tipo non specificato) \\
+null & null & -- & non null & azione & eccezione (tipo non specificato) \\
+null & null & -- & non null & eccezione & eccezione propagata da persist \\
+null & non null & -- & null & -- & eccezione (tipo non specificato) \\
+null & non null & -- & non null & azione & eccezione (tipo non specificato) \\
+null & non null & -- & non null & eccezione & eccezione propagata da persist \\
+non gestito & null & presente & null & -- & state manager non-null, id di default assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & null & presente & non null & azione & state manager non-null, id di default assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & null & presente & non null & eccezione & eccezione propagata da persist \\
+non gestito & null & assente & null & -- & state manager non-null, id di default assegnato \\
+non gestito & null & assente & non null & azione & state manager non-null, id di default assegnato \\
+non gestito & null & assente & non null & eccezione & eccezione propagata da persist \\
+non gestito & non null & presente & null & -- & state manager non-null, con l'id specificato assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & non null & presente & non null & azione & state manager non-null, con l'id specificato assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & non null & presente & non null & eccezione & eccezione propagata da persist \\
+non gestito & non null & assente & null & -- & state manager non-null, con l'id specificato assegnato \\
+non gestito & non null & assente & non null & azione & state manager non-null, con l'id specificato assegnato \\
+non gestito & non null & assente & non null & eccezione & eccezione propagata da persist \\
+gestito & null & presente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & presente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & presente & non null & eccezione & eccezione propagata da persist \\
+gestito & null & assente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & assente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & assente & non null & eccezione & eccezione propagata da persist \\
+gestito & non null & presente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & presente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & presente & non null & eccezione & eccezione propagata da persist \\
+gestito & non null & assente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & assente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & assente & non null & eccezione & eccezione propagata da persist \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{persist(Object pc, Object id, OpCallbacks call)}.}
+\label{tab:persist-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{persist(Object pc, Object id, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.102\textwidth}>{\raggedright\arraybackslash}p{0.074\textwidth}>{\raggedright\arraybackslash}p{0.074\textwidth}>{\raggedright\arraybackslash}p{0.074\textwidth}>{\raggedright\arraybackslash}p{0.176\textwidth}>{\raggedright\arraybackslash}p{0.388\textwidth}}
+\toprule
+\textbf{pc} & \textbf{id} & \textbf{cascade} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{id} & \textbf{cascade} & \textbf{call} & \textbf{processArgument} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & -- & null & -- & persist ritorna null \\
+null & null & -- & non null & azione & persist ritorna null \\
+null & null & -- & non null & eccezione & persist ritorna null \\
+null & non null & -- & null & -- & persist ritorna null \\
+null & non null & -- & non null & azione & persist ritorna null \\
+null & non null & -- & non null & eccezione & persist ritorna null \\
+non gestito & null & presente & null & -- & state manager non-null, id di default assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & null & presente & non null & azione & persist ritorna null \\
+non gestito & null & presente & non null & eccezione & eccezione propagata da persist \\
+non gestito & null & assente & null & -- & state manager non-null, id di default assegnato \\
+non gestito & null & assente & non null & azione & persist ritorna null \\
+non gestito & null & assente & non null & eccezione & eccezione propagata da persist \\
+non gestito & non null & presente & null & -- & state manager non-null, con l'id specificato assegnato; istanza correlata (CASCADE\_IMMEDIATE) non cascata, resta non gestita \\
+non gestito & non null & presente & non null & azione & persist ritorna null \\
+non gestito & non null & presente & non null & eccezione & eccezione propagata da persist \\
+non gestito & non null & assente & null & -- & state manager non-null, con l'id specificato assegnato \\
+non gestito & non null & assente & non null & azione & persist ritorna null \\
+non gestito & non null & assente & non null & eccezione & eccezione propagata da persist \\
+gestito & null & presente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & presente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & presente & non null & eccezione & eccezione propagata da persist \\
+gestito & null & assente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & assente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & null & assente & non null & eccezione & eccezione propagata da persist \\
+gestito & non null & presente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & presente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & presente & non null & eccezione & eccezione propagata da persist \\
+gestito & non null & assente & null & -- & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & assente & non null & azione & nessuna modifica: pc resta quello gia' gestito, id ignorato \\
+gestito & non null & assente & non null & eccezione & eccezione propagata da persist \\
+non gestito & null & presente & non null & azione(ACT\_CASCADE) & persist ritorna null \\
+non gestito & null & presente & non null & azione(ACT\_RUN) & state manager non-null, id di default assegnato \\
+non gestito & null & assente & non null & azione(ACT\_CASCADE) & persist ritorna null \\
+non gestito & null & assente & non null & azione(ACT\_RUN) & state manager non-null, id di default assegnato \\
+non gestito & non null & presente & non null & azione(ACT\_CASCADE) & persist ritorna null \\
+non gestito & non null & presente & non null & azione(ACT\_RUN) & state manager non-null, con l'id specificato assegnato \\
+non gestito & non null & assente & non null & azione(ACT\_CASCADE) & persist ritorna null \\
+non gestito & non null & assente & non null & azione(ACT\_RUN) & state manager non-null, con l'id specificato assegnato \\
+\bottomrule
+\caption{Tuple corrette per \texttt{persist(Object pc, Object id, OpCallbacks call)}.}
+\label{tab:persist-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{delete(Object pc, OpCallbacks call)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.314\textwidth}>{\raggedright\arraybackslash}p{0.285\textwidth}>{\raggedright\arraybackslash}p{0.328\textwidth}}
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & null & nessun effetto \\
+null & azione (ACT\_NONE) & nessuna eccezione \\
+null & azione (ACT\_CASCADE) & nessuna eccezione \\
+null & azione (ACT\_RUN) & nessuna eccezione \\
+null & lancia eccezione & eccezione non propagata \\
+non gestito & null & nessuna eccezione \\
+non gestito & azione (ACT\_NONE) & nessuna eccezione \\
+non gestito & azione (ACT\_CASCADE) & nessuna eccezione \\
+non gestito & azione (ACT\_RUN) & nessuna eccezione \\
+non gestito & lancia eccezione & eccezione propagata \\
+gestito non persistito & null & nessuna eccezione \\
+gestito non persistito & azione (ACT\_NONE) & nessuna eccezione \\
+gestito non persistito & azione (ACT\_CASCADE) & nessuna eccezione \\
+gestito non persistito & azione (ACT\_RUN) & nessuna eccezione \\
+gestito non persistito & lancia eccezione & eccezione propagata \\
+gestito persistito & null & nessuna eccezione \\
+gestito persistito & azione (ACT\_NONE) & nessuna eccezione \\
+gestito persistito & azione (ACT\_CASCADE) & nessuna eccezione \\
+gestito persistito & azione (ACT\_RUN) & nessuna eccezione \\
+gestito persistito & lancia eccezione & eccezione propagata \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{delete(Object pc, OpCallbacks call)}.}
+\label{tab:delete-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{delete(Object pc, OpCallbacks call), approfondimento mutation testing} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.348\textwidth}>{\raggedright\arraybackslash}p{0.155\textwidth}>{\raggedright\arraybackslash}p{0.425\textwidth}}
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{pc} & \textbf{call} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+gestito e detached & null & UserException detached \\
+gestito e detached & non null & UserException detached \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{delete(Object pc, OpCallbacks call), approfondimento mutation testing}.}
+\label{tab:delete2-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{flush(int reason)} (BrokerImpl).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.658\textwidth}>{\raggedright\arraybackslash}p{0.282\textwidth}}
+\toprule
+\textbf{stato} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{stato} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+nessuna transazione attiva & nessuna eccezione \\
+transazione attiva senza istanze dirty & rollbackOnly false \\
+transazione attiva istanze presenti successo & non determinato \\
+transazione attiva istanze presenti fallimento & non determinato \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{flush(int reason)}.}
+\label{tab:flush-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Costruttore} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.146\textwidth}>{\raggedright\arraybackslash}p{0.794\textwidth}}
+\toprule
+\textbf{session} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{session} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & eccezione (dereferenziazione) \\
+valida & getWidget()!=null e isShowing()==false \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Costruttore}.}
+\label{tab:logindialog-costruttore-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{Costruttore} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.146\textwidth}>{\raggedright\arraybackslash}p{0.794\textwidth}}
+\toprule
+\textbf{session} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{session} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & getWidget()!=null e isShowing()==false \\
+valida & getWidget()!=null e isShowing()==false \\
+\bottomrule
+\caption{Tuple corrette per \texttt{Costruttore}.}
+\label{tab:logindialog-costruttore-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Posizione del popup} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.130\textwidth}>{\raggedright\arraybackslash}p{0.130\textwidth}>{\raggedright\arraybackslash}p{0.667\textwidth}}
+\toprule
+\textbf{left} & \textbf{top} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{left} & \textbf{top} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+negativo & negativo & getPopupLeft()==left e getPopupTop()==top \\
+negativo & zero & getPopupLeft()==left e getPopupTop()==top \\
+negativo & positivo & getPopupLeft()==left e getPopupTop()==top \\
+zero & negativo & getPopupLeft()==left e getPopupTop()==top \\
+zero & zero & getPopupLeft()==left e getPopupTop()==top \\
+zero & positivo & getPopupLeft()==left e getPopupTop()==top \\
+positivo & negativo & getPopupLeft()==left e getPopupTop()==top \\
+positivo & zero & getPopupLeft()==left e getPopupTop()==top \\
+positivo & positivo & getPopupLeft()==left e getPopupTop()==top \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Posizione del popup}.}
+\label{tab:logindialog-posizione-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{Posizione del popup} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.130\textwidth}>{\raggedright\arraybackslash}p{0.130\textwidth}>{\raggedright\arraybackslash}p{0.667\textwidth}}
+\toprule
+\textbf{left} & \textbf{top} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{left} & \textbf{top} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+negativo & negativo & getPopupLeft()==left e getPopupTop()==top \\
+negativo & zero & getPopupLeft()==left e getPopupTop()==top \\
+negativo & positivo & getPopupLeft()==left e getPopupTop()==top \\
+zero & negativo & getPopupLeft()==left e getPopupTop()==top \\
+zero & zero & getPopupLeft()==left e getPopupTop()==top \\
+zero & positivo & getPopupLeft()==left e getPopupTop()==top \\
+positivo & negativo & getPopupLeft()==left e getPopupTop()==top \\
+positivo & zero & getPopupLeft()==left e getPopupTop()==top \\
+positivo & positivo & getPopupLeft()==left e getPopupTop()==top \\
+\bottomrule
+\caption{Tuple corrette per \texttt{Posizione del popup}.}
+\label{tab:logindialog-posizione-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Titolo del popup} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.274\textwidth}>{\raggedright\arraybackslash}p{0.666\textwidth}}
+\toprule
+\textbf{title} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{title} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & getTitle()==null \\
+vuota & getTitle()=="" \\
+valida & getTitle()==title \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Titolo del popup}.}
+\label{tab:logindialog-title-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{Titolo del popup} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.274\textwidth}>{\raggedright\arraybackslash}p{0.666\textwidth}}
+\toprule
+\textbf{title} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{title} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+null & getTitle()=="" \\
+vuota & getTitle()=="" \\
+valida & getTitle()==title \\
+\bottomrule
+\caption{Tuple corrette per \texttt{Titolo del popup}.}
+\label{tab:logindialog-title-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Proprieta booleane ereditate} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.297\textwidth}>{\raggedright\arraybackslash}p{0.130\textwidth}>{\raggedright\arraybackslash}p{0.501\textwidth}}
+\toprule
+\textbf{proprieta} & \textbf{valore} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{proprieta} & \textbf{valore} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+Modal & true & isModal()==true \\
+Modal & false & isModal()==false \\
+AnimationEnabled & true & isAnimationEnabled()==true \\
+AnimationEnabled & false & isAnimationEnabled()==false \\
+AutoHideEnabled & true & isAutoHideEnabled()==true \\
+AutoHideEnabled & false & isAutoHideEnabled()==false \\
+GlassEnabled & true & isGlassEnabled()==true \\
+GlassEnabled & false & isGlassEnabled()==false \\
+Visible & true & isVisible()==true \\
+Visible & false & isVisible()==false \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Proprieta booleane ereditate}.}
+\label{tab:logindialog-boolprop-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Ciclo di vita} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.337\textwidth}>{\raggedright\arraybackslash}p{0.211\textwidth}>{\raggedright\arraybackslash}p{0.379\textwidth}}
+\toprule
+\textbf{stato\_precedente} & \textbf{operazione} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{stato\_precedente} & \textbf{operazione} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+non mostrato & show() & isShowing()==true \\
+non mostrato & hide() & isShowing()==false \\
+non mostrato & hide(true) & isShowing()==false \\
+non mostrato & center() & isShowing()==true \\
+mostrato & show() & isShowing()==true \\
+mostrato & hide() & isShowing()==false \\
+mostrato & hide(true) & isShowing()==false \\
+mostrato & center() & isShowing()==true \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Ciclo di vita}.}
+\label{tab:logindialog-lifecycle-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Classe GetServerURI} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.141\textwidth}>{\raggedright\arraybackslash}p{0.346\textwidth}>{\raggedright\arraybackslash}p{0.440\textwidth}}
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+onFailure & throwable qualunque & handleError(caught) invocato \\
+onSuccess & null & eccezione sincrona \\
+onSuccess & vuota & eccezione sincrona \\
+onSuccess & non valida & eccezione sincrona \\
+onSuccess & valida e corretta & propaga a init \\
+onSuccess & valida ma non corretta & va in onFailure \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Classe GetServerURI}.}
+\label{tab:logindialog-getserveruri-tuple}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple corrette, \texttt{Classe GetServerURI} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.141\textwidth}>{\raggedright\arraybackslash}p{0.346\textwidth}>{\raggedright\arraybackslash}p{0.440\textwidth}}
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+onFailure & throwable qualunque & handleError(caught) invocato \\
+onSuccess & null & getStocks() sempre invocato \\
+onSuccess & vuota & getStocks() sempre invocato \\
+onSuccess & non valida & getStocks() sempre invocato \\
+onSuccess & valida e corretta & getStocks() sempre invocato \\
+onSuccess & valida ma non corretta & getStocks() sempre invocato \\
+\bottomrule
+\caption{Tuple corrette per \texttt{Classe GetServerURI}.}
+\label{tab:logindialog-getserveruri-tuple-corrette}
+\end{longtable}
+}
+
+
+
+\paragraph*{Tuple di progettazione, \texttt{Classe InitializeStocks} (LoginDialog).}
+
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.149\textwidth}>{\raggedright\arraybackslash}p{0.315\textwidth}>{\raggedright\arraybackslash}p{0.464\textwidth}}
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{metodo} & \textbf{parametro} & \textbf{oracolo} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+onFailure & throwable qualunque & handleError(caught) invocato \\
+onSuccess & null & chiama init(...) \\
+onSuccess & vuota & chiama init(...) \\
+onSuccess & con elementi & chiama init(...) \\
+\bottomrule
+\caption{Tuple di progettazione per \texttt{Classe InitializeStocks}.}
+\label{tab:logindialog-initializestocks-tuple}
+\end{longtable}
+}
+
+

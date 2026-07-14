@@ -1,0 +1,10 @@
+With the BB test suite attached, I kept the change minimal to avoid risking any of the observed
+behavior the tests depend on (constructor side effects, widget tree structure, the exact
+PopupPanel property round-trips, and the two callback inner classes). I extracted only the two
+lowest-risk pieces of the constructor: applyStyleNames(table, label, header) for the four
+addStyleName calls, and onEnterClicked(traderName) for the validation-and-submit logic that used
+to live inline in the click handler's onClick(). The trader name text box stays a local variable
+captured by the click handler closure, exactly as in the original, so no new field was
+introduced. Everything else, including field declarations, the inner classes and their method
+bodies, is unchanged. Full refactored class:
+report/data/refactoring-logindialog/c2/LoginDialog.java.

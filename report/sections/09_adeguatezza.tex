@@ -45,7 +45,7 @@ Javadoc dichiara il livello corrente della \texttt{FetchConfiguration}, il timeo
 documentato. Ipotesi: \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} equivalenti tra
 loro; per \texttt{pc} non gestito, nessun effetto e nessuna eccezione, per analogia col risultato
 già confermato per l'overload a 4 argomenti su \texttt{pc} non gestito nel
-Capitolo~\ref{sec:implementazione}. Classi in Tabella~\ref{tab:lock2-classi}. 20 tuple.
+Capitolo~\ref{sec:implementazione}. Classi in Tabella~\ref{tab:lock2-classi}. 20 tuple, in Tabella~\ref{tab:lock2-tuple} (Appendice).
 
 \texttt{detachAll(OpCallbacks call, boolean flush)}: non ha un parametro con gli oggetti da
 staccare, opera su tutte le istanze già tracciate dal broker. Un'istanza entra in quel registro
@@ -61,13 +61,13 @@ $\times$ \texttt{flush}, altre 4 combinazioni, 12 in totale. Ipotesi per il regi
 nessuna eccezione, callback non invocato per assenza di istanze da processare. Ipotesi per il
 registro con un'istanza gestita, per analogia con \texttt{detachAll(Collection, OpCallbacks)} del
 Capitolo~\ref{sec:cp}: nessuna eccezione, callback invocato sull'istanza gestita. Classi in
-Tabella~\ref{tab:detachall2-classi}. 12 tuple.
+Tabella~\ref{tab:detachall2-classi}. 12 tuple, in Tabella~\ref{tab:detachall2-tuple} (Appendice).
 
 \texttt{delete(Object pc, OpCallbacks call)}: Javadoc minima, "Delete the given object.". Stesse
 categorie di \texttt{pc} e stesso comportamento di \texttt{call.processArgument} di \texttt{lock}.
 Né \texttt{pc} null né \texttt{pc} non gestito sono specificati dalla Javadoc: ipotesi per
 entrambi, nessun effetto, per analogia con gli altri metodi della classe che si comportano così su
-un oggetto non ancora persistito. Classi in Tabella~\ref{tab:delete-classi}. 20 tuple.
+un oggetto non ancora persistito. Classi in Tabella~\ref{tab:delete-classi}. 20 tuple, in Tabella~\ref{tab:delete-tuple} (Appendice).
 
 \texttt{flush()}: nessun parametro formale, categorie dallo stato del broker. \texttt{transazione}:
 \{non attiva\}, \{attiva\}. \texttt{istanze da flushare}: \{nessuna\}, \{presenti\}.
@@ -85,7 +85,7 @@ istanze presenti, fallimento\} non sono modellate, escluse per ipotesi e non per
 accertata. Restano 4 categorie progettate: \{non attiva\},
 \{attiva, nessuna istanza\}, \{attiva, istanze presenti, successo\}, \{attiva, istanze presenti,
 fallimento\}. Ipotesi sull'oracolo: nessuna eccezione nei primi tre casi; \texttt{rollbackOnly} a
-true nel quarto. Classi in Tabella~\ref{tab:flush-classi}. 4 categorie.
+true nel quarto. Classi in Tabella~\ref{tab:flush-classi}. 4 categorie, in Tabella~\ref{tab:flush-tuple} (Appendice).
 
 \textit{Implementazione e correzione.} \texttt{lock}: l'ipotesi iniziale, i tre valori di azione
 equivalenti tra loro, non regge per \texttt{pc} gestito: solo \texttt{ACT\_RUN} fa procedere il
@@ -169,11 +169,12 @@ firma mai analizzata: non è stato fatto.
 \textit{Progettazione.} \texttt{delete}: nuova categoria per \texttt{pc}, gestito e detached,
 riusata dalla categoria "detached" già stabilita dalla Javadoc di \texttt{isDetached()} del
 Capitolo~\ref{sec:cp}. Ipotesi: eccezione attesa, tipo non specificato dal design. Classi in
-Tabella~\ref{tab:delete2-classi}. 2 tuple.
+Tabella~\ref{tab:delete2-classi}. 2 tuple, in Tabella~\ref{tab:delete2-tuple} (Appendice).
 
 \texttt{newInstance(Class cls)}: la Javadoc dichiara \texttt{@throws IllegalArgumentException if
 cls is not a managed type or interface}, oracolo più preciso di quello già usato per il caso "tipo
-non managed concreto". Classi in Tabella~\ref{tab:newinstance2-classi}. 1 tupla.
+non managed concreto". Classi in Tabella~\ref{tab:newinstance2-classi}. 1 tupla, in Tabella~\ref{tab:newinstance2-tuple}
+(Appendice).
 
 \textit{Implementazione e correzione.} \texttt{delete}: ipotesi confermata, \texttt{UserException},
 "You cannot perform operation delete on detached object...". 2/2 test passano. Mutation score
@@ -189,8 +190,6 @@ partenza.
 Stesso compromesso della coverage: leggere il diff dei mutanti sopravvissuti alzerebbe il
 punteggio più rapidamente, a scapito della verifica delle funzionalità documentate. Anche questa
 analisi resta \textit{best effort} sulla documentazione, non sul codice.
-
-Tuple complete per tutti i metodi in \texttt{report/data/}.
 
 \subsubsection{Reliability}
 

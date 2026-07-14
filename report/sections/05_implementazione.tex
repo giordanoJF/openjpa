@@ -99,7 +99,8 @@ non valido lancia sempre eccezione, indipendentemente da \texttt{validate}; (3) 
 \texttt{null} produce \texttt{null} anche con \texttt{validate=false}: la garanzia ``mai null''
 non prevale, un comportamento osservato che devia da quanto dichiarato nel Javadoc senza che sia possibile stabilire con certezza se rifletta un
 fault nell'implementazione o un'interazione con \texttt{processReturn} non prevista dalla
-garanzia stessa. Tutte le correzioni sono in \texttt{find\_correzioni.csv}. Le due tuple con
+garanzia stessa. Tutte le correzioni sono in \texttt{find\_correzioni.csv}, Tuple corrette in
+Tabella~\ref{tab:find-tuple-corrette} (Appendice). Le due tuple con
 \texttt{oid} valido, \texttt{validate=true} e \texttt{store} assente hanno richiesto uno stub
 aggiuntivo, applicato solo a questa combinazione: \texttt{broker.getFetchConfiguration().}
 \texttt{requiresLoad()} forzato a \texttt{true}, per costringere \texttt{find} a eseguire davvero
@@ -127,7 +128,8 @@ va invece fissato: \texttt{lock()} non consulta mai \texttt{getPCState()}, quind
 postcondizione con codice azione, il comportamento osservato è lo stesso: \texttt{lock} ritorna
 senza applicare il lock. Fa eccezione un sottoinsieme di 10 tuple (\texttt{pc} gestito,
 \texttt{call=null}, \texttt{level}/\texttt{timeout} non validi) dove il lock viene comunque
-applicato. Tutte le correzioni sono in \texttt{lock\_correzioni.csv}.
+applicato. Tutte le correzioni sono in \texttt{lock\_correzioni.csv}. Tuple corrette in
+Tabella~\ref{tab:lock-tuple-corrette} (Appendice).
 
 \textit{Approfondimento sulla classe ``azione''.} Il design unisce
 \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE}/\texttt{ACT\_RUN} in un'unica classe, perché
@@ -175,7 +177,8 @@ configurata non ha effetto); un elemento non gestito viene restituito invariato;
 misti sono processati indipendentemente, senza atomicità. Fa eccezione il caso in cui
 \texttt{processArgument} lancia davvero \texttt{OpenJPAException} (su una collezione non vuota),
 che si propaga correttamente anche su un elemento non gestito. Tutte le correzioni sono in
-\texttt{detachAll\_correzioni.csv}.
+\texttt{detachAll\_correzioni.csv}. Tuple corrette in Tabella~\ref{tab:detachall-tuple-corrette}
+(Appendice).
 
 \textit{Approfondimento sulla classe ``azione''.} Stessa divergenza già osservata per
 \texttt{lock}: \texttt{ACT\_NONE}/\texttt{ACT\_CASCADE} lasciano l'elemento invariato,
@@ -206,7 +209,8 @@ no-op non regge, un'istanza già gestita viene trattata esattamente come \{all n
 classi miste dove \texttt{processArgument} lancia
 \texttt{OpenJPAException}, \texttt{AttachManager} accumula un'eccezione per elemento e le avvolge in un'unica
 \texttt{UserException} quando sono più di una. Tutte le correzioni sono in
-\texttt{attachAll\_correzioni.csv}.
+\texttt{attachAll\_correzioni.csv}. Tuple corrette in Tabella~\ref{tab:attachall-tuple-corrette}
+(Appendice).
 
 \textit{Approfondimento sulla classe ``azione''.} Su \{all attached\}, \texttt{ACT\_RUN} tratta
 l'elemento già gestito come se fosse nuovo, persistendolo esattamente come \{all new\} invece di
@@ -239,7 +243,8 @@ con l'oracolo di design fallisce con \texttt{UnsupportedOperationException}.
 \texttt{BrokerImpl.newInstance} rifiuta ogni classe astratta non interfaccia, indipendentemente
 dalla convenzione JavaBeans. Le
 altre 6 tuple confermano l'oracolo di design. Correzione in
-\texttt{newInstance\_correzioni.csv}.
+\texttt{newInstance\_correzioni.csv}. Tuple corrette in
+Tabella~\ref{tab:newinstance-tuple-corrette} (Appendice).
 
 Le 7 tuple del CSV diventano 7 test di unità dopo una correzione d'oracolo, tutte passate.
 
@@ -263,7 +268,8 @@ vorrebbe dire che la cascata è avvenuta comunque, in contrasto con la garanzia 
 \textit{Correzioni d'oracolo.} \texttt{pc=null} ritorna \texttt{null} direttamente, mai
 un'eccezione. Per \texttt{pc} non gestito con azione rappresentativa, il risultato è \texttt{null}
 anziché uno state manager. Per \texttt{pc} già gestito l'ipotesi di design è confermata (no-op).
-Correzioni in \texttt{persist\_correzioni.csv}.
+Correzioni in \texttt{persist\_correzioni.csv}. Tuple corrette in
+Tabella~\ref{tab:persist-tuple-corrette} (Appendice).
 
 \textit{Approfondimento sulla classe ``azione''.} Su \texttt{pc} gestito le tre costanti sono
 omogenee, nessuna espansione necessaria. Su \texttt{pc} non gestito, invece,
@@ -299,16 +305,20 @@ non lanciare l'eccezione ed eventualmente registrare che è stata chiamata.
 Le sette sottosezioni contano 42 tuple, una per metodo di test. Eseguendo per primi i test con
 l'oracolo di design originale, 4 sottosezioni hanno prodotto test falliti. Nel
 \texttt{Costruttore}, 1 test è fallito: \texttt{session=\{null\}} doveva lanciare un'eccezione,
-non l'ha lanciata. Nel \texttt{Titolo del popup}, 1 test è fallito: \texttt{setTitle(null)}
-doveva produrre \texttt{getTitle()==null}, produce invece \texttt{getTitle()==""}. Nella
+non l'ha lanciata (Tuple corrette in Tabella~\ref{tab:logindialog-costruttore-tuple-corrette},
+Appendice). Nel \texttt{Titolo del popup}, 1 test è fallito: \texttt{setTitle(null)}
+doveva produrre \texttt{getTitle()==null}, produce invece \texttt{getTitle()==""} (Tuple corrette
+in Tabella~\ref{tab:logindialog-title-tuple-corrette}, Appendice). Nella
 \texttt{Posizione del popup}, 8 test su 9 sono falliti: senza chiamare prima \texttt{show()},
 \texttt{getPopupLeft()}/\texttt{getPopupTop()} restituiscono sempre $0$, indipendentemente dal
-valore impostato con \texttt{setPopupPosition}. Nella classe \texttt{GetServerURI}, 2 test sono
-falliti: un uri di formato non valido e un uri valido ma non raggiungibile dovevano produrre un
-esito diverso da un uri valido e raggiungibile, producono invece lo stesso identico esito
-(chiamano sempre \texttt{getStocks()}). Ogni fallimento osservato ha portato a correggere
-l'oracolo nel file \texttt{*\_correzioni.csv} corrispondente, in
-\texttt{report/data/logindialog/}, e a riscrivere l'assert del test di conseguenza. Le altre tre
-sottosezioni (\texttt{Proprietà booleane}, \texttt{Ciclo di vita}, \texttt{InitializeStocks})
-non hanno prodotto nessun fallimento: l'oracolo di design era già corretto. Dopo le correzioni,
-tutti i 42 test sono passati.
+valore impostato con \texttt{setPopupPosition} (Tuple corrette in
+Tabella~\ref{tab:logindialog-posizione-tuple-corrette}, Appendice). Nella classe
+\texttt{GetServerURI}, 2 test sono falliti: un uri di formato non valido e un uri valido ma non
+raggiungibile dovevano produrre un esito diverso da un uri valido e raggiungibile, producono
+invece lo stesso identico esito (chiamano sempre \texttt{getStocks()}) (Tuple corrette in
+Tabella~\ref{tab:logindialog-getserveruri-tuple-corrette}, Appendice). Ogni fallimento osservato
+ha portato a correggere l'oracolo nel file \texttt{*\_correzioni.csv} corrispondente e a
+riscrivere l'assert del test di conseguenza. Le altre tre sottosezioni (\texttt{Proprietà
+booleane}, \texttt{Ciclo di vita}, \texttt{InitializeStocks}) non hanno prodotto nessun
+fallimento: l'oracolo di design era già corretto. Dopo le correzioni, tutti i 42 test sono
+passati.

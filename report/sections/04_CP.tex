@@ -52,7 +52,7 @@ sottoclasse concreta di \texttt{OpenJPAException}.
 
 \textit{Oracolo:} su 84 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
 documentazione per 6, dedotto dalla documentazione per 61, e ipotizzato in assenza di
-documentazione per 17.
+documentazione per 17. Tuple in Tabella~\ref{tab:find-tuple} (Appendice).
 
 \subsubsection{\texttt{lock(Object pc, int level, int timeout, OpCallbacks call)}}
 
@@ -117,7 +117,7 @@ codice azione, il valore rappresentativo è \texttt{ACT\_NONE}. L'eccezione lanc
 \textit{Oracolo:} su 96 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
 documentazione per 3, dedotto dalla documentazione per 32 (per propagazione dell'eccezione), e
 ipotizzato in assenza di documentazione per 61 (52 con oracolo ``eccezione'', 9 con oracolo
-``postcondizione'').
+``postcondizione''). Tuple in Tabella~\ref{tab:lock-tuple} (Appendice).
 
 \subsubsection{\texttt{detachAll(Collection objs, OpCallbacks call)}}
 
@@ -161,7 +161,7 @@ codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
 \textit{Oracolo:} su 15 combinazioni valide, nessuna ha oracolo dichiarato esplicitamente dalla
 documentazione: 7 sono dedotte dalla documentazione, 8 sono ipotizzate in assenza di
-documentazione.
+documentazione. Tuple in Tabella~\ref{tab:detachall-tuple} (Appendice).
 
 \subsubsection{\texttt{attachAll(Collection objs, boolean copyNew, OpCallbacks call)}}
 
@@ -209,7 +209,7 @@ codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
 \textit{Oracolo:} su 42 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
 documentazione per 4, dedotto dalla documentazione per 18, e ipotizzato in assenza di
-documentazione per 20.
+documentazione per 20. Tuple in Tabella~\ref{tab:attachall-tuple} (Appendice).
 
 \subsubsection{\texttt{newInstance(Class cls)}}
 
@@ -245,7 +245,8 @@ documentato: si assume un'eccezione (ipotesi).
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
 \textit{Oracolo:} su 7 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
-documentazione per 4, e ipotizzato in assenza di documentazione per 3.
+documentazione per 4, e ipotizzato in assenza di documentazione per 3. Tuple in
+Tabella~\ref{tab:newinstance-tuple} (Appendice).
 
 \subsubsection{\texttt{isDetached(Object obj, boolean find)}}
 
@@ -289,7 +290,7 @@ si assume una risposta negativa (metodo predicato, non un'operazione).
 
 \textit{Oracolo:} su 10 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
 documentazione per 5, dedotto dalla documentazione per 1, e ipotizzato in assenza di
-documentazione per 4.
+documentazione per 4. Tuple in Tabella~\ref{tab:isdetached-tuple} (Appendice).
 
 \subsubsection{\texttt{persist(Object pc, Object id, OpCallbacks call)}}
 
@@ -339,9 +340,7 @@ codice azione, il valore rappresentativo è \texttt{ACT\_NONE}.
 
 \textit{Oracolo:} su 30 combinazioni valide, l'oracolo è dichiarato esplicitamente dalla
 documentazione per 4, dedotto dalla documentazione per 10, e ipotizzato in assenza di
-documentazione per 16.
-
-Tuple complete per tutti i metodi in \texttt{report/data/}.
+documentazione per 16. Tuple in Tabella~\ref{tab:persist-tuple} (Appendice).
 
 \subsection{LoginDialog}
 
@@ -372,7 +371,8 @@ solo alla costruzione: si ipotizza anche \texttt{isShowing()==false}.
 \textit{Boundary Value Analysis:} non applicabile, nessun parametro numerico.
 
 \textit{Oracolo:} \{null\} ipotizzata. \{valida\} ipotizzata nel complesso
-(\texttt{getWidget()!=null} dedotto, \texttt{isShowing()==false} ipotizzato).
+(\texttt{getWidget()!=null} dedotto, \texttt{isShowing()==false} ipotizzato). Tuple in
+Tabella~\ref{tab:logindialog-costruttore-tuple} (Appendice).
 
 \subsubsection{Posizione del popup}
 
@@ -389,7 +389,8 @@ setter.
 
 \textit{Boundary Value Analysis:} confine a $0$ per entrambi, rappresentanti $-1,0,1$.
 
-\textit{Oracolo:} tutte e 9 dichiarate.
+\textit{Oracolo:} tutte e 9 dichiarate. Tuple in Tabella~\ref{tab:logindialog-posizione-tuple}
+(Appendice).
 
 \subsubsection{Titolo del popup}
 
@@ -405,7 +406,8 @@ stesso valore. Per \{null\}, nessuna eccezione dichiarata: si ipotizza che valga
 \textit{Boundary Value Analysis:} non applicabile; \{vuota\} copre il confine di lunghezza
 minima; \{valida\} rappresentata da una stringa arbitraria non vuota.
 
-\textit{Oracolo:} 2 dichiarate, 1 ipotizzata (\texttt{null}).
+\textit{Oracolo:} 2 dichiarate, 1 ipotizzata (\texttt{null}). Tuple in
+Tabella~\ref{tab:logindialog-title-tuple} (Appendice).
 
 \subsubsection{Proprietà booleane ereditate}
 
@@ -428,7 +430,8 @@ setter.
 \textit{Boundary Value Analysis:} non applicabile, le classi coincidono coi due valori
 booleani.
 
-\textit{Oracolo:} tutte dichiarate.
+\textit{Oracolo:} tutte dichiarate. Tuple in Tabella~\ref{tab:logindialog-boolprop-tuple}
+(Appendice).
 
 \subsubsection{Ciclo di vita}
 
@@ -451,7 +454,8 @@ portano a \texttt{false} (dichiarato per entrambi).
 
 \textit{Boundary Value Analysis:} non applicabile.
 
-\textit{Oracolo:} 7 dichiarate, 1 ipotizzata.
+\textit{Oracolo:} 7 dichiarate, 1 ipotizzata. Tuple in Tabella~\ref{tab:logindialog-lifecycle-tuple}
+(Appendice).
 
 \subsubsection{Classe GetServerURI}
 
@@ -487,7 +491,8 @@ raggiungibilità è uno stato simulato nel test.
 
 \textit{Oracolo:} \texttt{onFailure} ipotizzata (reazione non osservabile da specifica); tra le
 5 classi di \texttt{onSuccess}, 1 dedotta (\{valida, corretta\}) e 4 ipotizzate (\{null\},
-\{vuota\}, \{non valida\}, \{valida, non corretta\}). Totale: 1 dedotta, 5 ipotizzate.
+\{vuota\}, \{non valida\}, \{valida, non corretta\}). Totale: 1 dedotta, 5 ipotizzate. Tuple in
+Tabella~\ref{tab:logindialog-getserveruri-tuple} (Appendice).
 
 \subsubsection{Classe InitializeStocks}
 \label{sec:logindialog-initializestocks-oracolo}
@@ -513,7 +518,5 @@ application") coincide con l'ultimo passo. E' dedotto dalla combinazione delle d
 \textit{Boundary Value Analysis:} non applicabile. \texttt{caught}: \texttt{RuntimeException}
 arbitraria. \{con elementi\}: lista con un \texttt{Stock} arbitrario.
 
-\textit{Oracolo:} 3 dedotte, 1 ipotizzata (\texttt{onFailure}).
-
-Tuple complete per le sette sottosezioni con classi di equivalenza proprie in
-\texttt{report/data/logindialog/}.
+\textit{Oracolo:} 3 dedotte, 1 ipotizzata (\texttt{onFailure}). Tuple in
+Tabella~\ref{tab:logindialog-initializestocks-tuple} (Appendice).

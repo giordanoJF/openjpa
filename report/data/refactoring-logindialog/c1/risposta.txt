@@ -1,0 +1,11 @@
+With no tests to preserve, I extracted the constructor's UI-building logic, which mixed widget
+creation, layout and event wiring in a single long method, into three focused methods:
+buildContent() (assembles the FlexTable, header, label and text box and returns it),
+createEnterButton() (creates the button and wires its click handler), and attemptLogin() (the
+validation-and-submit logic that used to live inline in the click handler). The trader name text
+box, previously a local variable captured by the click handler closure, became a field
+(traderNameBox) so attemptLogin() can read it without needing it passed as a parameter. Repeated
+string literals ("login", "login-caption", "OpenTrader") were pulled into named constants. The
+constructor itself is now four lines. No other behavior was touched: same fields, same inner
+classes, same public API. Full refactored class:
+report/data/refactoring-logindialog/c1/LoginDialog.java.

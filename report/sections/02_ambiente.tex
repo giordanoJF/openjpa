@@ -91,7 +91,8 @@ secondo JDK 8 accanto al 17 ed esegue un passo
 dedicato che invoca Maven sul \texttt{pom.xml} di \texttt{opentrader}
 con la variabile \texttt{JAVA8\_HOME} impostata su quel secondo JDK,
 così che l'esecuzione dei test di \texttt{LoginDialog} resti coperta
-dalla CI pur restando fuori dalla build principale.
+dalla CI pur restando fuori dalla build principale. Configurazione completa in
+\hyperref[cmd:ci-config]{Appendice}.
 
 L'oggetto sotto test è \texttt{LoginDialog}; \texttt{OpenTrader} è un
 collaboratore controllato dal test. La superficie di metodi che \texttt{LoginDialog} invoca su
